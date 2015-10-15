@@ -1,0 +1,55 @@
+/*
+ * Kayon
+ * Copyright (C) 2015 Ruben Anders
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+String adjustedSrcDir = "$buildDir/tmp/adjustedSource"
+
+//task adjustSource(type: Copy) {
+//    from 'src/main/java'
+//    into adjustedSrcDir
+//
+//
+//    String buildNumber = System.getenv('DRONE_BUILD_NUMBER')
+//    filter(ReplaceTokens, tokens: [VERSION: version, BUILD_NUMBER: buildNumber != null ? buildNumber : 'NOT_BUILT_WITH_A_CI'])
+//
+//    group 'build'
+//    description 'Copies the source files main to a temporary location, replacing version and CI Build number tokens in them.'
+//}
+
+
+// https://ant.apache.org/manual/Tasks/copy.html
+task adjustSource << {
+    ant.copy(todir: adjustedSrcDir, overwrite: true, encoding: 'utf8', outputencoding: 'utf8') {
+        fileset(dir: 'src/main/java') {
+            exclude(name: '**/*.form') // Crashes javadoc.exe
+        }
+        filterchain {
+            replacetokens {
+                token(key: 'VERSION', value: version)
+            }
+        }
+    }
+}
+
+tasks.javadoc {
+    source = adjustedSrcDir
+    dependsOn tasks.adjustSource
+}
+
+tasks.compileJava {
+    source = adjustedSrcDir
+    dependsOn tasks.adjustSource
+}

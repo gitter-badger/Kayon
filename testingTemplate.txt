@@ -1,0 +1,15 @@
+NounDeclensionTestingUtil.testCorrectDeclining(Declension.getInstance(), Gender., "",
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true),
+                                                       new ImmutablePair<>("", true)
+);
