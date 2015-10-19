@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<!--
+  ~ Kayon
+  ~ Copyright (C) 2015 Ruben Anders
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<GridPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="960.0"
+          xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cf.kayon.gui.ApplicationMainWindowController">
+    <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0"/>
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints/>
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER"/>
+        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
+    </rowConstraints>
+    <children>
+        <MenuBar GridPane.columnSpan="2">
+            <menus>
+                <Menu fx:id="menuManage" mnemonicParsing="false" text="%MenuBar.MenuManage">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#newNoun" text="%MenuBar.MenuManage.NewNoun"/>
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#newAdjective" text="%MenuBar.MenuManage.NewAdjective"/>
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#newVerb" text="%MenuBar.MenuManage.NewVerb"/>
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#newAdverb" text="%MenuBar.MenuManage.NewAdverb"/>
+                        <MenuItem disable="true" mnemonicParsing="false" onAction="#newPreposition" text="%MenuBar.MenuManage.NewPreposition"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <TextField fx:id="searchField" promptText="%MainPane.SearchField.PromptText" GridPane.rowIndex="1">
+            <GridPane.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </GridPane.margin>
+        </TextField>
+        <Button fx:id="searchButton" defaultButton="true" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleButtonPress"
+                text="%MainPane.SearchButton.Text" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <GridPane.margin>
+                <Insets bottom="5.0" right="5.0" top="5.0"/>
+            </GridPane.margin>
+        </Button>
+        <ProgressIndicator fx:id="progressIndicator" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <opaqueInsets>
+                <Insets/>
+            </opaqueInsets>
+            <GridPane.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </GridPane.margin>
+        </ProgressIndicator>
+        <ScrollPane prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="2">
+            <GridPane.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0"/>
+            </GridPane.margin>
+            <content>
+                <FlowPane fx:id="flowPane" maxHeight="1.7976931348623157E308" maxWidth="950.0" prefHeight="200.0" prefWidth="950.0"/>
+            </content>
+        </ScrollPane>
+    </children>
+</GridPane>

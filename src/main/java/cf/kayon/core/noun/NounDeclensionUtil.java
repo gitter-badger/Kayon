@@ -19,15 +19,17 @@
 package cf.kayon.core.noun;
 
 import cf.kayon.core.Case;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-import com.google.common.collect.Tables;
 import cf.kayon.core.Count;
 import cf.kayon.core.FormingException;
 import cf.kayon.core.Gender;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
+import com.google.common.collect.Tables;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,5 +82,22 @@ public class NounDeclensionUtil
         ArrayList<String> buffer = new ArrayList<>(1);
         buffer.add(nounDeclension.decline(caze, count, gender, rootWord));
         return buffer;
+    }
+
+    @Nullable
+    @Contract("null -> null")
+    public static NounDeclension forName(@Nullable String className)
+    {
+        if (className == null)
+            return null;
+        try
+        {
+            Class<?> clazz = Class.forName(className);
+            Method m = clazz.getMethod("getInstance");
+            return (NounDeclension) m.invoke(null);
+        } catch (Exception e)
+        {
+            return null;
+        }
     }
 }

@@ -25,6 +25,10 @@ import cf.kayon.core.Gender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/*
+ * TODO Add to javadoc later: These classes MUST implement a method of exact signature for later reflective reconstruction
+ * public static <T extends NounDeclension> T getInstance()
+ */
 public interface NounDeclension {
 
     @NotNull

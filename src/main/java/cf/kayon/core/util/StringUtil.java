@@ -24,6 +24,7 @@ import com.google.common.collect.Tables;
 import org.apache.commons.collections4.iterators.ObjectArrayIterator;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,8 +84,8 @@ public class StringUtil
     }
 
     @NotNull
-    @SuppressWarnings("ConstantConditions")
-    public static <T extends CharSequence> T requireNonEmpty(@NotNull T csqToCheck)
+    @Contract("null -> fail")
+    public static <T extends CharSequence> T requireNonEmpty(T csqToCheck)
     {
         if (csqToCheck == null)
             throw new NullPointerException();
@@ -148,7 +149,7 @@ public class StringUtil
 
     public static char unSpecialChar(char specialChar) throws IllegalArgumentException
     {
-        if (specialCharsTable.contains(true, specialChar))
+        if (specialCharsTable.get(true, specialChar) != null)
             return specialChar;
         for (Table.Cell<Boolean, Character, Character> currentCell : specialCharsTable.cellSet())
         {

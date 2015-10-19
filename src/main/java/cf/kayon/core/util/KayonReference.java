@@ -18,6 +18,7 @@
 
 package cf.kayon.core.util;
 
+import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,9 +31,29 @@ public class KayonReference
 {
 
     @NotNull
-    public static final String VERSION;
+    private static final String VERSION;
 
-    public static final int BUILD;
+    private static final int BUILD;
+
+    @NotNull
+    public static String getVersion()
+    {
+        return VERSION;
+    }
+
+    public static int getBuild()
+    {
+        return BUILD;
+    }
+
+    @NotNull
+    public static Gson getGson()
+    {
+        return GSON;
+    }
+
+    @NotNull
+    private static final Gson GSON = new Gson();
 
     static
     {
@@ -46,7 +67,7 @@ public class KayonReference
         }
 
         try (InputStream inputStream = KayonReference.class.getResourceAsStream("/build");
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         {
             BUILD = Integer.parseInt(IOUtils.toString(inputStreamReader));
         } catch (IOException ioe)

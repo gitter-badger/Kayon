@@ -19,29 +19,34 @@
 package cf.kayon.core.noun;
 
 import cf.kayon.core.*;
-import cf.kayon.core.Count;
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.collect.*;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.collect.ArrayTable;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
 import org.apache.commons.collections4.iterators.ObjectArrayIterator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.beans.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static cf.kayon.core.util.StringUtil.requireNonEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class Noun implements Translatable, Vocab
+public class Noun implements Vocab
 {
     //region Fields
     @NotNull
-    private transient ArrayTable<Case, Count, String> declinedForms = ArrayTable.create(
+    private ArrayTable<Case, Count, String> declinedForms = ArrayTable.create(
             () -> new ObjectArrayIterator<>(Case.values()),
             () -> new ObjectArrayIterator<>(Count.values()));
 
     @NotNull
-    private HashBasedTable<Case, Count, String> definedForms = HashBasedTable.create(6, 2);
+    private Table<Case, Count, String> definedForms = HashBasedTable.create(6, 2);
 
     @NotNull
     private Map<String, String> translations = Maps.newHashMap();
@@ -55,14 +60,11 @@ public class Noun implements Translatable, Vocab
     @Nullable
     private NounDeclension nounDeclension;
 
-//    @Nullable
-//    private HashBasedTable<Case, Count, List<String>> alternateDeclinedForms = null; //Lazy
-//
-//    @Nullable
-//    private HashBasedTable<Case, Count, List<String>> alternateDefinedForms = null; //Lazy
+    @NotNull
+    private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
 
-//    @Nullable
-//    private HashBasedTable<Case, Count, Boolean> alternateOverrides = null; //Lazy
+    @NotNull
+    private VetoableChangeSupport vetoSupport = new VetoableChangeSupport(this);
     //endregion
 
     //region Constructors
@@ -74,6 +76,26 @@ public class Noun implements Translatable, Vocab
         _declineIntoBuffer();
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Noun noun = (Noun) o;
+        return com.google.common.base.Objects.equal(declinedForms, noun.declinedForms) &&
+               Objects.equal(definedForms, noun.definedForms) &&
+               Objects.equal(translations, noun.translations) &&
+               Objects.equal(gender, noun.gender) &&
+               Objects.equal(rootWord, noun.rootWord) &&
+               Objects.equal(nounDeclension, noun.nounDeclension);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(declinedForms, definedForms, translations, gender, rootWord, nounDeclension);
+    }
+
     public Noun(@NotNull Gender gender, @NotNull String rootWord)
     {
         this(null, gender, rootWord);
@@ -81,156 +103,76 @@ public class Noun implements Translatable, Vocab
     //endregion
 
     //region Defining forms
-    public void defineForm(@NotNull Case caze, @NotNull Count count, @NotNull String form)
+    public void setDefinedForm(@NotNull Case caze, @NotNull Count count, @NotNull String form) throws PropertyVetoException
     {
-        checkNotNull(caze);
-        checkNotNull(count);
-        requireNonEmpty(form);
+        String oldForm = getDefinedForm(caze, count);
+        vetoSupport.fireVetoableChange(count + "_" + caze + "_defined", oldForm, form);
         definedForms.put(caze, count, form);
-    }
-
-    public boolean isFormDefined(@NotNull Case caze, @NotNull Count count)
-    {
-        return definedForms.contains(checkNotNull(caze), checkNotNull(count));
-    }
-
-    public int formsDefined()
-    {
-        return definedForms.size();
+        changeSupport.firePropertyChange(count + "_" + caze + "_defined", oldForm, form);
     }
 
     @Nullable
-    public String getDefinedFormOrNull(@NotNull Case caze, @NotNull Count count)
+    public String getDefinedForm(@NotNull Case caze, @NotNull Count count)
     {
         checkNotNull(caze);
         checkNotNull(count);
         return definedForms.get(caze, count);
     }
 
-    @NotNull
-    public String getDefinedFormOrThrow(@NotNull Case caze, @NotNull Count count) throws NoSuchElementException
-    {
-        @Nullable
-        String definedFormOrNull = getDefinedFormOrNull(caze, count); // Delegates NotNull
-        if (definedFormOrNull == null)
-            throw new NoSuchElementException("No element for Case " + caze.toString() + " and Count " + count.toString());
-        return definedFormOrNull;
-    }
-
-    @NotNull
-    public Table<Case, Count, String> getDefinedFormsView()
-    {
-        return Tables.unmodifiableTable(this.definedForms);
-    }
-
-    @NotNull
-    public Table<Case, Count, String> getDefinedFormsCopy()
-    {
-        return HashBasedTable.create(this.definedForms);
-    }
-
-    public void deleteAllDefinedForms()
-    {
-        this.definedForms.clear();
-    }
-
     public void removeDefinedForm(@NotNull Case caze, @NotNull Count count)
     {
+        checkNotNull(caze);
+        checkNotNull(count);
         this.definedForms.remove(caze, count);
     }
 
     //endregion
 
-    //region Declension-based operations
-    public void removeNounDeclension()
-    {
-        this.setNounDeclension(null);
-    }
-
-    public boolean hasNounDeclension()
-    {
-        return this.nounDeclension != null;
-    }
-
-    @NotNull
-    public String getDeclinedFormOrThrow(@NotNull Case caze, @NotNull Count count) throws FormingException
-    {
-        @Nullable
-        String declinedFormOrNull = getDeclinedFormOrNull(caze, count);
-        if (declinedFormOrNull == null)
-            throw new FormingException("Could not determine form for case " + caze + " and count " + count);
-        return declinedFormOrNull;
-    }
-
+    //region Declining forms
     @Nullable
-    public String getDeclinedFormOrNull(@NotNull Case caze, @NotNull Count count)
+    public String getDeclinedForm(@NotNull Case caze, @NotNull Count count)
     {
         checkNotNull(caze);
         checkNotNull(count);
         return this.declinedForms.get(caze, count);
     }
 
-    public boolean hasDeclinationFailed(@NotNull Case caze, @NotNull Count count)
-    {
-        return this.declinedForms.get(checkNotNull(caze),
-                                      checkNotNull(count)) == null;
-    }
-
-    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH")
     private void _declineIntoBuffer()
     {
-        //You could do that, but since every single cell is visited anyways, everything will be overriden anyways.
-        if (!this.hasNounDeclension())
-        {
-            this.declinedForms.eraseAll();
-//            if (this.alternateDeclinedForms != null)
-//            {
-//                this.alternateDeclinedForms.clear();
-//            }
-            return;
-        }
-        for (Case currentCase : Case.values())
-            for (Count currentCount : Count.values())
+        for (Case caze : Case.values())
+            for (Count count : Count.values())
             {
-                try
-                {
+                String oldValue = this.declinedForms.get(caze, count);
+                String newValue;
+                if (this.getNounDeclension() == null)
+                    newValue = null;
+                else
                     try
                     {
-                        this.declinedForms.put(currentCase, currentCount, getNounDeclension().decline(currentCase, currentCount, this.gender, this.rootWord));
+                        newValue = getNounDeclension().decline(caze, count, this.gender, this.rootWord);
                     } catch (FormingException ignored)
                     {
-                        this.declinedForms.put(currentCase, currentCount, null);
+                        newValue = null;
                     }
-//                    if (this.getNounDeclension().hasAlternateForms(currentCase, currentCount, getGender(), getRootWord()))
-//                    {
-//                        _ensureAlternateDeclinedFormsTable();
-//                        List<String> altForms = this.getNounDeclension().getAlternateForms(currentCase, currentCount, getGender(), getRootWord());
-//                        if (altForms != null)
-//                        {
-//                            //noinspection ConstantConditions
-//                            this.alternateDeclinedForms.put(currentCase, currentCount, altForms);
-//                        }
-//                    }
-                } catch (NoDeclensionException e)
-                {
-                    //This will/should not happen in a single-threaded environment
-                    throw new ConcurrentModificationException("Concurrent access to Noun is not allowed", e);
-                }
+                this.declinedForms.put(caze, count, newValue);
+                changeSupport.firePropertyChange(caze + "_" + count + "_declined", oldValue, newValue);
             }
     }
     //endregion
 
-    //region Basic Setters and Getters
+    //region Setters and Getters
     @NotNull
     public Gender getGender()
     {
         return gender;
     }
 
-    public void setGender(@NotNull Gender gender)
+    public void setGender(@NotNull Gender gender) throws PropertyVetoException
     {
+        vetoSupport.fireVetoableChange("gender", this.gender, gender);
+        Gender oldGender = this.gender;
         this.gender = gender;
-        _declineIntoBuffer();
+        changeSupport.firePropertyChange("gender", oldGender, gender);
     }
 
     @NotNull
@@ -239,209 +181,52 @@ public class Noun implements Translatable, Vocab
         return rootWord;
     }
 
-    public void setRootWord(@NotNull String rootWord)
+    public void setRootWord(@NotNull String rootWord) throws PropertyVetoException
     {
-        this.rootWord = requireNonEmpty(rootWord);
-        _declineIntoBuffer();
+        vetoSupport.fireVetoableChange("rootWord", this.rootWord, rootWord);
+        String oldRootWord = this.rootWord;
+        this.rootWord = rootWord;
+        changeSupport.firePropertyChange("rootWord", oldRootWord, rootWord);
     }
 
-    public NounDeclension getNounDeclension() throws NoDeclensionException
+    @Nullable
+    public NounDeclension getNounDeclension()
     {
-        if (this.nounDeclension == null)
-            throw new NoDeclensionException();
         return this.nounDeclension;
     }
 
-    public void setNounDeclension(@Nullable NounDeclension valueToSetTo)
+    public void setNounDeclension(@Nullable NounDeclension nounDeclension) throws PropertyVetoException
     {
-        this.nounDeclension = valueToSetTo;
-        _declineIntoBuffer();
+        vetoSupport.fireVetoableChange("nounDeclension", this.nounDeclension, nounDeclension);
+        NounDeclension oldNounDeclension = this.nounDeclension;
+        this.nounDeclension = nounDeclension;
+        changeSupport.firePropertyChange("nounDeclension", oldNounDeclension, nounDeclension);
     }
     //endregion
 
-    //region Alternate Forms
-//    @Nullable
-//    public List<String> getAlternateForms(@NotNull Case caze, @NotNull Count count)
-//    {
-//        checkNotNull(caze);
-//        checkNotNull(count);
-//
-//        if (this.alternateDeclinedForms == null && this.alternateDefinedForms == null)
-//            return null;
-//
-//        List<String> merge = new ArrayList<>();
-//        if (this.alternateDeclinedForms != null)
-//        {
-//            if (this.alternateOverrides == null)
-//            {
-//                //No overrides (table object is null)
-//                List<String> gottenList = this.alternateDeclinedForms.get(caze, count);
-//                if (gottenList != null)
-//                    merge.addAll(gottenList);
-//            } else
-//            {
-//                //There are overrides, get the boolean value out
-//                Boolean gotten = this.alternateOverrides.get(caze, count);
-//                if (gotten != null) //There will most likely be no mapping for these two values
-//                {
-//                    if (!gotten) //There is a mapping, check for it to be false
-//                    {
-//                        List<String> gottenList = this.alternateDeclinedForms.get(caze, count);
-//                        if (gottenList != null)
-//                            merge.addAll(gottenList);
-//                    }
-//                } else
-//                { //No override (gotten boolean is null)
-//                    List<String> gottenList = this.alternateDeclinedForms.get(caze, count);
-//                    if (gottenList != null)
-//                        merge.addAll(gottenList);
-//                }
-//            }
-//        }
-//
-//        if (this.alternateDefinedForms != null)
-//        {
-//            List<String> gottenList = this.alternateDefinedForms.get(caze, count);
-//            if (gottenList != null)
-//                merge.addAll(gottenList);
-//        }
-//
-//        return merge;
-//    }
-
-//    @Nullable
-//    public List<String> getAlternateDeclinedForms(@NotNull Case caze, @NotNull Count count)
-//    {
-//        checkNotNull(caze);
-//        checkNotNull(count);
-//        if (this.alternateDeclinedForms == null)
-//            return null;
-//        List<String> gottenList = this.alternateDeclinedForms.get(caze, count);
-//        if (gottenList != null)
-//            return Collections.unmodifiableList(gottenList);
-//        return null;
-//    }
-//
-//    @Nullable
-//    public List<String> getAlternateDefinedForms(@NotNull Case caze, @NotNull Count count)
-//    {
-//        checkNotNull(caze);
-//        checkNotNull(count);
-//        if (this.alternateDefinedForms == null)
-//            return null;
-//        List<String> gottenList = this.alternateDefinedForms.get(caze, count);
-//        if (gottenList != null)
-//            return Collections.unmodifiableList(gottenList);
-//        return null;
-//    }
-//
-//    @Nullable
-//    public Table<Case, Count, List<String>> getAlternateDeclinedForms()
-//    {
-//        if (this.alternateDeclinedForms == null)
-//            return null;
-//        return Tables.unmodifiableTable(this.alternateDeclinedForms);
-//    }
-//
-//    @Nullable
-//    public Table<Case, Count, List<String>> getAlternateDefinedForms()
-//    {
-//        if (this.alternateDefinedForms == null)
-//            return null;
-//        return Tables.unmodifiableTable(this.alternateDefinedForms);
-//    }
-//
-//    public boolean isOverrideAlternateDeclinedForms(@NotNull Case caze, @NotNull Count count)
-//    {
-//        checkNotNull(caze);
-//        checkNotNull(count);
-//        if (this.alternateOverrides == null)
-//            return false;
-//        @Nullable
-//        Boolean gottenBoolean = this.alternateOverrides.get(caze, count);
-//        if (gottenBoolean == null)
-//            return false;
-//        return gottenBoolean;
-//    }
-//
-//    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH")
-//    public void setOverrideAlternateDeclinedForms(@NotNull Case caze, @NotNull Count count, boolean newValue)
-//    {
-//        checkNotNull(caze);
-//        checkNotNull(count);
-//        _ensureAlternateOverridesTable();
-//        //noinspection ConstantConditions
-//        this.alternateOverrides.put(caze, count, newValue);
-//    }
-//
-//    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH")
-//    public void addAlternateDefinedForm(@NotNull Case caze, @NotNull Count count, @NotNull String form, @Nullable Integer index)
-//    {
-//        checkNotNull(caze);
-//        checkNotNull(count);
-//        requireNonEmpty(form);
-//        _ensureAlternateDefinedFormsTable();
-//        //noinspection ConstantConditions
-//        @Nullable
-//        List<String> gottenList = this.alternateDefinedForms.get(caze, count);
-//        if (gottenList != null)
-//            if (index != null)
-//                gottenList.add(index, form);
-//            else
-//                gottenList.add(form);
-//        else
-//            this.alternateDefinedForms.put(caze, count, Lists.newArrayList(form));
-//    }
-//
-//    public void addAlternateDefinedForm(@NotNull Case caze, @NotNull Count count, @NotNull String form)
-//    {
-//        this.addAlternateDefinedForm(caze, count, form, null);
-//    }
-//
-//    private void _ensureAlternateDeclinedFormsTable()
-//    {
-//        if (this.alternateDeclinedForms == null)
-//            this.alternateDeclinedForms = HashBasedTable.create(6, 2);
-//    }
-//
-//    private void _ensureAlternateDefinedFormsTable()
-//    {
-//        if (this.alternateDefinedForms == null)
-//            this.alternateDefinedForms = HashBasedTable.create(6, 2);
-//    }
-//
-//    private void _ensureAlternateOverridesTable()
-//    {
-//        if (this.alternateOverrides == null)
-//            this.alternateOverrides = HashBasedTable.create(6, 2);
-//    }
-
-    @Nullable
-    @Override
-    public String translateTo(String iso639_1)
+    //region Translation
+    @NotNull
+    public Map<String, String> getTranslations()
     {
-        return translations.get(iso639_1);
+        return translations;
+    }
+
+    public void setTranslations(@NotNull Map<String, String> translations)
+    {
+        checkNotNull(translations);
+        this.translations = translations;
     }
 
     @Nullable
-    public String getFormOrNull(@NotNull Case caze, @NotNull Count count)
+    public String getForm(@NotNull Case caze, @NotNull Count count)
     {
         @Nullable
-        String definedFormOrNull = getDefinedFormOrNull(caze, count); // Delegates NotNull
+        String definedFormOrNull = getDefinedForm(caze, count); // Delegates NotNull
         if (definedFormOrNull != null)
             return definedFormOrNull;
-        return getDeclinedFormOrNull(caze, count);
+        return getDeclinedForm(caze, count);
     }
-
-    @NotNull
-    public String getFormOrThrow(@NotNull Case caze, @NotNull Count count) throws NoSuchElementException
-    {
-        @Nullable
-        String formOrNull = getFormOrNull(caze, count); // Delegates NotNull
-        if (formOrNull == null)
-            throw new NoSuchElementException("No form for Case " + caze.toString() + " and Count " + count.toString());
-        return formOrNull;
-    }
+    //endregion
 
     @NotNull
     @Override
@@ -458,17 +243,17 @@ public class Noun implements Translatable, Vocab
             sB.append(Strings.padStart(caze.toString(), 10, ' '));
             sB.append("|");
 
-            sB.append(isFormDefined(caze, Count.SINGULAR) ? '$' : ' ');
+            sB.append(getDefinedForms().contains(caze, Count.SINGULAR) ? '$' : ' ');
             @Nullable
-            String singularFormOrNull = getFormOrNull(caze, Count.SINGULAR);
+            String singularFormOrNull = getForm(caze, Count.SINGULAR);
             singularFormOrNull = singularFormOrNull == null ? "???????????????" : Strings.padEnd(singularFormOrNull, 15, ' ');
             sB.append(singularFormOrNull);
 
             sB.append("|");
 
-            sB.append(isFormDefined(caze, Count.PLURAL) ? '$' : ' ');
+            sB.append(getDefinedForms().contains(caze, Count.PLURAL) ? '$' : ' ');
             @Nullable
-            String pluralFormOrNull = getFormOrNull(caze, Count.PLURAL);
+            String pluralFormOrNull = getForm(caze, Count.PLURAL);
             pluralFormOrNull = pluralFormOrNull == null ? "???????????????" : Strings.padEnd(pluralFormOrNull, 15, ' ');
             sB.append(pluralFormOrNull);
 
@@ -481,19 +266,46 @@ public class Noun implements Translatable, Vocab
 
         return buffer;
     }
-    //endregion
 
-    //region SQL
-//    public void dbTest()
-//    {
-//        try (Connection connect = DriverManager.getConnection("jdbc:hsqldb:file:database.db"))
-//        {
-//
-//            Statement s = connect.createStatement();
-//        } catch (SQLException e)
-//        {
-//            e.printStackTrace();
-//        }
-//    }
+    //region Bean support
+    {
+        addPropertyChangeListener(evt -> {
+            if (evt.getPropertyName().equals("gender") || evt.getPropertyName().equals("rootWord") || evt.getPropertyName().equals("nounDeclension"))
+                _declineIntoBuffer();
+        });
+
+        addVetoableChangeListener(evt -> {
+            if (evt.getNewValue() == null)
+                throw new PropertyVetoException("New value may not be null!", evt);
+            if (evt.getNewValue() instanceof CharSequence && ((CharSequence) evt.getNewValue()).length() == 0)
+                throw new PropertyVetoException("New CharSequence value may not be empty!", evt);
+        });
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener)
+    {
+        changeSupport.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener)
+    {
+        changeSupport.removePropertyChangeListener(listener);
+    }
+
+    public void addVetoableChangeListener(VetoableChangeListener listener)
+    {
+        vetoSupport.addVetoableChangeListener(listener);
+    }
+
+    public void removeVetoableChangeListener(VetoableChangeListener listener)
+    {
+        vetoSupport.removeVetoableChangeListener(listener);
+    }
+
+    @NotNull
+    public Table<Case, Count, String> getDefinedForms()
+    {
+        return definedForms;
+    }
     //endregion
 }

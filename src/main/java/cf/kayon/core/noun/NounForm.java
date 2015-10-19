@@ -1,59 +1,78 @@
-//package com.kayon.core.noun;
+/*
+ * Kayon
+ * Copyright (C) 2015 Ruben Anders
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-//region Enum implementation
-//public enum NounForm {
-//    //region All possible combinations of Case, Count and Gender
-//    NOMINATIVE_SINGULAR_MASCULINE(Case.NOMINATIVE, Count.SINGULAR, Gender.MASCULINE),
-//    GENITIVE_SINGULAR_MASCULINE(Case.GENITIVE, Count.SINGULAR, Gender.MASCULINE),
-//    DATIVE_SINGULAR_MASCULINE(Case.DATIVE, Count.SINGULAR, Gender.MASCULINE),
-//    ACCUSATIVE_SINGULAR_MASCULINE(Case.ACCUSATIVE, Count.SINGULAR, Gender.MASCULINE),
-//    ABLATIVE_SINGULAR_MASCULINE(Case.ABLATIVE, Count.SINGULAR, Gender.MASCULINE),
-//    VOCATIVE_SINGULAR_MASCULINE(Case.VOCATIVE, Count.SINGULAR, Gender.MASCULINE),
-//
-//    NOMINATIVE_SINGULAR_FEMININE(Case.NOMINATIVE, Count.SINGULAR, Gender.FEMININE),
-//    GENITIVE_SINGULAR_FEMININE(Case.GENITIVE, Count.SINGULAR, Gender.FEMININE),
-//    DATIVE_SINGULAR_FEMININE(Case.DATIVE, Count.SINGULAR, Gender.FEMININE),
-//    ACCUSATIVE_SINGULAR_FEMININE(Case.ACCUSATIVE, Count.SINGULAR, Gender.FEMININE),
-//    ABLATIVE_SINGULAR_FEMININE(Case.ABLATIVE, Count.SINGULAR, Gender.FEMININE),
-//    VOCATIVE_SINGULAR_FEMININE(Case.VOCATIVE, Count.SINGULAR, Gender.FEMININE),
-//
-//    NOMINATIVE_SINGULAR_NEUTER(Case.NOMINATIVE, Count.SINGULAR, Gender.NEUTER),
-//    GENITIVE_SINGULAR_NEUTER(Case.GENITIVE, Count.SINGULAR, Gender.NEUTER),
-//    DATIVE_SINGULAR_NEUTER(Case.DATIVE, Count.SINGULAR, Gender.NEUTER),
-//    ACCUSATIVE_SINGULAR_NEUTER(Case.ACCUSATIVE, Count.SINGULAR, Gender.NEUTER),
-//    ABLATIVE_SINGULAR_NEUTER(Case.ABLATIVE, Count.SINGULAR, Gender.NEUTER),
-//    VOCATIVE_SINGULAR_NEUTER(Case.VOCATIVE, Count.SINGULAR, Gender.NEUTER),
-//
-//
-//    NOMINATIVE_PLURAL_MASCULINE(Case.NOMINATIVE, Count.PLURAL, Gender.MASCULINE),
-//    GENITIVE_PLURAL_MASCULINE(Case.GENITIVE, Count.PLURAL, Gender.MASCULINE),
-//    DATIVE_PLURAL_MASCULINE(Case.DATIVE, Count.PLURAL, Gender.MASCULINE),
-//    ACCUSATIVE_PLURAL_MASCULINE(Case.ACCUSATIVE, Count.PLURAL, Gender.MASCULINE),
-//    ABLATIVE_PLURAL_MASCULINE(Case.ABLATIVE, Count.PLURAL, Gender.MASCULINE),
-//    VOCATIVE_PLURAL_MASCULINE(Case.VOCATIVE, Count.PLURAL, Gender.MASCULINE),
-//
-//    NOMINATIVE_PLURAL_FEMININE(Case.NOMINATIVE, Count.PLURAL, Gender.FEMININE),
-//    GENITIVE_PLURAL_FEMININE(Case.GENITIVE, Count.PLURAL, Gender.FEMININE),
-//    DATIVE_PLURAL_FEMININE(Case.DATIVE, Count.PLURAL, Gender.FEMININE),
-//    ACCUSATIVE_PLURAL_FEMININE(Case.ACCUSATIVE, Count.PLURAL, Gender.FEMININE),
-//    ABLATIVE_PLURAL_FEMININE(Case.ABLATIVE, Count.PLURAL, Gender.FEMININE),
-//    VOCATIVE_PLURAL_FEMININE(Case.VOCATIVE, Count.PLURAL, Gender.FEMININE),
-//
-//    NOMINATIVE_PLURAL_NEUTER(Case.NOMINATIVE, Count.PLURAL, Gender.NEUTER),
-//    GENITIVE_PLURAL_NEUTER(Case.GENITIVE, Count.PLURAL, Gender.NEUTER),
-//    DATIVE_PLURAL_NEUTER(Case.DATIVE, Count.PLURAL, Gender.NEUTER),
-//    ACCUSATIVE_PLURAL_NEUTER(Case.ACCUSATIVE, Count.PLURAL, Gender.NEUTER),
-//    ABLATIVE_PLURAL_NEUTER(Case.ABLATIVE, Count.PLURAL, Gender.NEUTER),
-//    VOCATIVE_PLURAL_NEUTER(Case.VOCATIVE, Count.PLURAL, Gender.NEUTER);
-//    //end NO region
-//
-//    private final Case caze;
-//    private final Count number;
-//    private final Gender gender;
-//
-//    NounForm(Case caze, Count number, Gender gender) {
-//        this.caze = caze;
-//        this.number = number;
-//        this.gender = gender;
-//   }
-//endregion
+package cf.kayon.core.noun;
+
+import cf.kayon.core.Case;
+import cf.kayon.core.Count;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class NounForm
+{
+
+    private final Case caze;
+
+    private final Count count;
+
+    public NounForm(Case caze, Count count)
+    {
+        checkNotNull(caze);
+        checkNotNull(count);
+        this.caze = caze;
+        this.count = count;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NounForm nounForm = (NounForm) o;
+        return Objects.equal(caze, nounForm.caze) &&
+               Objects.equal(count, nounForm.count);
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper(this)
+                          .add("case", caze)
+                          .add("count", count)
+                          .toString();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(caze, count);
+    }
+
+    public Case getCaze()
+    {
+
+        return caze;
+    }
+
+    public Count getCount()
+    {
+        return count;
+    }
+}
