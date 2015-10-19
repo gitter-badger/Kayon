@@ -23,9 +23,10 @@ apply from: 'javadocAndSourcesJar.gradle'
 
 group 'cf.kayon'
 version = file('src/main/resources/version').getText('utf8')
+mainClassName = 'cf.kayon.gui.SplashScreen'
+
 if (System.getenv('CIRCLECI').equals('true'))
     file('src/main/resources/build').write(System.getenv('CIRCLE_BUILD_NUM'))
-mainClassName = 'cf.kayon.gui.SplashScreen'
 
 jar {
     manifest {
