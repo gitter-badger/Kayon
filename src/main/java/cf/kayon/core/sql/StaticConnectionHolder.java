@@ -21,6 +21,8 @@ package cf.kayon.core.sql;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -30,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class StaticConnectionHolder
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(StaticConnectionHolder.class);
+
     static
     {
         Runtime.getRuntime().addShutdownHook(new Thread(StaticConnectionHolder::close, "StaticConnectionHolder-closer"));
@@ -51,23 +55,18 @@ public class StaticConnectionHolder
         connections.put(id, connection);
     }
 
-    @Override
-    protected void finalize() throws Throwable
-    {
-        close();
-        super.finalize();
-    }
-
     public static void close()
     {
         for (Map.Entry<String, Connection> connectionEntry : connections.entrySet())
         {
-            try
-            {
-                Connection connection = connectionEntry.getValue();
-                if (connection != null)
+            Connection connection = connectionEntry.getValue();
+            if (connection != null)
+                try
+                {
                     connection.close();
-            } catch (SQLException ignored) {} // .close() could throw and prevent all following connections from closing.
+                } catch (SQLException ignored) {} // .close() could throw and prevent all following connections from closing.
+            LOGGER.info("Invoked close() on " + connection);
         }
+        LOGGER.info("Invoked close() on all static connection.");
     }
 }

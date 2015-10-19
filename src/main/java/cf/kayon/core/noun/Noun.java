@@ -103,12 +103,17 @@ public class Noun implements Vocab
     //endregion
 
     //region Defining forms
-    public void setDefinedForm(@NotNull Case caze, @NotNull Count count, @NotNull String form) throws PropertyVetoException
+    public void setDefinedForm(@NotNull Case caze, @NotNull Count count, @Nullable String form) throws PropertyVetoException
     {
         String oldForm = getDefinedForm(caze, count);
-        vetoSupport.fireVetoableChange(count + "_" + caze + "_defined", oldForm, form);
-        definedForms.put(caze, count, form);
-        changeSupport.firePropertyChange(count + "_" + caze + "_defined", oldForm, form);
+        if (form != null && form.isEmpty())
+            form = null; // empty strings get converted to nulls
+        vetoSupport.fireVetoableChange(caze + "_" + count + "_defined", oldForm, form);
+        if (form != null && !form.isEmpty())
+            definedForms.put(caze, count, form);
+        else
+            definedForms.remove(caze, count);
+        changeSupport.firePropertyChange(caze + "_" + count + "_defined", oldForm, form);
     }
 
     @Nullable
@@ -275,10 +280,13 @@ public class Noun implements Vocab
         });
 
         addVetoableChangeListener(evt -> {
-            if (evt.getNewValue() == null)
-                throw new PropertyVetoException("New value may not be null!", evt);
-            if (evt.getNewValue() instanceof CharSequence && ((CharSequence) evt.getNewValue()).length() == 0)
-                throw new PropertyVetoException("New CharSequence value may not be empty!", evt);
+            if (!evt.getPropertyName().endsWith("defined"))
+            {
+                if (evt.getNewValue() == null)
+                    throw new PropertyVetoException("New value may not be null!", evt);
+                if (evt.getNewValue() instanceof CharSequence && ((CharSequence) evt.getNewValue()).length() == 0)
+                    throw new PropertyVetoException("New CharSequence value may not be empty!", evt);
+            }
         });
     }
 

@@ -50,13 +50,13 @@ public class NounSQLFactory
                                            "nomPl = ? OR genPl = ? OR datPl = ? OR accPl = ? OR ablPl = ? OR vocPl = ?";
 
     public static final String SQL_SETUP = "CREATE TABLE IF NOT EXISTS NOUNS (" +
-                                           "rootWord TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE," +
-                                           "gender INTEGER NOT NULL," +
-                                           "nounDeclension TEXT," +
-                                           "translationsJson TEXT NOT NULL," +
-                                           "nomSg TEXT, genSg TEXT, datSg TEXT, accSg TEXT, ablSg TEXT, vocSg TEXT," +
-                                           "nomPl TEXT, genPl TEXT, datPl TEXT, accPl TEXT, ablPl TEXT, vocPl TEXT," +
-                                           "nomSgDef TEXT, genSgDef TEXT, datSgDef TEXT, accSgDef TEXT, ablSgDef TEXT, vocSgDef TEXT," +
+                                           "rootWord TEXT NOT NULL ON CONFLICT REPLACE, " +
+                                           "gender INTEGER NOT NULL, " +
+                                           "nounDeclension TEXT, " +
+                                           "translationsJson TEXT NOT NULL, " +
+                                           "nomSg TEXT, genSg TEXT, datSg TEXT, accSg TEXT, ablSg TEXT, vocSg TEXT, " +
+                                           "nomPl TEXT, genPl TEXT, datPl TEXT, accPl TEXT, ablPl TEXT, vocPl TEXT, " +
+                                           "nomSgDef TEXT, genSgDef TEXT, datSgDef TEXT, accSgDef TEXT, ablSgDef TEXT, vocSgDef TEXT, " +
                                            "nomPlDef TEXT, genPlDef TEXT, datPlDef TEXT, accPlDef TEXT, ablPlDef TEXT, vocPlDef TEXT);";
 
     private static final Map<Connection, SQLBuffer> map = Maps.newHashMap();

@@ -5,3 +5,6 @@ general:
   artifacts:
     - "build/libs/*.jar"
     - "build/distributions/*.zip"
+dependencies:
+  post:
+    - ./gradlew jar sourcesJar javadocJar distZip

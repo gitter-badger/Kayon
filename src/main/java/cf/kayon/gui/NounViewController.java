@@ -242,6 +242,9 @@ public class NounViewController
 
         if (reRegisterListeners)
         {
+            rootWordTextBox.setText(noun.getRootWord());
+            genderComboBox.setValue(noun.getGender());
+            declensionComboBox.setValue(noun.getNounDeclension());
             noun.addPropertyChangeListener(register(FxUtil.bind(rootWordTextBox.textProperty(), "rootWord")));
             noun.addPropertyChangeListener(register(FxUtil.bind(genderComboBox.valueProperty(), "gender")));
             noun.addPropertyChangeListener(register(FxUtil.bind(declensionComboBox.valueProperty(), "nounDeclension")));
@@ -255,6 +258,13 @@ public class NounViewController
                 TextField currentTextField = currentTriple.getMiddle();
                 CheckBox currentCheckBox = currentTriple.getRight();
 
+                if (!initializedWithNoun) // For readability, place this here instead of .initialize() (saves iterations and map-gets)
+                {
+                    FxUtil.bindInverse(currentText.visibleProperty(), currentCheckBox.selectedProperty());
+                    currentTextField.visibleProperty().bind(currentCheckBox.selectedProperty());
+                    currentCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> checkBoxChanged(caze, count, newValue));
+                }
+
                 // Text
                 String declinedForm = noun != null ? noun.getDeclinedForm(caze, count) : null;
                 currentText.setText(declinedForm != null ? declinedForm : resources.getString("Text.DeclinedForm.NoDeclinedForm"));
@@ -264,12 +274,6 @@ public class NounViewController
                 // CheckBox
                 if (isReset && noun != null)
                     currentCheckBox.setSelected(noun.getDefinedForm(caze, count) != null);
-
-                if (!initializedWithNoun) // For readability, place this here instead of .initialize() (saves iterations and map-gets)
-                {
-                    FxUtil.bindInverse(currentText.visibleProperty(), currentCheckBox.selectedProperty());
-                    currentTextField.visibleProperty().bind(currentCheckBox.selectedProperty());
-                }
 
                 if (reRegisterListeners)
                 {
@@ -285,12 +289,29 @@ public class NounViewController
     private void definedFormChange(Case caze, Count count, String newValue)
     {
         if (currentBackingNoun != null)
-        {
             try
             {
                 currentBackingNoun.setDefinedForm(caze, count, newValue);
-            } catch (PropertyVetoException ignored) {} // Decided to do this instead of pre-checking, since the veto listeners run anyways.
-        }
+            } catch (PropertyVetoException e)
+            {
+                throw new RuntimeException(e);
+            }
+    }
+
+    private void checkBoxChanged(Case caze, Count count, boolean newValue)
+    {
+
+        if (currentBackingNoun != null)
+            if (!newValue)
+                currentBackingNoun.removeDefinedForm(caze, count);
+            else
+                try
+                {
+                    currentBackingNoun.setDefinedForm(caze, count, tableElements.get(caze, count).getMiddle().getText());
+                } catch (PropertyVetoException e)
+                {
+                    throw new RuntimeException(e);
+                }
     }
 
     private void rootWordChange(String newValue)

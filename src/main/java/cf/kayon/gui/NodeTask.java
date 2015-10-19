@@ -22,31 +22,38 @@ import cf.kayon.core.Vocab;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.Node;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.control.Separator;
+import javafx.scene.layout.VBox;
 
 import java.util.concurrent.CountDownLatch;
 
 public class NodeTask extends Task<Void>
 {
-    private final Vocab v;
+    private final Vocab vocab;
 
-    private final FlowPane p;
+    private final VBox vBox;
 
-    private final CountDownLatch l;
+    private final CountDownLatch latch;
 
-    public NodeTask(final Vocab v, final FlowPane p, final CountDownLatch l)
+    public NodeTask(final Vocab vocab, final VBox vBox, final CountDownLatch latch)
     {
-        this.v = v;
-        this.p = p;
-        this.l = l;
+        this.vocab = vocab;
+        this.vBox = vBox;
+        this.latch = latch;
     }
 
     @Override
     protected Void call() throws Exception
     {
-        Node n = VocabNodeFactory.getNode(v); // Static class initialization is synchronized by JLS
-        Platform.runLater(() -> p.getChildren().add(n));
-        l.countDown();
+        Node n = VocabNodeFactory.getNode(vocab);
+        if (latch.getCount() == 1)
+            Platform.runLater(() -> vBox.getChildren().add(n));
+        else
+            Platform.runLater(() -> {
+                vBox.getChildren().add(n);
+                vBox.getChildren().add(new Separator());
+            });
+        latch.countDown();
         return null;
     }
 }

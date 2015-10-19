@@ -31,8 +31,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -61,7 +61,7 @@ public class ApplicationMainWindowController
     Button searchButton;
 
     @FXML
-    FlowPane flowPane;
+    VBox vBox;
 
     @FXML
     ProgressIndicator progressIndicator;
@@ -87,7 +87,7 @@ public class ApplicationMainWindowController
                 case READY:
                 case RUNNING:
                 case SCHEDULED:
-                    flowPane.getChildren().clear();
+                    vBox.getChildren().clear();
                     break;
             }
         });
@@ -108,7 +108,7 @@ public class ApplicationMainWindowController
         CountDownLatch latch = new CountDownLatch(serviceResult.size());
         for (Vocab vocab : serviceResult)
         {
-            NodeTask task = new NodeTask(vocab, flowPane, latch);
+            NodeTask task = new NodeTask(vocab, vBox, latch);
             threadPoolExecutor.execute(task);
         }
         threadPoolExecutor.shutdown();
