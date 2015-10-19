@@ -88,7 +88,7 @@ tasks.javadoc {
     options.addStringOption('encoding', 'utf8')
     options.addStringOption('docencoding', 'utf8')
     options.addStringOption('charset', 'utf8')
-    options.setOutputLevel(JavadocOutputLevel.VERBOSE)
+//    options.setOutputLevel(JavadocOutputLevel.VERBOSE)
 }
 //endregion
 
