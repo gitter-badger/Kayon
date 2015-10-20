@@ -1,4 +1,4 @@
-# Kayon
+# Kayon [![Circle CI](https://circleci.com/gh/RAnders00/Kayon.svg?style=svg)](https://circleci.com/gh/RAnders00/Kayon) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/RAnders00/Kayon?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Kayon is a reference utility for the Latin language. You can enter a finite Form into the graphical user interface
 and get it's translation(s), what form it is, etc...
