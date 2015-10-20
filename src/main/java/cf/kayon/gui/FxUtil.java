@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.beans.PropertyChangeListener;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class FxUtil
 {
@@ -55,9 +56,7 @@ public class FxUtil
 
     public static ChangeListener<Boolean> bindInverse(WritableBooleanValue writeTo, ReadOnlyBooleanProperty readFrom)
     {
-        ChangeListener<Boolean> listener = (observable, oldValue, newValue) -> {
-            Platform.runLater(() -> writeTo.set(!newValue));
-        };
+        ChangeListener<Boolean> listener = (observable, oldValue, newValue) -> Platform.runLater(() -> writeTo.set(!newValue));
         readFrom.addListener(listener);
         return listener;
     }
@@ -69,6 +68,16 @@ public class FxUtil
         return evt -> {
             if (evt.getPropertyName().equals(propertyName))
                 writeTo.setValue((T) evt.getNewValue());
+        };
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public static <T, R> PropertyChangeListener bind(WritableValue<R> writeTo, String propertyName, Function<T, R> transformer)
+    {
+        return evt -> {
+            if (evt.getPropertyName().equals(propertyName))
+                writeTo.setValue(transformer.apply((T) evt.getNewValue()));
         };
     }
 }

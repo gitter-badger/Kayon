@@ -19,11 +19,20 @@
 package cf.kayon.core;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface Vocab extends Translatable
 {
     @NotNull
     List<String> commandLineRepresentation();
+
+    // null if it has not been initialized yet
+    @Nullable
+    UUID getUuid();
+
+    // Also fires property update event
+    void initializeUuid(@NotNull UUID uuid);
 }

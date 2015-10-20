@@ -33,6 +33,7 @@ import java.beans.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static cf.kayon.core.util.StringUtil.requireNonEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -82,18 +83,19 @@ public class Noun implements Vocab
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Noun noun = (Noun) o;
-        return com.google.common.base.Objects.equal(declinedForms, noun.declinedForms) &&
+        return Objects.equal(declinedForms, noun.declinedForms) &&
                Objects.equal(definedForms, noun.definedForms) &&
                Objects.equal(translations, noun.translations) &&
                Objects.equal(gender, noun.gender) &&
                Objects.equal(rootWord, noun.rootWord) &&
-               Objects.equal(nounDeclension, noun.nounDeclension);
+               Objects.equal(nounDeclension, noun.nounDeclension) &&
+               Objects.equal(uuid, noun.uuid);
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(declinedForms, definedForms, translations, gender, rootWord, nounDeclension);
+        return Objects.hashCode(declinedForms, definedForms, translations, gender, rootWord, nounDeclension, uuid);
     }
 
     public Noun(@NotNull Gender gender, @NotNull String rootWord)
@@ -270,6 +272,24 @@ public class Noun implements Vocab
         buffer.add("+----------+----------------+----------------+");
 
         return buffer;
+    }
+
+    private UUID uuid;
+
+    @Nullable
+    @Override
+    public UUID getUuid()
+    {
+        return uuid;
+    }
+
+    @Override
+    public void initializeUuid(@NotNull UUID uuid)
+    {
+        if (this.uuid != null)
+            throw new IllegalStateException("UUID has already been initialized");
+        this.uuid = uuid;
+        changeSupport.firePropertyChange("uuid", null, uuid);
     }
 
     //region Bean support

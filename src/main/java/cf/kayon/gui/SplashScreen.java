@@ -32,6 +32,7 @@ public class SplashScreen extends Application
 {
     public static void main(String[] args)
     {
+        System.setProperty("glass.accessible.force", "false"); // http://stackoverflow.com/a/32597281/4464702
         launch(args);
     }
 

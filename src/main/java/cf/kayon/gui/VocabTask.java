@@ -20,13 +20,13 @@ package cf.kayon.gui;
 
 import cf.kayon.core.Vocab;
 import cf.kayon.core.sql.NounSQLFactory;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import javafx.concurrent.Task;
 
 import java.sql.Connection;
-import java.util.Set;
+import java.util.List;
 
-public class VocabTask extends Task<Set<Vocab>>
+public class VocabTask extends Task<List<Vocab>>
 {
     private final String searchString;
 
@@ -39,9 +39,9 @@ public class VocabTask extends Task<Set<Vocab>>
     }
 
     @Override
-    protected Set<Vocab> call() throws Exception
+    protected List<Vocab> call() throws Exception
     {
-        Set<Vocab> vocabSet = Sets.newHashSet();
+        List<Vocab> vocabSet = Lists.newArrayList();
         vocabSet.addAll(NounSQLFactory.queryNouns(connection, searchString));
         return vocabSet;
     }

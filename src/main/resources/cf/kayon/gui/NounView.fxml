@@ -22,7 +22,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="935.0"
+<GridPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="935.0"
           xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cf.kayon.gui.NounViewController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
@@ -62,26 +62,24 @@
             <Insets bottom="5.0" left="5.0" top="5.0"/>
         </GridPane.margin>
     </TextField>
-    <ComboBox fx:id="genderComboBox" maxWidth="1.7976931348623157E308" onMousePressed="#requestFocus" prefWidth="150.0" GridPane.columnIndex="1"
-              GridPane.rowIndex="1">
+    <ComboBox fx:id="genderComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
         <GridPane.margin>
             <Insets bottom="5.0" left="5.0" top="5.0"/>
         </GridPane.margin>
     </ComboBox>
-    <ComboBox fx:id="declensionComboBox" maxWidth="1.7976931348623157E308" onMousePressed="#requestFocus" prefWidth="150.0" GridPane.columnIndex="1"
-              GridPane.rowIndex="2">
+    <ComboBox fx:id="declensionComboBox" maxWidth="1.7976931348623157E308" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
         <GridPane.margin>
             <Insets bottom="5.0" left="5.0" top="5.0"/>
         </GridPane.margin>
     </ComboBox>
-    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="%Count.SINGULAR" GridPane.columnIndex="4">
+    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="%Count.SINGULAR" GridPane.columnIndex="4" GridPane.halignment="CENTER">
         <GridPane.margin>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
         </GridPane.margin>
     </Text>
-    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="%Count.PLURAL" GridPane.columnIndex="6">
+    <Text strokeType="OUTSIDE" strokeWidth="0.0" text="%Count.PLURAL" GridPane.columnIndex="6" GridPane.halignment="CENTER">
         <GridPane.margin>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
         </GridPane.margin>
     </Text>
     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="%Case.NOMINATIVE" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
@@ -174,29 +172,77 @@
             <Insets bottom="5.0" right="5.0" top="5.0"/>
         </GridPane.margin>
     </CheckBox>
-    <TextField fx:id="nomSgTextField" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+    <TextField fx:id="nomSgTextField" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="4" GridPane.rowIndex="1">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="genSgTextField" layoutX="536.0" layoutY="40.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="4"
-               GridPane.rowIndex="2"/>
+               GridPane.rowIndex="2">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="datSgTextField" layoutX="536.0" layoutY="68.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="4"
-               GridPane.rowIndex="3"/>
+               GridPane.rowIndex="3">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="ablPlTextField" layoutX="536.0" layoutY="96.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="6"
-               GridPane.rowIndex="5"/>
+               GridPane.rowIndex="5">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="accPlTextField" layoutX="536.0" layoutY="96.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="6"
-               GridPane.rowIndex="4"/>
+               GridPane.rowIndex="4">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="datPlTextField" layoutX="536.0" layoutY="96.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="6"
-               GridPane.rowIndex="3"/>
+               GridPane.rowIndex="3">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="vocSgTextField" layoutX="536.0" layoutY="96.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="4"
-               GridPane.rowIndex="6"/>
+               GridPane.rowIndex="6">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="ablSgTextField" layoutX="536.0" layoutY="96.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="4"
-               GridPane.rowIndex="5"/>
+               GridPane.rowIndex="5">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="accSgTextField" layoutX="536.0" layoutY="96.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="4"
-               GridPane.rowIndex="4"/>
+               GridPane.rowIndex="4">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="genPlTextField" layoutX="536.0" layoutY="96.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="6"
-               GridPane.rowIndex="2"/>
+               GridPane.rowIndex="2">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="nomPlTextField" layoutX="536.0" layoutY="96.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="6"
-               GridPane.rowIndex="1"/>
+               GridPane.rowIndex="1">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <TextField fx:id="vocPlTextField" layoutX="758.0" layoutY="154.0" promptText="%TextField.DefinedForm.PromptText" visible="false" GridPane.columnIndex="6"
-               GridPane.rowIndex="6"/>
+               GridPane.rowIndex="6">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+    </TextField>
     <Text fx:id="ablPlText" layoutX="536.0" layoutY="57.0" strokeType="OUTSIDE" strokeWidth="0.0" text="%Text.ErrorDisplaying" GridPane.columnIndex="6"
           GridPane.rowIndex="5"/>
     <Text fx:id="accPlText" layoutX="536.0" layoutY="57.0" strokeType="OUTSIDE" strokeWidth="0.0" text="%Text.ErrorDisplaying" GridPane.columnIndex="6"
@@ -233,4 +279,20 @@
             <Insets bottom="5.0" left="5.0"/>
         </GridPane.margin>
     </Button>
+    <Text fx:id="uuidText" fill="#00000080" strokeType="OUTSIDE" strokeWidth="0.0" text="%Text.UUID" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+        <GridPane.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+        </GridPane.margin>
+        <font>
+            <Font name="Monospaced Italic" size="12.0"/>
+        </font>
+    </Text>
+    <Text fx:id="uuidValueText" fill="#00000080" strokeType="OUTSIDE" strokeWidth="0.0" text="%Text.UUID.NoneSet" GridPane.columnIndex="1" GridPane.rowIndex="4">
+        <GridPane.margin>
+            <Insets bottom="5.0" left="5.0" top="5.0"/>
+        </GridPane.margin>
+        <font>
+            <Font name="Monospaced Italic" size="12.0"/>
+        </font>
+    </Text>
 </GridPane>

@@ -463,6 +463,23 @@ public class Adjective implements Vocab
         return buffer;
     }
 
+    private UUID uuid;
+
+    @Nullable
+    @Override
+    public UUID getUuid()
+    {
+        return uuid;
+    }
+
+    @Override
+    public void initializeUuid(@NotNull UUID uuid)
+    {
+        if (this.uuid != null)
+            throw new IllegalStateException("UUID has already been initialized");
+        this.uuid = uuid;
+    }
+
     @Nullable
     @Override
     public Map<String, String> getTranslations()

@@ -29,12 +29,11 @@ import com.google.common.collect.*;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -46,6 +45,7 @@ import java.beans.PropertyVetoException;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.UUID;
 
 public class NounViewController
 {
@@ -91,6 +91,12 @@ public class NounViewController
 
     @FXML
     ComboBox<NounDeclension> declensionComboBox;
+
+    @FXML
+    GridPane rootPane;
+
+    @FXML
+    Text uuidText, uuidValueText;
 
     @Nullable
     Noun initialBackingNoun;
@@ -188,13 +194,15 @@ public class NounViewController
      * Not having this here causes an application-wide freeze
      * on Windows 10 devices with touch (my computer is one of those)
      */
-    @FXML
-    protected void requestFocus(MouseEvent event)
-    {
-        ((Node) event.getSource()).requestFocus();
-    }
+    //    @FXML
+    //    protected void requestFocus(MouseEvent event)
+    //    {
+    //        ((Node) event.getSource()).requestFocus();
+    //    }
 
     private boolean init = false;
+
+    private boolean isWindowed = false;
 
     /*
      * Call on JavaFX Application Thread
@@ -206,8 +214,17 @@ public class NounViewController
         if (init)
             throw new IllegalStateException();
         init = true;
-        this.initialBackingNoun = noun;
         bindNoun(noun, true, true);
+        rootPane.sceneProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null)
+                newValue.windowProperty().addListener((observable1, oldValue1, newValue1) -> {
+                    if (newValue1 != null)
+                    {
+                        saveButton.setText(resources.getString("Button.SaveAndExit"));
+                        isWindowed = true;
+                    }
+                });
+        });
     }
 
     Set<PropertyChangeListener> listeners = Sets.newHashSet();
@@ -245,9 +262,12 @@ public class NounViewController
             rootWordTextBox.setText(noun.getRootWord());
             genderComboBox.setValue(noun.getGender());
             declensionComboBox.setValue(noun.getNounDeclension());
+            uuidValueText.setText(noun.getUuid() != null ? noun.getUuid().toString() : resources.getString("Text.UUID.NoneSet"));
             noun.addPropertyChangeListener(register(FxUtil.bind(rootWordTextBox.textProperty(), "rootWord")));
             noun.addPropertyChangeListener(register(FxUtil.bind(genderComboBox.valueProperty(), "gender")));
             noun.addPropertyChangeListener(register(FxUtil.bind(declensionComboBox.valueProperty(), "nounDeclension")));
+            noun.addPropertyChangeListener(register(
+                    FxUtil.bind(uuidValueText.textProperty(), "uuid", (UUID uuid) -> uuid != null ? uuid.toString() : resources.getString("Text.UUID.NoneSet"))));
         }
 
         for (Count count : Count.values())
@@ -263,6 +283,7 @@ public class NounViewController
                     FxUtil.bindInverse(currentText.visibleProperty(), currentCheckBox.selectedProperty());
                     currentTextField.visibleProperty().bind(currentCheckBox.selectedProperty());
                     currentCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> checkBoxChanged(caze, count, newValue));
+                    currentTextField.textProperty().addListener((observable, oldValue, newValue) -> definedFormChange(caze, count, newValue));
                 }
 
                 // Text
@@ -270,7 +291,7 @@ public class NounViewController
                 currentText.setText(declinedForm != null ? declinedForm : resources.getString("Text.DeclinedForm.NoDeclinedForm"));
                 // TextField
                 String definedForm = noun != null ? noun.getDefinedForm(caze, count) : null;
-                currentTextField.setText(definedForm != null ? definedForm : "");
+                currentTextField.setText(definedForm != null ? definedForm : resources.getString("Text.NoSuchForm"));
                 // CheckBox
                 if (isReset && noun != null)
                     currentCheckBox.setSelected(noun.getDefinedForm(caze, count) != null);
@@ -279,8 +300,6 @@ public class NounViewController
                 {
                     noun.addPropertyChangeListener(register(FxUtil.bind(currentText.textProperty(), caze + "_" + count + "_declined")));
                     noun.addPropertyChangeListener(register(FxUtil.bind(currentTextField.textProperty(), caze + "_" + count + "_defined")));
-
-                    currentTextField.textProperty().addListener((observable, oldValue, newValue) -> definedFormChange(caze, count, newValue));
                 }
             }
         initializedWithNoun = true;
@@ -288,14 +307,23 @@ public class NounViewController
 
     private void definedFormChange(Case caze, Count count, String newValue)
     {
-        if (currentBackingNoun != null)
-            try
+        if (newValue != null)
+        {
+            String lowerCase = newValue.toLowerCase();
+            if (!newValue.equals(lowerCase))
             {
-                currentBackingNoun.setDefinedForm(caze, count, newValue);
-            } catch (PropertyVetoException e)
-            {
-                throw new RuntimeException(e);
+                tableElements.get(caze, count).getMiddle().setText(lowerCase);
+                return;
             }
+            if (currentBackingNoun != null)
+                try
+                {
+                    currentBackingNoun.setDefinedForm(caze, count, newValue);
+                } catch (PropertyVetoException e)
+                {
+                    throw new RuntimeException(e);
+                }
+        }
     }
 
     private void checkBoxChanged(Case caze, Count count, boolean newValue)
@@ -316,12 +344,21 @@ public class NounViewController
 
     private void rootWordChange(String newValue)
     {
-        tryBackingNoun();
-        if (currentBackingNoun != null)
-            try
+        if (newValue != null)
+        {
+            String lowerCase = newValue.toLowerCase();
+            if (!newValue.equals(lowerCase))
             {
-                currentBackingNoun.setRootWord(newValue);
-            } catch (PropertyVetoException ignored) {}
+                rootWordTextBox.setText(lowerCase);
+                return;
+            }
+            tryBackingNoun();
+            if (currentBackingNoun != null)
+                try
+                {
+                    currentBackingNoun.setRootWord(newValue);
+                } catch (PropertyVetoException ignored) {}
+        }
     }
 
     private void declensionChange(NounDeclension newValue)
@@ -330,7 +367,7 @@ public class NounViewController
         if (currentBackingNoun != null)
             try
             {
-                currentBackingNoun.setNounDeclension(newValue);
+                currentBackingNoun.setNounDeclension(newValue instanceof DummyNounDeclension ? null : newValue);
             } catch (PropertyVetoException ignored) {}
     }
 
@@ -373,6 +410,8 @@ public class NounViewController
             }
         });
         new Thread(nounSaveTask).start();
+        if (isWindowed)
+            rootPane.getScene().getWindow().hide(); // Equivalent to Stage.close()
     }
 
     @FXML

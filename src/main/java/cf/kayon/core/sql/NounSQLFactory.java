@@ -39,18 +39,23 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class NounSQLFactory
 {
-    public static final String SQL_INSERT = "INSERT INTO NOUNS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+    public static final String SQL_INSERT = "INSERT INTO NOUNS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     public static final String SQL_SINGLE_RECONSTRUCT = "SELECT * FROM NOUNS WHERE rootWord = ?";
 
-    public static final String SQL_QUERY = "SELECT * FROM NOUNS WHERE nomSg = ? OR genSg = ? OR datSg = ? OR accSg = ? OR ablSg = ? OR vocSg = ? OR " +
-                                           "nomPl = ? OR genPl = ? OR datPl = ? OR accPl = ? OR ablPl = ? OR vocPl = ?";
+    public static final String SQL_QUERY = "SELECT * FROM NOUNS WHERE " +
+                                           "nomSg = ? OR genSg = ? OR datSg = ? OR accSg = ? OR ablSg = ? OR vocSg = ? OR " +
+                                           "nomPl = ? OR genPl = ? OR datPl = ? OR accPl = ? OR ablPl = ? OR vocPl = ? OR " +
+                                           "nomSgDef = ? OR genSgDef = ? OR datSgDef = ? OR accSgDef = ? OR ablSgDef = ? OR vocSgDef = ? OR " +
+                                           "nomPlDef = ? OR genPlDef = ? OR datPlDef = ? OR accPlDef = ? OR ablPlDef = ? OR vocPlDef = ?";
 
     public static final String SQL_SETUP = "CREATE TABLE IF NOT EXISTS NOUNS (" +
-                                           "rootWord TEXT NOT NULL ON CONFLICT REPLACE, " +
+                                           "rootWord TEXT NOT NULL, " +
+                                           "uuid TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE, " +
                                            "gender INTEGER NOT NULL, " +
                                            "nounDeclension TEXT, " +
                                            "translationsJson TEXT NOT NULL, " +
@@ -60,6 +65,21 @@ public class NounSQLFactory
                                            "nomPlDef TEXT, genPlDef TEXT, datPlDef TEXT, accPlDef TEXT, ablPlDef TEXT, vocPlDef TEXT);";
 
     private static final Map<Connection, SQLBuffer> map = Maps.newHashMap();
+
+    static
+    {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (Map.Entry<Connection, SQLBuffer> entry : map.entrySet())
+            {
+                try
+                {
+                    if (entry.getKey() != null)
+                        entry.getKey().close();
+                } catch (SQLException ignored) {}
+            }
+
+        }));
+    }
 
     private static PreparedStatement doBuffer(Connection connection, SQLQueryType type) throws SQLException
     {
@@ -74,17 +94,25 @@ public class NounSQLFactory
         return buf.getFor(type);
     }
 
+    // This possible populates the noun with a uuid (if not populated before)
     public static void saveNounToDatabase(Connection connection, Noun noun) throws SQLException
     {
         PreparedStatement insertStatement = doBuffer(connection, SQLQueryType.SQL_INSERT);
         insertStatement.setString(1, noun.getRootWord()); // THIS SHOULD REMAIN SPECIAL
-        insertStatement.setInt(2, SQLUtil.idForGender(noun.getGender()));
+        UUID uuid = noun.getUuid();
+        if (uuid == null)
+        {
+            uuid = UUID.randomUUID();
+            noun.initializeUuid(uuid);
+        }
+        insertStatement.setString(2, uuid.toString());
+        insertStatement.setInt(3, SQLUtil.idForGender(noun.getGender()));
         if (noun.getNounDeclension() != null)
-            insertStatement.setString(3, noun.getNounDeclension().getClass().getName());
+            insertStatement.setString(4, noun.getNounDeclension().getClass().getName());
         else
-            insertStatement.setString(3, null);
-        insertStatement.setString(4, KayonReference.getGson().toJson(noun.getTranslations()));
-        int counter = 5;
+            insertStatement.setString(4, null);
+        insertStatement.setString(5, KayonReference.getGson().toJson(noun.getTranslations()));
+        int counter = 6;
         for (Count count : Count.values())
             for (Case caze : Case.values())
             {
@@ -121,23 +149,25 @@ public class NounSQLFactory
     {
         @NotNull
         String rootWord = resultSet.getString(1);
+        @Nullable
+        UUID uuid = UUID.fromString(resultSet.getString(2));
         @NotNull
-        Gender gender = SQLUtil.genderForId(resultSet.getInt(2));
-        NounDeclension nounDeclension = NounDeclensionUtil.forName(resultSet.getString(3));
-        Map<String, String> translations = KayonReference.getGson().fromJson(resultSet.getString(4), Map.class);
+        Gender gender = SQLUtil.genderForId(resultSet.getInt(3));
+        NounDeclension nounDeclension = NounDeclensionUtil.forName(resultSet.getString(4));
+        Map<String, String> translations = KayonReference.getGson().fromJson(resultSet.getString(5), Map.class);
         Noun noun = new Noun(nounDeclension, gender, rootWord);
         noun.setTranslations(translations);
-        int counter = 17;
+        noun.initializeUuid(uuid);
+        int counter = 18;
         for (Count count : Count.values())
             for (Case caze : Case.values())
             {
                 @Nullable
                 String formOrNull = resultSet.getString(counter);
-                if (formOrNull != null)
-                    try
-                    {
-                        noun.setDefinedForm(caze, count, formOrNull);
-                    } catch (PropertyVetoException ignored) {} // Empty value in cell, leave defined form as null
+                try
+                {
+                    noun.setDefinedForm(caze, count, formOrNull);
+                } catch (PropertyVetoException ignored) {} // Empty value in cell, leave defined form as null
                 counter++;
             }
         return noun;
@@ -155,7 +185,10 @@ public class NounSQLFactory
         HashSet<Noun> set = Sets.newHashSet();
         PreparedStatement queryStatement = doBuffer(connection, SQLQueryType.SQL_QUERY);
         for (int i = 1; i <= 12; i++)
+        {
             queryStatement.setString(i, unSpecialString);
+            queryStatement.setString(i + 12, unSpecialString);
+        }
         try (ResultSet results = queryStatement.executeQuery())
         {
             while (results.next())

@@ -100,4 +100,8 @@ tasks.withType(Test) {
     }
 }
 
+tasks.withType(Jar) {
+    version = project.version + '-b' + System.getenv('CIRCLE_BUILD_NUM')
+}
+
 defaultTasks 'clean', 'build'

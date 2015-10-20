@@ -78,6 +78,7 @@
     <schema name="" catalog=""/>
     <table name="NOUNS" schema="" catalog="" type="TABLE">
       <column name="rootWord" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
+      <column name="uuid" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
       <column name="gender" sqlType="INTEGER" precision="2000000000" scale="10" nullable="false" jdbcType="4"/>
       <column name="nounDeclension" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
       <column name="translationsJson" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
@@ -105,6 +106,7 @@
       <column name="accPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
       <column name="ablPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
       <column name="vocPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
+      <primary-key columns="uuid"/>
     </table>
   </data-source>
 </component>

@@ -36,8 +36,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -102,7 +102,7 @@ public class ApplicationMainWindowController
         searchField.textProperty().addListener((observable, oldValue, newValue) -> searchButton.setDisable(newValue == null || newValue.isEmpty()));
     }
 
-    private void constructNodes(Set<Vocab> serviceResult)
+    private void constructNodes(List<Vocab> serviceResult)
     {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(4, 16, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         CountDownLatch latch = new CountDownLatch(serviceResult.size());
