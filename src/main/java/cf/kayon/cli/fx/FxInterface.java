@@ -24,14 +24,36 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/**
+ * The application class for the JavaFX command line interface.
+ *
+ * @author Ruben Anders
+ * @see FxController
+ * @since 0.0.1
+ * @deprecated Use the graphical JavaFX interface instead.
+ */
+@Deprecated
 public final class FxInterface extends Application
 {
 
+    /**
+     * Launches the JavaFX command line interface.
+     *
+     * @param args The program arguments.
+     * @since 0.0.1
+     */
+    @Deprecated
     public static void main(String[] args)
     {
         launch(args);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @since 0.0.1
+     */
+    @Deprecated
     @Override
     public void start(Stage primaryStage) throws Exception
     {

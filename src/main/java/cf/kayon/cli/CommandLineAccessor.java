@@ -43,14 +43,41 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Allows some I/O method to perform command-like actions.
+ *
+ * @author Ruben Anders
+ * @see cf.kayon.cli.fx.FxInterface
+ * @since 0.0.1
+ * @deprecated Use the graphical JavaFX interface instead.
+ */
+@Deprecated
 public class CommandLineAccessor
 {
+    /**
+     * All command line actions.
+     *
+     * @since 0.0.1
+     */
+    @Deprecated
     @NotNull
     private static Map<Pattern, TriFunction<Pair<String, Boolean>, String, Matcher, List<Vocab>>> actions = Maps.newHashMap();
 
+    /**
+     * All {@link AdjectiveDeclension}s.
+     *
+     * @since 0.0.1
+     */
+    @Deprecated
     @NotNull
     private static Map<Integer, AdjectiveDeclension> adjectiveDeclensionMap = new HashMap<>(6);
 
+    /**
+     * All {@link NounDeclension}s.
+     *
+     * @since 0.0.1
+     */
+    @Deprecated
     @NotNull
     private static Map<Integer, NounDeclension> nounDeclensionMap = new HashMap<>(9);
 
@@ -252,9 +279,28 @@ public class CommandLineAccessor
         });
     }
 
+    /**
+     * The list of vocab this CommandLineAccessor manages.
+     *
+     * @since 0.0.1
+     */
     // TODO remove this later once DB is implemented
+    @NotNull
+    @Deprecated
     private List<Vocab> vocab = new ArrayList<>();
 
+    /**
+     * Processes a command string.
+     * <p>
+     * If multiple command match the command (should not happen), they both get executed in the order they have been defined in the static initializer block.
+     *
+     * @param commandLine The command line string the user entered.
+     * @return A pair: A response string from this {@link CommandLineAccessor} that is to be printed to some sort of console and
+     * a boolean whether the application should continue running.
+     * @since 0.0.1
+     */
+    @NotNull
+    @Deprecated
     public Pair<String, Boolean> processCommand(String commandLine)
     {
         if (commandLine != null)
@@ -269,9 +315,34 @@ public class CommandLineAccessor
         return new ImmutablePair<>("Command not recognized!", true);
     }
 
+    /**
+     * A function with three parameters and a return value.
+     * <p>
+     * Everything in this function is supposed to be {@link NotNull}.
+     *
+     * @param <R> The result.
+     * @param <F> The first argument.
+     * @param <S> The second argument.
+     * @param <T> The third argument.
+     * @author Ruben Anders
+     * @since 0.0.1
+     */
+    @Deprecated
     @FunctionalInterface
     public interface TriFunction<R, F, S, T>
     {
-        R accept(F first, S second, T third);
+        /**
+         * Applies three parameters to this function.
+         *
+         * @param first  The first argument.
+         * @param second The second argument.
+         * @param third  The third argument.
+         * @return A return value.
+         * @throws NullPointerException If any of the arguments is {@code null}.
+         * @since 0.0.1
+         */
+        @Deprecated
+        @NotNull
+        R accept(@NotNull F first, @NotNull S second, @NotNull T third);
     }
 }

@@ -31,19 +31,63 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Controls the JavaFX command line interface.
+ *
+ * @author Ruben Anders
+ * @see FxInterface
+ * @since 0.0.1
+ * @deprecated Use the graphical JavaFX interface instead.
+ */
+@Deprecated
 public class FxController
 {
+    /**
+     * The command line accessor instance.
+     *
+     * @since 0.0.1
+     */
+    @Deprecated
     private final CommandLineAccessor cla = new CommandLineAccessor();
 
+    /**
+     * The results area.
+     *
+     * @since 0.0.1
+     */
+    @Deprecated
     @FXML
-    TextArea resultsArea;
+    private TextArea resultsArea;
 
+    /**
+     * The execute button.
+     *
+     * @since 0.0.1
+     */
+    @Deprecated
     @FXML
-    Button button;
+    private Button button;
 
+    /**
+     * The text field for command input.
+     *
+     * @since 0.0.1
+     */
+    @Deprecated
     @FXML
-    TextField textField;
+    private TextField textField;
 
+    /**
+     * Makes sure a string ends with a newline character.
+     * <p>
+     * If the string already contains a newline as its last character, the original string is returned.
+     * Otherwise, the old String with an concatenated newline is returned.
+     *
+     * @param oldStr A string to ensure the newline on.
+     * @return A string that definitely ends in a newline.
+     * @since 0.0.1
+     */
+    @Deprecated
     @NotNull
     private static String ensureNewLine(@NotNull String oldStr)
     {
@@ -55,13 +99,20 @@ public class FxController
         return oldStr;
     }
 
+    /**
+     * The event handler function for a button click as defined in the FXML file.
+     *
+     * @param event The ActionEvent for the button click.
+     * @since 0.0.1
+     */
+    @Deprecated
     @FXML
     protected void executeButtonClick(ActionEvent event)
     {
         String command = textField.getText();
         if (command != null)
         {
-            textField.setText("");
+            textField.clear();
             String oldText = resultsArea.getText();
             String newText = ensureNewLine(oldText) + "FXController@Kayon $ " + command + '\n';
             resultsArea.setText(newText);
@@ -74,6 +125,13 @@ public class FxController
         }
     }
 
+    /**
+     * Initializes the controller.
+     *
+     * @see javafx.fxml.Initializable
+     * @since 0.0.1
+     */
+    @Deprecated
     public void initialize()
     {
         //        resultsArea.textProperty().addListener((observable, oldStr, newStr) -> {
