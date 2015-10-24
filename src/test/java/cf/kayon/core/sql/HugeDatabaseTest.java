@@ -33,7 +33,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -95,7 +94,7 @@ public class HugeDatabaseTest
         assertEquals(examples.size(), iterations);
 
         LOGGER.info("Full-text searching now.");
-        Set<Noun> result = NounSQLFactory.queryNouns(connection, "aa");
+        List<Noun> result = NounSQLFactory.queryNouns(connection, "aa");
         for (Noun noun : result)
         {
             LOGGER.info("Found noun with root word " + noun.getRootWord());

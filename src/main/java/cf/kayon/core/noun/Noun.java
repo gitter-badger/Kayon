@@ -99,7 +99,6 @@ public class Noun implements Vocab
 
     /**
      * The PropertyChangeSupport of this class.
-     * <p>
      * <table summary="">
      * <thead>
      * <tr>
@@ -303,7 +302,8 @@ public class Noun implements Vocab
      *
      * @param caze  The case.
      * @param count The count.
-     * @throws NullPointerException If any of the arguments if {@code null}.
+     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value {@code null} is not valid.
+     * @throws NullPointerException  If any of the arguments if {@code null}.
      * @since 0.0.1
      */
     public void removeDefinedForm(@NotNull Case caze, @NotNull Count count) throws PropertyVetoException
@@ -469,6 +469,9 @@ public class Noun implements Vocab
     }
 
     /**
+     * Sets the translations of this noun.
+     *
+     * @param translations The translations map to set.
      * @since 0.0.1
      */
     public void setTranslations(@NotNull Map<String, String> translations)
@@ -594,6 +597,14 @@ public class Noun implements Vocab
     }
 
     /**
+     * Add a PropertyChangeListener to the listener list.
+     * The listener is registered for all properties.
+     * The same listener object may be added more than once, and will be called
+     * as many times as it is added.
+     * If {@code listener} is null, no exception is thrown and no action
+     * is taken.
+     *
+     * @param listener The PropertyChangeListener to be added
      * @see PropertyChangeSupport#addPropertyChangeListener(PropertyChangeListener)
      * @since 0.0.1
      */
@@ -603,6 +614,15 @@ public class Noun implements Vocab
     }
 
     /**
+     * Remove a PropertyChangeListener from the listener list.
+     * This removes a PropertyChangeListener that was registered
+     * for all properties.
+     * If {@code listener} was added more than once to the same event
+     * source, it will be notified one less time after being removed.
+     * If {@code listener} is null, or was never added, no exception is
+     * thrown and no action is taken.
+     *
+     * @param listener The PropertyChangeListener to be removed
      * @see PropertyChangeSupport#removePropertyChangeListener(PropertyChangeListener)
      * @since 0.0.1
      */
@@ -612,6 +632,14 @@ public class Noun implements Vocab
     }
 
     /**
+     * Add a VetoableChangeListener to the listener list.
+     * The listener is registered for all properties.
+     * The same listener object may be added more than once, and will be called
+     * as many times as it is added.
+     * If {@code listener} is null, no exception is thrown and no action
+     * is taken.
+     *
+     * @param listener The VetoableChangeListener to be added
      * @see VetoableChangeSupport#addVetoableChangeListener(VetoableChangeListener)
      * @since 0.0.1
      */
@@ -621,6 +649,15 @@ public class Noun implements Vocab
     }
 
     /**
+     * Remove a VetoableChangeListener from the listener list.
+     * This removes a VetoableChangeListener that was registered
+     * for all properties.
+     * If {@code listener} was added more than once to the same event
+     * source, it will be notified one less time after being removed.
+     * If {@code listener} is null, or was never added, no exception is
+     * thrown and no action is taken.
+     *
+     * @param listener The VetoableChangeListener to be removed
      * @see VetoableChangeSupport#removeVetoableChangeListener(VetoableChangeListener)
      * @since 0.0.1
      */

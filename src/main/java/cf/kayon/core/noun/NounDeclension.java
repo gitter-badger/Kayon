@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
  * Describes a declension used for declining nouns.
  * <p>
  * These classes are special: You are required to implement a method of exact signature to be a valid NounDeclension, since your NounDeclension must be a singleton.
- * <p>
  * <pre>{@code
  * public class MyNounDeclension implements NounDeclension
  * {
@@ -38,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
  * }</pre>
  * <p>
  * The implementation could look like this:
- * <p>
  * <pre>{@code
  * public class MyNounDeclension implements NounDeclension
  * {

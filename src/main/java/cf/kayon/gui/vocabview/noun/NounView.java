@@ -71,6 +71,7 @@ public class NounView
      * Note that the FXML's file contents are buffered and will be loaded from the classpath only once (on static class initialization, or, more precisely, the first
      * request to construct a NounView).
      *
+     * @param noun The noun to initialize the NounView with.
      * @return A Pair: The new parent and its controller class instance.
      * @throws IOException If a I/O exception occurs when loading the FXML/resource bundle files.
      * @see #createNewScene(Noun)
@@ -94,6 +95,7 @@ public class NounView
      * <p>
      * The Parent of the scene is a new parent as returned by {@link #createNewParent(Noun)}.
      *
+     * @param noun The noun to initialize the NounView with.
      * @return A Pair: The new scene and its controller class instance.
      * @throws IOException If an I/O exception occurs when loading the FXML/resource bundle files.
      * @see #createNewParent(Noun)
@@ -115,6 +117,7 @@ public class NounView
      * This method should only be called on the JavaFX application thread.
      *
      * @param stage The stage to initialize.
+     * @param noun  The noun to initialize the NounView with.
      * @return The controller class instance.
      * @throws IOException          If an I/O exception occurs when loading the FXML/resource bundle files.
      * @throws NullPointerException If {@code stage} is {@code null}.

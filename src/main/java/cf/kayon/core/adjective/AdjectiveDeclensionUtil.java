@@ -74,7 +74,6 @@ public class AdjectiveDeclensionUtil
      * <p>
      * This method to prevent insane amounts of repetetive code. This method accepts the endings in the order
      * that the enums {@link Gender}, {@link Count} and {@link Count} appear, like this:
-     * <p>
      * <ul>
      * <li>Nominative Singular Masculine</li>
      * <li>Genitive Singular Masculine</li>
