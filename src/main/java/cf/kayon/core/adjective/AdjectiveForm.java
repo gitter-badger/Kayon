@@ -27,19 +27,61 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-// Only to be used when returning, otherwise make a method accept all details individually
+/**
+ * Describes a adjective form.
+ * <p>
+ * This class is only to be used when a form should be returned. When accepting a form, take in all the parameters separately.
+ * <p>
+ * Immutable.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class AdjectiveForm
 {
 
+    /**
+     * The comparison degree.
+     *
+     * @since 0.0.1
+     */
     @NotNull
-    private ComparisonDegree comparisonDegree;
-    @NotNull
-    private Case caze;
-    @NotNull
-    private Count count;
-    @NotNull
-    private Gender gender;
+    private final ComparisonDegree comparisonDegree;
 
+    /**
+     * The case.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final Case caze;
+
+    /**
+     * The count.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final Count count;
+
+    /**
+     * The gender.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final Gender gender;
+
+    /**
+     * Constructs a new AdjectiveForm.
+     *
+     * @param comparisonDegree The comparison degree.
+     * @param caze             The case.
+     * @param count            The count.
+     * @param gender           The gender.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
     public AdjectiveForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
     {
         checkNotNull(comparisonDegree);
@@ -52,30 +94,49 @@ public class AdjectiveForm
         this.gender = gender;
     }
 
+    /**
+     * @return The comparison degree.
+     * @since 0.0.1
+     */
     @NotNull
     public ComparisonDegree getComparisonDegree()
     {
         return comparisonDegree;
     }
 
+    /**
+     * @return The case.
+     * @since 0.0.1
+     */
     @NotNull
     public Case getCase()
     {
         return caze;
     }
 
+    /**
+     * @return The count.
+     * @since 0.0.1
+     */
     @NotNull
     public Count getCount()
     {
         return count;
     }
 
+    /**
+     * @return The gender.
+     * @since 0.0.1
+     */
     @NotNull
     public Gender getGender()
     {
         return gender;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public String toString()
     {
@@ -87,6 +148,9 @@ public class AdjectiveForm
                           .toString();
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public boolean equals(Object o)
     {
@@ -99,6 +163,9 @@ public class AdjectiveForm
                Objects.equal(gender, that.gender);
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public int hashCode()
     {

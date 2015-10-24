@@ -18,31 +18,60 @@
 
 package cf.kayon.core.noun.impl;
 
-import com.google.common.collect.Table;
-import cf.kayon.core.Case;
-import cf.kayon.core.Count;
-import cf.kayon.core.FormingException;
-import cf.kayon.core.Gender;
+import cf.kayon.core.*;
 import cf.kayon.core.noun.NounDeclensionUtil;
 import cf.kayon.core.util.StringUtil;
+import com.google.common.collect.Table;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * The implementation for the fourth noun declension.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class ENounDeclension extends StandardNounDeclension
 {
+    /**
+     * The only instance of this singleton.
+     *
+     * @since 0.0.1
+     */
     private static final ENounDeclension INSTANCE = new ENounDeclension();
+
+    /**
+     * The endings.
+     *
+     * @since 0.0.1
+     */
     private final Table<Case, Count, String> endings = NounDeclensionUtil.endingsTable("ēs", "eī", "eī", "em", "ē", "ēs",
                                                                                        "ēs", "ērum", "ēbus", "ēs", "ēbus", "ēs");
 
+    /**
+     * The private constructor to never let anybody construct this class.
+     *
+     * @since 0.0.1
+     */
     private ENounDeclension() {}
 
+    /**
+     * Gets the only instance of this as specified by {@link cf.kayon.core.noun.NounDeclension}.
+     *
+     * @return The only instance.
+     * @since 0.0.1
+     */
     public static ENounDeclension getInstance()
     {
         return INSTANCE;
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     @Override
     protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
@@ -55,6 +84,10 @@ public class ENounDeclension extends StandardNounDeclension
         return endings.get(caze, count);
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
     public String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
@@ -69,6 +102,9 @@ public class ENounDeclension extends StandardNounDeclension
         return rootWord + selectCorrectEnding(caze, count, gender);
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Nullable
     @Override
     public Gender getPrimaryGender()
@@ -76,6 +112,9 @@ public class ENounDeclension extends StandardNounDeclension
         return Gender.FEMININE;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public boolean allowsGender(@NotNull Gender genderToCheck)
     {

@@ -16,64 +16,118 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.gui;
+package cf.kayon.gui.main;
 
+import cf.kayon.core.CaseHandling;
 import cf.kayon.core.Vocab;
-import cf.kayon.core.noun.Noun;
-import cf.kayon.core.sql.StaticConnectionHolder;
+import cf.kayon.core.sql.ConnectionHolder;
+import cf.kayon.gui.vocabview.noun.NounView;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Menu;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-public class ApplicationMainWindowController
+/**
+ * Controls the main view.
+ *
+ * @author Ruben Anders
+ * @see Main
+ * @since 0.0.1
+ */
+public class MainController
 {
 
+    /**
+     * The main grid pane.
+     *
+     * @since 0.0.1
+     */
     @FXML
     GridPane mainPane;
 
-    @FXML
-    Menu menuManage;
-
+    /**
+     * The search term text box.
+     *
+     * @since 0.0.1
+     */
     @FXML
     TextField searchField;
 
+    /**
+     * The "Search" button.
+     *
+     * @since 0.0.1
+     */
     @FXML
     Button searchButton;
 
+    /**
+     * The VBox contained in the ScrollPane.
+     *
+     * @since 0.0.1
+     */
     @FXML
     VBox vBox;
 
+    /**
+     * The progress indicator hidden under the search button.
+     *
+     * @since 0.0.1
+     */
     @FXML
     ProgressIndicator progressIndicator;
 
+    /**
+     * Handles a search button press. Bound to the button in the FXML file.
+     *
+     * @param e The event.
+     * @since 0.0.1
+     */
     @FXML
     private void handleButtonPress(ActionEvent e)
     {
-        String searchString = searchField.getText(); // null and empty checking is done by disabling button
         progressIndicator.setVisible(true);
         searchButton.setVisible(false);
         searchField.setDisable(true);
-        VocabTask vocabTask = new VocabTask(searchString, StaticConnectionHolder.connectionForId("main"));
+        queryVocab(searchField.getText());
+    }
+
+    /**
+     * Initializes this MainController.
+     *
+     * @see javafx.fxml.Initializable
+     * @since 0.0.1
+     */
+    public void initialize()
+    {
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> searchButton.setDisable(newValue == null || newValue.isEmpty()));
+    }
+
+    /**
+     * Queries vocab from the database. Triggered by a enter press or a button click.
+     * <p>
+     * Handles both uppercase and lowercase characters.
+     *
+     * @param searchString The search string.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
+    private void queryVocab(@NotNull String searchString)
+    {
+        VocabTask vocabTask = new VocabTask(searchString, ConnectionHolder.getConnection());
         vocabTask.stateProperty().addListener((observable, oldValue, newValue) -> {
             switch (newValue)
             {
@@ -95,13 +149,11 @@ public class ApplicationMainWindowController
     }
 
     /**
-     * @see javafx.fxml.Initializable
+     * Constructs the view nodes (and appends them to the vBox) from a list of queried vocab.
+     *
+     * @param serviceResult The result of the vocab database query.
+     * @since 0.0.1
      */
-    public void initialize()
-    {
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> searchButton.setDisable(newValue == null || newValue.isEmpty()));
-    }
-
     private void constructNodes(List<Vocab> serviceResult)
     {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(4, 16, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
@@ -121,6 +173,11 @@ public class ApplicationMainWindowController
         }).start();
     }
 
+    /**
+     * Resets the UI back to non-in-query mode.
+     *
+     * @since 0.0.1
+     */
     private void resetUI()
     {
         Platform.runLater(() -> {
@@ -132,44 +189,24 @@ public class ApplicationMainWindowController
         });
     }
 
+    /**
+     * Called when the user selects the "New Noun" entry from the manage menu.
+     * Bound in the FXML file.
+     *
+     * @param event The event.
+     * @since 0.0.1
+     */
     @FXML
     private void newNoun(ActionEvent event)
     {
         Stage newStage = new Stage();
-        newStage.setResizable(false);
-        ResourceBundle bundle = ResourceBundle.getBundle("cf.kayon.gui.bundles.VocabView");
-        newStage.setTitle(bundle.getString("Noun.WindowTitle"));
-        FxUtil.initIcons(newStage);
-        newStage.initOwner(mainPane.getScene().getWindow());
-        newStage.initModality(Modality.WINDOW_MODAL);
-        Node node = VocabNodeFactory.forType(Noun.class);
-        checkNotNull(node); // Throw NullPointerException (superclass of RuntimeException) if returned node is null
-        Scene newScene = new Scene((Parent) node);
-        newStage.setScene(newScene);
+        try
+        {
+            NounView.createOntoStage(newStage, null);
+        } catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
         newStage.show();
-    }
-
-    @FXML
-    private void newAdjective(ActionEvent event)
-    {
-        //TODO
-    }
-
-    @FXML
-    private void newVerb(ActionEvent event)
-    {
-        //TODO
-    }
-
-    @FXML
-    private void newAdverb(ActionEvent event)
-    {
-        //TODO
-    }
-
-    @FXML
-    private void newPreposition(ActionEvent event)
-    {
-        //TODO
     }
 }

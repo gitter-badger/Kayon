@@ -18,6 +18,23 @@
 
 package cf.kayon.core;
 
+/**
+ * Describes a grammatical count.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public enum Count {
-    SINGULAR, PLURAL
+    /**
+     * Describes the singular.
+     *
+     * @since 0.0.1
+     */
+    SINGULAR,
+    /**
+     * Describes the plural.
+     *
+     * @since 0.0.1
+     */
+    PLURAL
 }

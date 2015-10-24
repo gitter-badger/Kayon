@@ -18,15 +18,21 @@
 
 package cf.kayon.core;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+/**
+ * Describes something translatable with dynamic translations that can be modified at runtime.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public interface Translatable
 {
 
     // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-    @Nullable
+    @NotNull
     Map<String, String> getTranslations();
 
 }

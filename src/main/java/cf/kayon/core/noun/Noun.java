@@ -38,45 +38,164 @@ import java.util.UUID;
 import static cf.kayon.core.util.StringUtil.requireNonEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Describes a Noun.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class Noun implements Vocab
 {
     //region Fields
+    /**
+     * The declined forms of this Noun.
+     *
+     * @since 0.0.1
+     */
     @NotNull
-    private ArrayTable<Case, Count, String> declinedForms = ArrayTable.create(
+    private final ArrayTable<Case, Count, String> declinedForms = ArrayTable.create(
             () -> new ObjectArrayIterator<>(Case.values()),
             () -> new ObjectArrayIterator<>(Count.values()));
 
+    /**
+     * The defined forms of this noun.
+     *
+     * @since 0.0.1
+     */
     @NotNull
-    private Table<Case, Count, String> definedForms = HashBasedTable.create(6, 2);
+    private final Table<Case, Count, String> definedForms = HashBasedTable.create(6, 2);
 
+    /**
+     * The translations of this noun.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private Map<String, String> translations = Maps.newHashMap();
 
+    /**
+     * The gender of this noun.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private Gender gender;
 
+    /**
+     * The root word of this noun.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private String rootWord;
 
+    /**
+     * The NounDeclension of this noun. {@code null} if this noun does not have a NounDeclension.
+     *
+     * @since 0.0.1
+     */
     @Nullable
     private NounDeclension nounDeclension;
 
+    /**
+     * The PropertyChangeSupport of this class.
+     * <p>
+     * <table summary="">
+     * <thead>
+     * <tr>
+     * <td>Property Name</td>
+     * <td>Fired by</td>
+     * <td>Vetoable?</td>
+     * <td>Triggers</td>
+     * <td>Default checks</td>
+     * </tr>
+     * </thead>
+     * <tbody>
+     * <tr>
+     * <td>{@code $CASE_$COUNT_defined}</td>
+     * <td>{@link #setDefinedForm(Case, Count, String)}</td>
+     * <td>Yes</td>
+     * <td></td>
+     * <td></td>
+     * </tr>
+     * <tr>
+     * <td>{@code $CASE_$COUNT_declined}</td>
+     * <td>{@link #_declineIntoBuffer()}</td>
+     * <td>No</td>
+     * <td></td>
+     * <td></td>
+     * </tr>
+     * <tr>
+     * <td>{@code rootWord}</td>
+     * <td>{@link #setRootWord(String)}</td>
+     * <td>Yes</td>
+     * <td>{@link #_declineIntoBuffer()}</td>
+     * <td>Not {@code null}, not {@link String#isEmpty() empty}</td>
+     * </tr>
+     * <tr>
+     * <td>{@code nounDeclension}</td>
+     * <td>{@link #setNounDeclension(NounDeclension)}</td>
+     * <td>Yes</td>
+     * <td>{@link #_declineIntoBuffer()}</td>
+     * <td></td>
+     * </tr>
+     * <tr>
+     * <td>{@code gender}</td>
+     * <td>{@link #setGender(Gender)}</td>
+     * <td>Yes</td>
+     * <td>{@link #_declineIntoBuffer()}</td>
+     * <td>Not {@code null}</td>
+     * </tr>
+     * </tbody>
+     * </table>
+     *
+     * @since 0.0.1
+     */
     @NotNull
-    private PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
 
+    /**
+     * The vetoable change support for this class.
+     * <p>
+     * See {@link #changeSupport} for more details on triggered property changes.
+     *
+     * @since 0.0.1
+     */
     @NotNull
-    private VetoableChangeSupport vetoSupport = new VetoableChangeSupport(this);
+    private final VetoableChangeSupport vetoSupport = new VetoableChangeSupport(this);
     //endregion
 
     //region Constructors
+
+    /**
+     * Constructs a new Noun.
+     * <p>
+     * Note: The constructor itself does not use property/vetoable change support. All arguments are validated with the default constraints
+     * and afterwards {@link #_declineIntoBuffer()} is called.
+     * <p>
+     * The general contract of this class is to only contain lowercase forms (see annotation).
+     * Code should only apply lowercase forms to this method.
+     *
+     * @param nounDeclension The noun declension of the new noun. {@code null} if there is no NounDeclension.
+     * @param gender         The gender.
+     * @param rootWord       The root word.
+     * @throws NullPointerException     If {@code gender} or {@code rootWord} is {@code null}.
+     * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     public Noun(@Nullable NounDeclension nounDeclension, @NotNull Gender gender, @NotNull String rootWord)
     {
+        checkNotNull(gender);
+        requireNonEmpty(rootWord);
         this.nounDeclension = nounDeclension;
-        this.gender = checkNotNull(gender);
-        this.rootWord = requireNonEmpty(rootWord);
+        this.gender = gender;
+        this.rootWord = rootWord;
         _declineIntoBuffer();
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public boolean equals(Object o)
     {
@@ -92,12 +211,31 @@ public class Noun implements Vocab
                Objects.equal(uuid, noun.uuid);
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public int hashCode()
     {
         return Objects.hashCode(declinedForms, definedForms, translations, gender, rootWord, nounDeclension, uuid);
     }
 
+    /**
+     * Constructs a new Noun with no NounDeclension.
+     * This is equal to calling {@link #Noun(NounDeclension, Gender, String)} with {@code null} as its first parameter.
+     * <p>
+     * Note: The constructor itself does not use property/vetoable change support. All arguments are validated with the default constraints
+     * and afterwards {@link #_declineIntoBuffer()} is called.
+     * <p>
+     * The general contract of this class is to only contain lowercase forms (see annotation).
+     * Code should only apply lowercase forms to this method.
+     *
+     * @param gender   The gender.
+     * @param rootWord The root word.
+     * @throws NullPointerException     If {@code gender} or {@code rootWord} is {@code null}.
+     * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     public Noun(@NotNull Gender gender, @NotNull String rootWord)
     {
         this(null, gender, rootWord);
@@ -105,19 +243,49 @@ public class Noun implements Vocab
     //endregion
 
     //region Defining forms
+
+    /**
+     * Defines a form.
+     * <p>
+     * The general contract of this class is to only contain lowercase forms (see annotation).
+     * Code should only apply lowercase forms to this method.
+     *
+     * @param caze  The case.
+     * @param count The count.
+     * @param form  The form. If the form is {@code null} or is {@link String#isEmpty() empty}, the defined forms is instead removed.
+     *              A note about change/veto listeners: empty strings get converted to nulls before they are passed to listeners.
+     *              A removal of a form is represented by a new value of {@code null}.
+     * @throws NullPointerException  If {@code caze} or {@code count} is {@code null}.
+     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value is not valid.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     public void setDefinedForm(@NotNull Case caze, @NotNull Count count, @Nullable String form) throws PropertyVetoException
     {
         String oldForm = getDefinedForm(caze, count);
         if (form != null && form.isEmpty())
             form = null; // empty strings get converted to nulls
         vetoSupport.fireVetoableChange(caze + "_" + count + "_defined", oldForm, form);
-        if (form != null && !form.isEmpty())
+        if (form != null)
             definedForms.put(caze, count, form);
         else
             definedForms.remove(caze, count);
         changeSupport.firePropertyChange(caze + "_" + count + "_defined", oldForm, form);
     }
 
+    /**
+     * Gets a defined form.
+     * <p>
+     * The general contract of this class is to only contain lowercase forms (see annotation).
+     * Code using this method may rely on this contract.
+     *
+     * @param caze  The case.
+     * @param count The count.
+     * @return The form, as it has been defined. {@code null} if the form has not been defined.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     public String getDefinedForm(@NotNull Case caze, @NotNull Count count)
     {
@@ -126,16 +294,39 @@ public class Noun implements Vocab
         return definedForms.get(caze, count);
     }
 
-    public void removeDefinedForm(@NotNull Case caze, @NotNull Count count)
+    /**
+     * Removes a defined form.
+     * <p>
+     * This is exactly equal to calling {@link #setDefinedForm(Case, Count, String)} with {@code null} as its third argument.
+     * <p>
+     * See {@link #setDefinedForm(Case, Count, String)} for more information on property change/veto listeners.
+     *
+     * @param caze  The case.
+     * @param count The count.
+     * @throws NullPointerException If any of the arguments if {@code null}.
+     * @since 0.0.1
+     */
+    public void removeDefinedForm(@NotNull Case caze, @NotNull Count count) throws PropertyVetoException
     {
-        checkNotNull(caze);
-        checkNotNull(count);
-        this.definedForms.remove(caze, count);
+        setDefinedForm(caze, count, null);
     }
-
     //endregion
 
     //region Declining forms
+
+    /**
+     * Gets a form, as it has been declined by the underlying {@link NounDeclension}.
+     * <p>
+     * The general contract of this class is to only contain lowercase forms (see annotation).
+     * Code using this method may rely on this contract.
+     *
+     * @param caze  The case.
+     * @param count The count.
+     * @return The form. {@code null} if the underlying {@link NounDeclension} could not determine the form.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     public String getDeclinedForm(@NotNull Case caze, @NotNull Count count)
     {
@@ -144,6 +335,14 @@ public class Noun implements Vocab
         return this.declinedForms.get(caze, count);
     }
 
+    /**
+     * Called if changes to declined form changing properties occur.
+     * <p>
+     * Declines all declined forms into the buffer.
+     *
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     private void _declineIntoBuffer()
     {
         for (Case caze : Case.values())
@@ -168,12 +367,26 @@ public class Noun implements Vocab
     //endregion
 
     //region Setters and Getters
+
+    /**
+     * Gets the gender of this noun.
+     *
+     * @return The gender. Never null.
+     * @since 0.0.1
+     */
     @NotNull
     public Gender getGender()
     {
         return gender;
     }
 
+    /**
+     * Sets the gender of this noun.
+     *
+     * @param gender The new gender.
+     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value is invalid.
+     * @since 0.0.1
+     */
     public void setGender(@NotNull Gender gender) throws PropertyVetoException
     {
         vetoSupport.fireVetoableChange("gender", this.gender, gender);
@@ -182,12 +395,32 @@ public class Noun implements Vocab
         changeSupport.firePropertyChange("gender", oldGender, gender);
     }
 
+    /**
+     * Gets the root word.
+     * <p>
+     * The general contract of this class is to only contain lowercase forms (see annotation).
+     * Code using this method may rely on this contract.
+     *
+     * @return The root word.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     public String getRootWord()
     {
         return rootWord;
     }
 
+    /**
+     * Sets the root word.
+     * <p>
+     * The general contract of this class is to only contain lowercase forms (see annotation).
+     * Code should only apply lowercase forms to this method.
+     *
+     * @param rootWord The new root word.
+     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value is invalid.
+     * @since 0.0.1
+     */
     public void setRootWord(@NotNull String rootWord) throws PropertyVetoException
     {
         vetoSupport.fireVetoableChange("rootWord", this.rootWord, rootWord);
@@ -196,12 +429,25 @@ public class Noun implements Vocab
         changeSupport.firePropertyChange("rootWord", oldRootWord, rootWord);
     }
 
+    /**
+     * Gets the NounDeclension of this class.
+     *
+     * @return The NounDeclension. {@code null} if this noun does not have a noun declension.
+     * @since 0.0.1
+     */
     @Nullable
     public NounDeclension getNounDeclension()
     {
         return this.nounDeclension;
     }
 
+    /**
+     * Sets the NounDeclension of this class.
+     *
+     * @param nounDeclension The new NounDeclension. {@code null} if the noun should not have a noun declension.
+     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value is invalid.
+     * @since 0.0.1
+     */
     public void setNounDeclension(@Nullable NounDeclension nounDeclension) throws PropertyVetoException
     {
         vetoSupport.fireVetoableChange("nounDeclension", this.nounDeclension, nounDeclension);
@@ -212,18 +458,34 @@ public class Noun implements Vocab
     //endregion
 
     //region Translation
+
+    /**
+     * @since 0.0.1
+     */
     @NotNull
     public Map<String, String> getTranslations()
     {
         return translations;
     }
 
+    /**
+     * @since 0.0.1
+     */
     public void setTranslations(@NotNull Map<String, String> translations)
     {
         checkNotNull(translations);
         this.translations = translations;
     }
 
+    /**
+     * Gets a form - defined or declined - which one is present (defined takes precedence).
+     *
+     * @param caze  The case.
+     * @param count The count.
+     * @return The form. {@code null} if there is both no defined or declined form.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
     @Nullable
     public String getForm(@NotNull Case caze, @NotNull Count count)
     {
@@ -235,8 +497,13 @@ public class Noun implements Vocab
     }
     //endregion
 
+    /**
+     * @since 0.0.1
+     * @deprecated Use the JavaFX graphical interface instead. Scheduled for removal as of 0.1.0.
+     */
     @NotNull
     @Override
+    @Deprecated
     public List<String> commandLineRepresentation()
     {
         List<String> buffer = new ArrayList<>(10);
@@ -250,7 +517,7 @@ public class Noun implements Vocab
             sB.append(Strings.padStart(caze.toString(), 10, ' '));
             sB.append("|");
 
-            sB.append(getDefinedForms().contains(caze, Count.SINGULAR) ? '$' : ' ');
+            sB.append(definedForms.contains(caze, Count.SINGULAR) ? '$' : ' ');
             @Nullable
             String singularFormOrNull = getForm(caze, Count.SINGULAR);
             singularFormOrNull = singularFormOrNull == null ? "???????????????" : Strings.padEnd(singularFormOrNull, 15, ' ');
@@ -258,7 +525,7 @@ public class Noun implements Vocab
 
             sB.append("|");
 
-            sB.append(getDefinedForms().contains(caze, Count.PLURAL) ? '$' : ' ');
+            sB.append(definedForms.contains(caze, Count.PLURAL) ? '$' : ' ');
             @Nullable
             String pluralFormOrNull = getForm(caze, Count.PLURAL);
             pluralFormOrNull = pluralFormOrNull == null ? "???????????????" : Strings.padEnd(pluralFormOrNull, 15, ' ');
@@ -274,8 +541,17 @@ public class Noun implements Vocab
         return buffer;
     }
 
+    //region UUID
+    /**
+     * The UUID of this noun.
+     *
+     * @since 0.0.1
+     */
     private UUID uuid;
 
+    /**
+     * @since 0.0.1
+     */
     @Nullable
     @Override
     public UUID getUuid()
@@ -283,57 +559,74 @@ public class Noun implements Vocab
         return uuid;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public void initializeUuid(@NotNull UUID uuid)
     {
+        checkNotNull(uuid);
         if (this.uuid != null)
             throw new IllegalStateException("UUID has already been initialized");
         this.uuid = uuid;
         changeSupport.firePropertyChange("uuid", null, uuid);
     }
+    //endregion
 
     //region Bean support
     {
         addPropertyChangeListener(evt -> {
-            if (evt.getPropertyName().equals("gender") || evt.getPropertyName().equals("rootWord") || evt.getPropertyName().equals("nounDeclension"))
+            String propertyName = evt.getPropertyName();
+            if (propertyName.equals("gender") || propertyName.equals("rootWord") || propertyName.equals("nounDeclension") || propertyName.endsWith("_defined"))
                 _declineIntoBuffer();
         });
 
         addVetoableChangeListener(evt -> {
             if (!evt.getPropertyName().endsWith("defined"))
             {
-                if (evt.getNewValue() == null)
+                Object newValue = evt.getNewValue();
+                if (newValue == null)
                     throw new PropertyVetoException("New value may not be null!", evt);
-                if (evt.getNewValue() instanceof CharSequence && ((CharSequence) evt.getNewValue()).length() == 0)
-                    throw new PropertyVetoException("New CharSequence value may not be empty!", evt);
+                if (newValue instanceof String && ((String) newValue).isEmpty())
+                    throw new PropertyVetoException("New String value may not be empty!", evt);
             }
         });
     }
 
+    /**
+     * @see PropertyChangeSupport#addPropertyChangeListener(PropertyChangeListener)
+     * @since 0.0.1
+     */
     public void addPropertyChangeListener(PropertyChangeListener listener)
     {
         changeSupport.addPropertyChangeListener(listener);
     }
 
+    /**
+     * @see PropertyChangeSupport#removePropertyChangeListener(PropertyChangeListener)
+     * @since 0.0.1
+     */
     public void removePropertyChangeListener(PropertyChangeListener listener)
     {
         changeSupport.removePropertyChangeListener(listener);
     }
 
+    /**
+     * @see VetoableChangeSupport#addVetoableChangeListener(VetoableChangeListener)
+     * @since 0.0.1
+     */
     public void addVetoableChangeListener(VetoableChangeListener listener)
     {
         vetoSupport.addVetoableChangeListener(listener);
     }
 
+    /**
+     * @see VetoableChangeSupport#removeVetoableChangeListener(VetoableChangeListener)
+     * @since 0.0.1
+     */
     public void removeVetoableChangeListener(VetoableChangeListener listener)
     {
         vetoSupport.removeVetoableChangeListener(listener);
-    }
-
-    @NotNull
-    public Table<Case, Count, String> getDefinedForms()
-    {
-        return definedForms;
     }
     //endregion
 }

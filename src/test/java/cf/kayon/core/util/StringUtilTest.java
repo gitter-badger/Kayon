@@ -21,6 +21,7 @@ package cf.kayon.core.util;
 import org.junit.Test;
 
 import static com.github.stefanbirkner.fishbowl.Fishbowl.exceptionThrownBy;
+import static org.junit.Assert.assertEquals;
 
 public class StringUtilTest
 {
@@ -31,5 +32,13 @@ public class StringUtilTest
         exceptionThrownBy(() -> StringUtil.requireNonEmpty(null), NullPointerException.class);
         exceptionThrownBy(() -> StringUtil.requireNonEmpty(""), IllegalArgumentException.class);
         StringUtil.requireNonEmpty("Valid");
+    }
+
+    @Test
+    public void testAnySpecialRegex()
+    {
+        assertEquals("d[oōŏ]m[iīĭ]n[uūŭ]s", StringUtil.anySpecialRegex("dominus"));
+        assertEquals("d[oōŏ]m[iīĭ]n[oōŏ]", StringUtil.anySpecialRegex("dominō"));
+        assertEquals("[aāă]nc[iīĭ]ll[aāă]", StringUtil.anySpecialRegex("ancilla"));
     }
 }

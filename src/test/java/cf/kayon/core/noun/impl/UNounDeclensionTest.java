@@ -22,13 +22,12 @@ import cf.kayon.core.Gender;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class UNounDeclensionTest
 {
-    
+
     @Test
     public void testUNounDeclension() throws Exception
     {
@@ -47,7 +46,7 @@ public class UNounDeclensionTest
                                                        new ImmutablePair<>("portibus", true),
                                                        new ImmutablePair<>("portūs", true)
         );
-        
+
         NounDeclensionTestingUtil.testCorrectDeclining(UNounDeclension.getInstance(), Gender.FEMININE, "man",
                                                        new ImmutablePair<>("manus", true),
                                                        new ImmutablePair<>("manūs", true),

@@ -18,7 +18,30 @@
 
 package cf.kayon.core.adjective;
 
+/**
+ * Describes an adjective comparison degree.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public enum ComparisonDegree
 {
-    POSITIVE, COMPARATIVE, SUPERLATIVE
+    /**
+     * The positive comparison degree.
+     *
+     * @since 0.0.1
+     */
+    POSITIVE,
+    /**
+     * The comparative comparison degree.
+     *
+     * @since 0.0.1
+     */
+    COMPARATIVE,
+    /**
+     * The superlative comparison degree
+     *
+     * @since 0.0.1
+     */
+    SUPERLATIVE
 }

@@ -32,80 +32,78 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Contains static utility methods around the usage and implementation of a {@link AdjectiveDeclension}.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class AdjectiveDeclensionUtil
 {
+    /**
+     * The private constructor to never let anyone construct this static-only class.
+     *
+     * @since 0.0.1
+     */
     private AdjectiveDeclensionUtil() {}
 
+    /**
+     * Universal endings for the comparative comparison degree.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     public static final Table<Gender, Count, Map<Case, String>> endingsComparative =
             AdjectiveDeclensionUtil.endingsTable("ior", "ioris", "iorī", "iorem", "iore", "ior", "iorēs", "iorum", "ioribus", "iorēs", "ioribus", "iorēs",
                                                  "ior", "ioris", "iorī", "iorem", "iore", "ior", "iorēs", "iorum", "ioribus", "iorēs", "ioribus", "iorēs",
                                                  "ius", "ioris", "iorī", "ius", "iore", "ius", "iora", "iorum", "ioribus", "iora", "ioribus", "iora");
 
+    /**
+     * Universal endings for the superlative comparison degree.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     public static final Table<Gender, Count, Map<Case, String>> endingsSuperlative =
             AdjectiveDeclensionUtil.endingsTable("us", "ī", "ō", "um", "ō", "e", "ī", "ōrum", "īs", "ōs", "īs", "ī",
                                                  "a", "ae", "ae", "am", "ā", "a", "ae", "ārum", "īs", "ās", "īs", "ae",
                                                  "um", "ī", "ō", "um", "ō", "um", "a", "ōrum", "īs", "a", "īs", "a");
-    //    @NotNull
-    //    public static final Set<AdjectiveForm> NEUTER_PREPARED_EQUAL_FORMS_POSITIVE_SINGULAR =
-    //            ImmutableSet.of(new AdjectiveForm(ComparisonDegree.POSITIVE, Case.NOMINATIVE, Count.SINGULAR, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.POSITIVE, Case.ACCUSATIVE, Count.SINGULAR, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.POSITIVE, Case.VOCATIVE, Count.SINGULAR, Gender.NEUTER));
-    //
-    //    @NotNull
-    //    public static final Set<AdjectiveForm> NEUTER_PREPARED_EQUAL_FORMS_POSITIVE_PLURAL =
-    //            ImmutableSet.of(new AdjectiveForm(ComparisonDegree.POSITIVE, Case.NOMINATIVE, Count.PLURAL, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.POSITIVE, Case.ACCUSATIVE, Count.PLURAL, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.POSITIVE, Case.VOCATIVE, Count.PLURAL, Gender.NEUTER));
-    //
-    //    @NotNull
-    //    public static final Set<AdjectiveForm> NEUTER_PREPARED_EQUAL_FORMS_COMPARATIVE_SINGULAR =
-    //            ImmutableSet.of(new AdjectiveForm(ComparisonDegree.COMPARATIVE, Case.NOMINATIVE, Count.SINGULAR, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.COMPARATIVE, Case.ACCUSATIVE, Count.SINGULAR, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.COMPARATIVE, Case.VOCATIVE, Count.SINGULAR, Gender.NEUTER));
-    //
-    //    @NotNull
-    //    public static final Set<AdjectiveForm> NEUTER_PREPARED_EQUAL_FORMS_COMPARATIVE_PLURAL =
-    //            ImmutableSet.of(new AdjectiveForm(ComparisonDegree.COMPARATIVE, Case.NOMINATIVE, Count.PLURAL, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.COMPARATIVE, Case.ACCUSATIVE, Count.PLURAL, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.COMPARATIVE, Case.VOCATIVE, Count.PLURAL, Gender.NEUTER));
-    //
-    //    @NotNull
-    //    public static final Set<AdjectiveForm> NEUTER_PREPARED_EQUAL_FORMS_SUPERLATIVE_SINGULAR =
-    //            ImmutableSet.of(new AdjectiveForm(ComparisonDegree.SUPERLATIVE, Case.NOMINATIVE, Count.SINGULAR, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.SUPERLATIVE, Case.ACCUSATIVE, Count.SINGULAR, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.SUPERLATIVE, Case.VOCATIVE, Count.SINGULAR, Gender.NEUTER));
-    //
-    //    @NotNull
-    //    public static final Set<AdjectiveForm> NEUTER_PREPARED_EQUAL_FORMS_SUPERLATIVE_PLURAL =
-    //            ImmutableSet.of(new AdjectiveForm(ComparisonDegree.SUPERLATIVE, Case.NOMINATIVE, Count.PLURAL, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.SUPERLATIVE, Case.ACCUSATIVE, Count.PLURAL, Gender.NEUTER),
-    //                            new AdjectiveForm(ComparisonDegree.SUPERLATIVE, Case.VOCATIVE, Count.PLURAL, Gender.NEUTER));
-    //
-    //    @NotNull
-    //    public static Set<AdjectiveForm> getPreparedEqualNeuterForms(@NotNull ComparisonDegree comparisonDegree, @NotNull Count count)
-    //    {
-    //        checkNotNull(comparisonDegree);
-    //        checkNotNull(count);
-    //        switch (comparisonDegree)
-    //        {
-    //            case POSITIVE:
-    //                return count == Count.SINGULAR ? NEUTER_PREPARED_EQUAL_FORMS_POSITIVE_SINGULAR : NEUTER_PREPARED_EQUAL_FORMS_POSITIVE_PLURAL;
-    //            case COMPARATIVE:
-    //                return count == Count.SINGULAR ? NEUTER_PREPARED_EQUAL_FORMS_COMPARATIVE_SINGULAR : NEUTER_PREPARED_EQUAL_FORMS_COMPARATIVE_PLURAL;
-    //            case SUPERLATIVE:
-    //                return count == Count.SINGULAR ? NEUTER_PREPARED_EQUAL_FORMS_SUPERLATIVE_SINGULAR : NEUTER_PREPARED_EQUAL_FORMS_SUPERLATIVE_PLURAL;
-    //        }
-    //        return null;
-    //    }
 
-    // NomSgM, GenSgM, DatSgM, AccSgM, AblSgM, VocSgM, NomPlM, [pl...], NomSgF, [...], NomSgN, [...]
+    /**
+     * Constructs a table of endings.
+     * <p>
+     * This method to prevent insane amounts of repetetive code. This method accepts the endings in the order
+     * that the enums {@link Gender}, {@link Count} and {@link Count} appear, like this:
+     * <p>
+     * <ul>
+     * <li>Nominative Singular Masculine</li>
+     * <li>Genitive Singular Masculine</li>
+     * <li>Dative Singular Masculine</li>
+     * <li>Accusative Singular Masculine</li>
+     * <li>Ablative Singular Masculine</li>
+     * <li>Vocative Singular Masculine</li>
+     * <li>Nominative Plural Masculine</li>
+     * <li>Genitive Plural Masculine</li>
+     * <li>Dative Plural Masculine</li>
+     * <li>Accusative Plural Masculine</li>
+     * <li>Ablative Plural Masculine</li>
+     * <li>Vocative Plural Masculine</li>
+     * <li>Nominative Singular Feminine</li>
+     * </ul>
+     * ...and so on.
+     *
+     * @param params The endings to put in the resulting table.
+     * @return A {@link Tables#unmodifiableTable(Table) unmodifiable} table
+     * (the maps are {@link Collections#unmodifiableMap(Map) unmodifiable} as well) of endings.
+     * @throws NullPointerException             If the varchar argument is {@code null}.
+     * @throws java.util.NoSuchElementException If there are too few parameters supplied.
+     * @since 0.0.1
+     */
     @NotNull
     public static Table<Gender, Count, Map<Case, String>> endingsTable(@NotNull String... params)
     {
-        Table<Gender, Count, Map<Case, String>> mainTable = HashBasedTable.create(3, 2);
         ObjectArrayIterator<String> it = new ObjectArrayIterator<>(params);
+        Table<Gender, Count, Map<Case, String>> mainTable = HashBasedTable.create(3, 2);
         for (Gender gender : Gender.values())
             for (Count count : Count.values())
             {
@@ -120,22 +118,4 @@ public class AdjectiveDeclensionUtil
             }
         return Tables.unmodifiableTable(mainTable);
     }
-
-    //    public static Set<AdjectiveForm> applyVocativeEquals(
-    //            @NotNull Set<AdjectiveForm> setToAddTo, boolean doApply,
-    //            @NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull AdjectiveDeclension recursiveTarget)
-    //    {
-    //        checkNotNull(setToAddTo);
-    //        checkNotNull(comparisonDegree);
-    //        checkNotNull(caze);
-    //        checkNotNull(count);
-    //        checkNotNull(gender);
-    //
-    //        if (doApply && (caze == Case.NOMINATIVE || caze == Case.VOCATIVE))
-    //        {
-    //            setToAddTo.add(new AdjectiveForm(comparisonDegree, Case.NOMINATIVE, count, gender));
-    //            setToAddTo.add(new AdjectiveForm(comparisonDegree, Case.VOCATIVE, count, gender));
-    //        }
-    //        return setToAddTo;
-    //    }
 }

@@ -24,15 +24,40 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Describes a latin word.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public interface Vocab extends Translatable
 {
+    /**
+     * Gets the command line representation of this Vocab.
+     *
+     * @return A list of lines.
+     * @since 0.0.1
+     * @deprecated Use the JavaFX graphical interface instead. Scheduled for removal as of 0.1.0.
+     */
+    @Deprecated
     @NotNull
     List<String> commandLineRepresentation();
 
-    // null if it has not been initialized yet
+    /**
+     * Returns the UUID of this Vocab.
+     *
+     * @return The UUID. {@code null} if no UUID has been {@link #initializeUuid(UUID) initialized} yet.
+     * @since 0.0.1
+     */
     @Nullable
     UUID getUuid();
 
-    // Also fires property update event
+    /**
+     * Initializes the Vocab with a UUID.
+     *
+     * @param uuid The UUID to set.
+     * @throws IllegalStateException If the UUID has already been initialized.
+     * @since 0.0.1
+     */
     void initializeUuid(@NotNull UUID uuid);
 }

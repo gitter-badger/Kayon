@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.gui;
+package cf.kayon.gui.vocabview.noun;
 
 import cf.kayon.core.Case;
 import cf.kayon.core.Count;
@@ -24,7 +24,8 @@ import cf.kayon.core.Gender;
 import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.impl.*;
-import cf.kayon.core.sql.StaticConnectionHolder;
+import cf.kayon.core.sql.ConnectionHolder;
+import cf.kayon.gui.FxUtil;
 import com.google.common.collect.*;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -38,6 +39,7 @@ import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.beans.PropertyChangeListener;
@@ -47,9 +49,21 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Controls the noun view.
+ *
+ * @author Ruben Anders
+ * @see NounView
+ * @since 0.0.1
+ */
 public class NounViewController
 {
-    public static List<NounDeclension> nounDeclensions = Lists.newArrayList();
+    /**
+     * A static buffer of all noun declensions.
+     *
+     * @since 0.0.1
+     */
+    private static final List<NounDeclension> nounDeclensions = Lists.newArrayList();
 
     static
     {
@@ -106,6 +120,7 @@ public class NounViewController
 
     /**
      * @see javafx.fxml.Initializable
+     * @since 0.0.1
      */
     public void initialize()
     {
@@ -115,7 +130,7 @@ public class NounViewController
         genderComboBox.getItems().addAll(Gender.values());
         genderComboBox.setConverter(new StringConverter<Gender>()
         {
-            BiMap<Gender, String> biMap = EnumHashBiMap.create(Gender.class);
+            final BiMap<Gender, String> biMap = EnumHashBiMap.create(Gender.class);
 
             {
                 for (Gender gender : Gender.values())
@@ -137,7 +152,7 @@ public class NounViewController
         declensionComboBox.getItems().setAll(nounDeclensions);
         declensionComboBox.setConverter(new StringConverter<NounDeclension>()
         {
-            BiMap<NounDeclension, String> biMap = HashBiMap.create();
+            final BiMap<NounDeclension, String> biMap = HashBiMap.create();
 
             {
                 for (NounDeclension current : NounViewController.nounDeclensions)
@@ -200,14 +215,34 @@ public class NounViewController
     //        ((Node) event.getSource()).requestFocus();
     //    }
 
+    /**
+     * Whether this NounView has already been initialized for the first time.
+     * This is required to register the between refreshes persisting listeners.
+     * <p>
+     * Difference to {@link #initializedWithNoun}: This also captures whether the stage property listener has been initialized.
+     *
+     * @since 0.0.1
+     */
     private boolean init = false;
 
+    /**
+     * Whether this NounView is being displayed on its own window ( {@code true} ) or
+     * if it is just displayed in a pane ( {@code false} ).
+     *
+     * @since 0.0.1
+     */
     private boolean isWindowed = false;
 
-    /*
-     * Call on JavaFX Application Thread
+    /**
+     * To be called to initialize the NounView initially.
+     * <p>
+     * Only call this method ever once. If the noun reference is to be changed, call {@link #bindNoun(Noun, boolean, boolean)}.
+     * <p>
+     * This method is to be called on the JavaFX application thread.
      *
-     * ONLY CALL ONCE!!!
+     * @param noun The noun to initialize.
+     * @throws IllegalStateException If this NounView has already been initialized.
+     * @since 0.0.1
      */
     public void initializeWithNoun(Noun noun)
     {
@@ -215,6 +250,7 @@ public class NounViewController
             throw new IllegalStateException();
         init = true;
         bindNoun(noun, true, true);
+        // Because the scene property of this node will be set later in the initialization chain
         rootPane.sceneProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null)
                 newValue.windowProperty().addListener((observable1, oldValue1, newValue1) -> {
@@ -227,26 +263,58 @@ public class NounViewController
         });
     }
 
-    Set<PropertyChangeListener> listeners = Sets.newHashSet();
+    /**
+     * The listeners bound to the current backing noun by this class, for later unregistering purposes.
+     *
+     * @since 0.0.1
+     */
+    final Set<PropertyChangeListener> listeners = Sets.newHashSet();
 
+    /**
+     * Registers a listener into the listeners set for later unbinding.
+     *
+     * @param listener The listener to register.
+     * @return The listener itself. Useful for inlining.
+     * @since 0.0.1
+     */
     private PropertyChangeListener register(PropertyChangeListener listener)
     {
         listeners.add(listener);
         return listener;
     }
 
+    /**
+     * Unregisters all currently known listeners from the provided noun.
+     * <p>
+     * Will clear the set of current listeners.
+     *
+     * @param noun The noun to unregister from.
+     * @since 0.0.1
+     */
     private void unregisterAll(Noun noun)
     {
         listeners.forEach(noun::removePropertyChangeListener);
         listeners.clear();
     }
 
+    /**
+     * Whether this NounView has already been initialized with a noun.
+     *
+     * @since 0.0.1
+     */
     boolean initializedWithNoun = false;
 
-    /*
-     * Call on JavaFX Application Thread
+
+    /**
+     * To be called on the JavaFX application thread.
+     *
+     * @param noun    The noun to bind.
+     * @param isReset Whether this is a reset: Setting this to true will override all checkbox settings.
+     * @param doInit  Whether this is a initialization: This is to be called e.g. on a save operation. Setting this parameter to true will make
+     *                this method set the {@link #initialBackingNoun} field.
+     * @since 0.0.1
      */
-    public void bindNoun(Noun noun, boolean isReset, boolean doInit)
+    public void bindNoun(@Nullable Noun noun, boolean isReset, boolean doInit)
     {
         boolean reRegisterListeners = noun != this.currentBackingNoun && noun != null; // Reference check
         if (reRegisterListeners) // If the whole instance changed
@@ -305,7 +373,15 @@ public class NounViewController
         initializedWithNoun = true;
     }
 
-    private void definedFormChange(Case caze, Count count, String newValue)
+    /**
+     * Called when the user changes a defined form.
+     *
+     * @param caze     The case of the changed form.
+     * @param count    The count of the changed form.
+     * @param newValue The new value.
+     * @since 0.0.1
+     */
+    private void definedFormChange(@NotNull Case caze, @NotNull Count count, @Nullable String newValue)
     {
         if (newValue != null)
         {
@@ -326,12 +402,25 @@ public class NounViewController
         }
     }
 
-    private void checkBoxChanged(Case caze, Count count, boolean newValue)
+    /**
+     * Called when the user checks or unchecks a checkbox.
+     *
+     * @param caze     The case of the form the checkbox was changed on.
+     * @param count    The count of the form the checkbox was changed on.
+     * @param newValue The new value of the checkbox.
+     * @since 0.0.1
+     */
+    private void checkBoxChanged(@NotNull Case caze, @NotNull Count count, boolean newValue)
     {
-
         if (currentBackingNoun != null)
             if (!newValue)
-                currentBackingNoun.removeDefinedForm(caze, count);
+                try
+                {
+                    currentBackingNoun.removeDefinedForm(caze, count);
+                } catch (PropertyVetoException e)
+                {
+                    throw new RuntimeException(e);
+                }
             else
                 try
                 {
@@ -342,7 +431,13 @@ public class NounViewController
                 }
     }
 
-    private void rootWordChange(String newValue)
+    /**
+     * Called when the user changes the root word.
+     *
+     * @param newValue The new value.
+     * @since 0.0.1
+     */
+    private void rootWordChange(@Nullable String newValue)
     {
         if (newValue != null)
         {
@@ -361,7 +456,13 @@ public class NounViewController
         }
     }
 
-    private void declensionChange(NounDeclension newValue)
+    /**
+     * Called when the user changes the noun declension.
+     *
+     * @param newValue The new value.
+     * @since 0.0.1
+     */
+    private void declensionChange(@NotNull NounDeclension newValue) // null is represented by DummyNounDeclension
     {
         tryBackingNoun();
         if (currentBackingNoun != null)
@@ -371,7 +472,13 @@ public class NounViewController
             } catch (PropertyVetoException ignored) {}
     }
 
-    private void genderChange(Gender newValue)
+    /**
+     * Called when the user changes the gender.
+     *
+     * @param newValue The new value.
+     * @since 0.0.1
+     */
+    private void genderChange(@NotNull Gender newValue)
     {
         tryBackingNoun();
         if (currentBackingNoun != null)
@@ -381,6 +488,11 @@ public class NounViewController
             } catch (PropertyVetoException ignored) {}
     }
 
+    /**
+     * Tries to establish a Noun instance out of the properties entered by the user.
+     *
+     * @since 0.0.1
+     */
     private void tryBackingNoun()
     {
         if (currentBackingNoun == null && !rootWordTextBox.getText().isEmpty() && genderComboBox.getValue() != null)
@@ -389,11 +501,17 @@ public class NounViewController
         }
     }
 
+    /**
+     * Called when the "Save" or "Save and exit" button is clicked.
+     *
+     * @param event The event.
+     * @since 0.0.1
+     */
     @FXML
-    private void save(ActionEvent event)
+    private void save(@Nullable ActionEvent event)
     {
         bindNoun(this.currentBackingNoun, false, true);
-        Task<Void> nounSaveTask = new NounSaveTask(currentBackingNoun, StaticConnectionHolder.connectionForId("main"));
+        Task<Void> nounSaveTask = new NounSaveTask(currentBackingNoun, ConnectionHolder.getConnection());
         nounSaveTask.stateProperty().addListener((observable, oldValue, newValue) -> {
             switch (newValue)
             {
@@ -411,11 +529,17 @@ public class NounViewController
         });
         new Thread(nounSaveTask).start();
         if (isWindowed)
-            rootPane.getScene().getWindow().hide(); // Equivalent to Stage.close()
+            rootPane.getScene().getWindow().hide(); // Equivalent to Stage.close(), prevent unnecessary casts
     }
 
+    /**
+     * Called when the user clicks the "Reset" button.
+     *
+     * @param event The event.
+     * @since 0.0.1
+     */
     @FXML
-    private void reset(ActionEvent event)
+    private void reset(@Nullable ActionEvent event)
     {
         bindNoun(this.initialBackingNoun, true, false);
     }

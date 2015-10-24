@@ -1,112 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component name="dataSourceStorage">
-  <data-source name="SQLite - Test/Noun/Huge" uuid="704d24ab-e118-47b2-8969-e5e554a36db0">
-    <database-info product="SQLite" version="3.8.9" jdbc-version="2.1" driver-name="SQLiteJDBC" driver-version="native"/>
-    <case-sensitivity plain-identifiers="mixed" quoted-identifiers="mixed"/>
-    <schema name="" catalog=""/>
-    <table name="NOUNS" schema="" catalog="" type="TABLE">
-      <column name="rootWord" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
-      <column name="gender" sqlType="INTEGER" precision="2000000000" scale="10" nullable="false" jdbcType="4"/>
-      <column name="nounDeclension" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="translationsJson" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
-      <column name="nomSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <primary-key columns="rootword"/>
-    </table>
-  </data-source>
-  <data-source name="SQLite - Test/Noun/Small" uuid="799fade3-384e-4285-a68a-e9e1d3d9495a">
-    <database-info product="SQLite" version="3.8.9" jdbc-version="2.1" driver-name="SQLiteJDBC" driver-version="native"/>
-    <case-sensitivity plain-identifiers="mixed" quoted-identifiers="mixed"/>
-    <schema name="" catalog=""/>
-    <table name="NOUNS" schema="" catalog="" type="TABLE">
-      <column name="rootWord" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
-      <column name="gender" sqlType="INTEGER" precision="2000000000" scale="10" nullable="false" jdbcType="4"/>
-      <column name="nounDeclension" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="translationsJson" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
-      <column name="nomSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <primary-key columns="rootword"/>
-    </table>
-  </data-source>
-  <data-source name="SQLite - RunDir DB" uuid="346db236-633f-4a91-a4dc-9d91f2b0e46a">
-    <database-info product="SQLite" version="3.8.9" jdbc-version="2.1" driver-name="SQLiteJDBC" driver-version="native"/>
-    <case-sensitivity plain-identifiers="mixed" quoted-identifiers="mixed"/>
-    <schema name="" catalog=""/>
-    <table name="NOUNS" schema="" catalog="" type="TABLE">
-      <column name="rootWord" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
-      <column name="uuid" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
-      <column name="gender" sqlType="INTEGER" precision="2000000000" scale="10" nullable="false" jdbcType="4"/>
-      <column name="nounDeclension" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="translationsJson" sqlType="TEXT" precision="2000000000" scale="10" nullable="false" jdbcType="12"/>
-      <column name="nomSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocSg" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocPl" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocSgDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="nomPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="genPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="datPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="accPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="ablPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <column name="vocPlDef" sqlType="TEXT" precision="2000000000" scale="10" nullable="true" jdbcType="12"/>
-      <primary-key columns="uuid"/>
+  <data-source name="H2 - database" uuid="be4ea7d7-928d-4506-ac75-de35573fe646">
+    <database-info product="H2" version="1.4.190 (2015-10-11)" jdbc-version="4.0" driver-name="H2 JDBC Driver" driver-version="1.4.190 (2015-10-11)">
+      <identifier-quote-string>&quot;</identifier-quote-string>
+    </database-info>
+    <case-sensitivity plain-identifiers="upper" quoted-identifiers="exact"/>
+    <schema name="PUBLIC" catalog="DATABASE"/>
+    <table name="NOUNS" schema="PUBLIC" catalog="DATABASE" type="TABLE">
+      <column name="ROOTWORD" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="false" jdbcType="12"/>
+      <column name="UUID" sqlType="UUID" precision="2147483647" scale="0" nullable="false" jdbcType="-2"/>
+      <column name="GENDER" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6"/>
+      <column name="NOUNDECLENSION" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="TRANSLATIONSJSON" sqlType="CLOB" precision="2147483647" scale="0" nullable="false" jdbcType="2005"/>
+      <column name="NOMSG" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="GENSG" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="DATSG" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="ACCSG" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="ABLSG" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="VOCSG" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="NOMPL" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="GENPL" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="DATPL" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="ACCPL" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="ABLPL" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="VOCPL" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="NOMSGDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="GENSGDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="DATSGDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="ACCSGDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="ABLSGDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="VOCSGDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="NOMPLDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="GENPLDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="DATPLDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="ACCPLDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="ABLPLDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <column name="VOCPLDEF" sqlType="VARCHAR" precision="2147483647" scale="0" nullable="true" jdbcType="12"/>
+      <primary-key name="CONSTRAINT_4" columns="UUID"/>
     </table>
   </data-source>
 </component>

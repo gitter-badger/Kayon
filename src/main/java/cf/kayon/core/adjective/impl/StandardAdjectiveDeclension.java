@@ -32,13 +32,47 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * The base abstract implementation for all AdjectiveDeclensions implementations of this package.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
 {
 
+    /**
+     * Selects the correct positive ending for a specified form.
+     * <p>
+     * Only returns lowercase endings (see annotation).
+     *
+     * @param caze   The case.
+     * @param count  The count.
+     * @param gender The gender.
+     * @return An ending. {@code null} if there is no standard ending for this form.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
     @Nullable
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     protected abstract String selectCorrectPositiveEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender);
 
+    /**
+     * Selects the correct ending for a specified form.
+     * <p>
+     * Only returns lowercase endings (see annotation).
+     *
+     * @param comparisonDegree The comparison degree.
+     * @param caze             The case.
+     * @param count            The count.
+     * @param gender           The gender.
+     * @return An ending. Never null.
+     * @throws FormingException     If the ending could not be determined.
+     * @throws NullPointerException If any of the arguments is null.
+     * @since 0.0.1
+     */
     @NotNull
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     public String selectCorrectEnding(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
             throws FormingException
     {
@@ -63,6 +97,10 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
         return endingOrNull;
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
     public String decline(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
@@ -77,6 +115,10 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
         return rootWord + selectCorrectEnding(comparisonDegree, caze, count, gender);
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
     public String determineRootWord(
@@ -98,6 +140,9 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
         return FormingUtil.determineRootWord(declinedForm, selectCorrectEnding(comparisonDegree, caze, count, gender));
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Nullable
     @Override
     public Set<AdjectiveForm> getEqualForms(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
@@ -105,6 +150,17 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
         return getEqualForms(comparisonDegree, caze, count, gender, true);
     }
 
+    /**
+     * Gets all equal forms to a specified form.
+     *
+     * @param comparisonDegree The comparison degree.
+     * @param caze             The case.
+     * @param count            The count.
+     * @param gender           The gender.
+     * @param goRecursive      Whether to include equal forms of equal forms.
+     * @return A Set of adjective forms.
+     * @since 0.0.1
+     */
     @Nullable
     private Set<AdjectiveForm> getEqualForms(
             @NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, boolean goRecursive)
@@ -141,13 +197,13 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
         }
 
         // Now, add vocative rules
-        if (applyVocativeEquals(count) && (caze == Case.NOMINATIVE || caze == Case.VOCATIVE))
+        if (applyPositiveVocativeEquals(count) && (caze == Case.NOMINATIVE || caze == Case.VOCATIVE))
         {
             workingSet.add(new AdjectiveForm(comparisonDegree, Case.NOMINATIVE, count, gender));
             workingSet.add(new AdjectiveForm(comparisonDegree, Case.VOCATIVE, count, gender));
         }
 
-        // Now, recursively (depth 1) add equal forms of equal forms
+        // Now, recursively (depth = 1) add equal forms of equal forms
         if (goRecursive)
             workingSet.forEach(form -> {
                 Set<AdjectiveForm> currentEquals =
@@ -160,20 +216,31 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
     }
 
     /**
-     * Do not handle neuter rules, those are applied afterwards by {@link #getEqualForms(ComparisonDegree, Case, Count, Gender)}.
+     * Gets all equal forms to a specified positive form.
+     * <p>
+     * This method is not supposed to handle neuter rules, those are applied afterwards by {@link #getEqualForms(ComparisonDegree, Case, Count, Gender)}.
      * <br>
      * It is perfecly valid to only have a method {@code return null;} if that actually applies for the implementation. In that case, it is recommended to,
-     * for semantic reasons, include {@link com.google.common.base.Preconditions#checkNotNull(Object) checkNotNull(Object)} calls for all the arguments.
+     * for semantic reasons, include {@link com.google.common.base.Preconditions#checkNotNull(Object) checkNotNull(Object)} calls for all the arguments as well.
      *
      * @param caze   The {@link Case} of the form to get the equal forms to.
      * @param count  The {@link Count} of the form to get the equal forms to.
      * @param gender The {@link Gender} of the form to ger the equal forms to.
      * @return A {@link Set} of {@link AdjectiveForm AdjectiveForms} that are exactly equal in forming. If there are no equal forms, return {@code null}.
-     * The returned {@link Set} may not be immutable.
+     * <strong>The returned {@link Set} may not be immutable.</strong>
+     * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.0.1
      */
     @Nullable
     protected abstract Set<AdjectiveForm> getEqualFormsPositive(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender);
 
-    protected abstract boolean applyVocativeEquals(@NotNull Count count);
+    /**
+     * Returns whether this AdjectiveDeclension's positive vocative and nominative forms are equal.
+     *
+     * @param count The count to get to whether the positive vocative and nominative forms are equal.
+     * @return {@code true} or {@code false} as described above.
+     * @throws NullPointerException If {@code count} is {@code null}.
+     * @since 0.0.1
+     */
+    protected abstract boolean applyPositiveVocativeEquals(@NotNull Count count);
 }

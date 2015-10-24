@@ -19,6 +19,7 @@
 package cf.kayon.core.adjective.impl;
 
 import cf.kayon.core.Case;
+import cf.kayon.core.CaseHandling;
 import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.adjective.AdjectiveDeclensionUtil;
@@ -34,25 +35,57 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * The implementation for the third adjective declension, i-stem-adjectives, two-ending.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class ITwoEndAdjectiveDeclension extends StandardAdjectiveDeclension
 {
 
+    /**
+     * The only instance of this singleton.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private static final ITwoEndAdjectiveDeclension INSTANCE = new ITwoEndAdjectiveDeclension();
+
+    /**
+     * The endings for the positive forms.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private final Table<Gender, Count, Map<Case, String>> positiveEndingsTable =
             AdjectiveDeclensionUtil.endingsTable("is", "is", "i", "em", "ī", "is", "es", "ium", "ibus", "ēs", "ibus", "es",
                                                  "is", "is", "i", "em", "ī", "is", "es", "ium", "ibus", "ēs", "ibus", "es",
                                                  "e", "is", "i", "e", "ī", "e", "ia", "ium", "ibus", "ia", "ibus", "ia");
 
+    /**
+     * The private constructor to never let anybody construct this class.
+     *
+     * @since 0.0.1
+     */
     private ITwoEndAdjectiveDeclension() {}
 
+    /**
+     * Gets the only instance of this ITwoEndAdjectiveDeclension.
+     *
+     * @return The only instance.
+     * @since 0.0.1
+     */
     @NotNull
     public static ITwoEndAdjectiveDeclension getInstance()
     {
         return INSTANCE;
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     @Override
     protected String selectCorrectPositiveEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
@@ -60,6 +93,9 @@ public class ITwoEndAdjectiveDeclension extends StandardAdjectiveDeclension
         return positiveEndingsTable.get(gender, count).get(caze);
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Nullable
     @Override
     protected Set<AdjectiveForm> getEqualFormsPositive(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
@@ -78,8 +114,11 @@ public class ITwoEndAdjectiveDeclension extends StandardAdjectiveDeclension
                                new AdjectiveForm(ComparisonDegree.POSITIVE, caze, count, Gender.NEUTER));
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
-    protected boolean applyVocativeEquals(@NotNull Count count)
+    protected boolean applyPositiveVocativeEquals(@NotNull Count count)
     {
         checkNotNull(count);
         return true;

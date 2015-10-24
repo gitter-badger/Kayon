@@ -49,8 +49,6 @@ public final class FxInterface extends Application
     }
 
     /**
-     * {@inheritDoc}
-     *
      * @since 0.0.1
      */
     @Deprecated

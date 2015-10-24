@@ -18,43 +18,109 @@
 
 package cf.kayon.core.noun;
 
-import cf.kayon.core.Case;
-import cf.kayon.core.Count;
-import cf.kayon.core.FormingException;
-import cf.kayon.core.Gender;
+import cf.kayon.core.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/*
- * TODO Add to javadoc later: These classes MUST implement a method of exact signature for later reflective reconstruction
- * public static <T extends NounDeclension> T getInstance()
+/**
+ * Describes a declension used for declining nouns.
+ * <p>
+ * These classes are special: You are required to implement a method of exact signature to be a valid NounDeclension, since your NounDeclension must be a singleton.
+ * <p>
+ * <pre>{@code
+ * public class MyNounDeclension implements NounDeclension
+ * {
+ *     public static MyNounDeclension getInstance()
+ *     {
+ *         // return the only instance here.
+ *     }
+ * }
+ * }</pre>
+ * <p>
+ * The implementation could look like this:
+ * <p>
+ * <pre>{@code
+ * public class MyNounDeclension implements NounDeclension
+ * {
+ *     private static final MyNounDeclension INSTANCE = new MyNounDeclension();
+ *     public static MyNounDeclension getInstance()
+ *     {
+ *         return INSTANCE;
+ *     }
+ *     private MyNounDeclension() {}
+ *     // the implementation here...
+ * }
+ * }</pre>
+ * <p>
+ * This is required by method who want to reconstruct your singleton instance by a simple class name. See {@link NounDeclensionUtil#forName(String)}
+ * for additional details.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
  */
-public interface NounDeclension {
-
-    @NotNull
-    default Noun declineToNoun(@NotNull String rootWord, @NotNull Gender gender) {
-        return new Noun(this, gender, rootWord);
-    }
-
+public interface NounDeclension
+{
+    /**
+     * Returns the primary gender of this NounDeclension. Useful for user interfaces which then can auto-select the default gender.
+     *
+     * @return The primary gender. May be null if the implementation does not have a primary gender.
+     * @since 0.0.1
+     */
     @Nullable
     Gender getPrimaryGender();
 
-    // Throw when absolutely NO forms could be declined. If only some of them fail, simply do not return them.
-    // (Theoretical, current implementations will never throw on decline()) -- add this to Javadoc
-//    @NotNull
-//    List<String> getPossibleForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException;
-
-//    @Nullable
-//    List<String> getAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord);
-//
-//    boolean hasAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord);
-
+    /**
+     * Declines a form based on a root word.
+     * <p>
+     * One should only apply lowercase root words, since the declining logic might depend on special character constellations
+     * in the root word. Only applies lowercase endings (see annotation).
+     *
+     * @param caze     The case.
+     * @param count    The count.
+     * @param gender   The gender.
+     * @param rootWord The root word.
+     * @return A declined form.
+     * @throws FormingException         If the form could not be determined.
+     * @throws NullPointerException     If any of the arguments is null.
+     * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException;
 
+    /**
+     * Determines the root word based on a declined form.
+     * <p>
+     * One should only apply lowercase declined forms, since the underlying logic is only required to detect lowercase endings
+     * and character constellations. The determined root word will be lowercased, if the declined form is lowercase as well (see annotation).
+     *
+     * @param caze         The case.
+     * @param count        The count.
+     * @param gender       The gender.
+     * @param declinedForm The declined form.
+     * @return The root word.
+     * @throws FormingException         If the root word could not be determined.
+     * @throws NullPointerException     If any of the arguments is null.
+     * @throws IllegalArgumentException If {@code declinedForm} is {@link String#isEmpty() empty}.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     String determineRootWord(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException;
 
+    /**
+     * Returns whether a specified gender is supported by this NounDeclension. If a gender is not allowed, a usage cannot expect declining results to be accurate,
+     * they may then result in an arbitrary wrong form.
+     * <p>
+     * Implementations are allowed to throw an unchecked exception if a method is called on it with a disallowed gender, though the implementations
+     * provided in {@link cf.kayon.core.noun.impl} all just return some arbitrary wrong form.
+     *
+     * @param genderToCheck The gender to check.
+     * @return Whether it is allwed or not.
+     * @throws NullPointerException If {@code genderToCheck} is {@code null}.
+     * @since 0.0.1
+     */
     boolean allowsGender(@NotNull Gender genderToCheck);
 
 }

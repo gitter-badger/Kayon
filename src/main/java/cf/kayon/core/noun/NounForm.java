@@ -22,17 +22,47 @@ import cf.kayon.core.Case;
 import cf.kayon.core.Count;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.jetbrains.annotations.NotNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Describes a noun form.
+ * <p>
+ * This class is only to be used when a form should be returned. When accepting a form, take in all the parameters separately.
+ * <p>
+ * Immutable.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class NounForm
 {
 
+    /**
+     * The case.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
     private final Case caze;
 
+    /**
+     * The count.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
     private final Count count;
 
-    public NounForm(Case caze, Count count)
+    /**
+     * Constructs a new NounForm.
+     *
+     * @param caze  The case.
+     * @param count The count.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     */
+    public NounForm(@NotNull Case caze, @NotNull Count count)
     {
         checkNotNull(caze);
         checkNotNull(count);
@@ -40,6 +70,9 @@ public class NounForm
         this.count = count;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public boolean equals(Object o)
     {
@@ -50,6 +83,9 @@ public class NounForm
                Objects.equal(count, nounForm.count);
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public String toString()
     {
@@ -59,18 +95,35 @@ public class NounForm
                           .toString();
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public int hashCode()
     {
         return Objects.hashCode(caze, count);
     }
 
+    /**
+     * Gets the case.
+     *
+     * @return The case.
+     * @since 0.0.1
+     */
+    @NotNull
     public Case getCaze()
     {
 
         return caze;
     }
 
+    /**
+     * Gets the count.
+     *
+     * @return The count.
+     * @since 0.0.1
+     */
+    @NotNull
     public Count getCount()
     {
         return count;

@@ -18,40 +18,77 @@
 
 package cf.kayon.core.noun.impl;
 
-import com.google.common.collect.Table;
 import cf.kayon.core.Case;
+import cf.kayon.core.CaseHandling;
 import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclensionUtil;
+import com.google.common.collect.Table;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * The implementation for the third noun declension, consonant stem.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class ConsonantNounDeclension extends StandardNounDeclension
 {
 
+    /**
+     * The only instance of this singleton.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private static final ConsonantNounDeclension INSTANCE = new ConsonantNounDeclension();
 
+    /**
+     * The endings for the masculine and feminine forms.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private final Table<Case, Count, String> endingsMasculineFeminine =
             NounDeclensionUtil.endingsTable(null, "is", "ī", "em", "e", null,
                                             "ēs", "um", "ibus", "ēs", "ibus", "ēs");
 
+    /**
+     * The endings for the neuter forms.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private final Table<Case, Count, String> endingsNeuter =
             NounDeclensionUtil.endingsTable(null, "is", "ī", null, "e", null,
                                             "a", "um", "ibus", "a", "ibus", "a");
 
+    /**
+     * The private constructor to never let anybody construct this class.
+     *
+     * @since 0.0.1
+     */
     private ConsonantNounDeclension() {}
 
+    /**
+     * Gets the only instance of this as specified by {@link cf.kayon.core.noun.NounDeclension}.
+     *
+     * @return The only instance.
+     * @since 0.0.1
+     */
     @NotNull
     public static ConsonantNounDeclension getInstance()
     {
         return INSTANCE;
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
     {
@@ -61,6 +98,9 @@ public class ConsonantNounDeclension extends StandardNounDeclension
         return gender == Gender.NEUTER ? endingsNeuter.get(caze, count) : endingsMasculineFeminine.get(caze, count);
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Nullable
     @Override
     public Gender getPrimaryGender()
@@ -68,6 +108,9 @@ public class ConsonantNounDeclension extends StandardNounDeclension
         return Gender.FEMININE;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public boolean allowsGender(@NotNull Gender genderToCheck)
     {

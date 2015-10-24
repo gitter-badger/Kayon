@@ -61,7 +61,7 @@ public class CommandLineAccessor
      */
     @Deprecated
     @NotNull
-    private static Map<Pattern, TriFunction<Pair<String, Boolean>, String, Matcher, List<Vocab>>> actions = Maps.newHashMap();
+    private static final Map<Pattern, TriFunction<Pair<String, Boolean>, String, Matcher, List<Vocab>>> actions = Maps.newHashMap();
 
     /**
      * All {@link AdjectiveDeclension}s.
@@ -70,7 +70,7 @@ public class CommandLineAccessor
      */
     @Deprecated
     @NotNull
-    private static Map<Integer, AdjectiveDeclension> adjectiveDeclensionMap = new HashMap<>(6);
+    private static final Map<Integer, AdjectiveDeclension> adjectiveDeclensionMap = new HashMap<>(6);
 
     /**
      * All {@link NounDeclension}s.
@@ -79,7 +79,7 @@ public class CommandLineAccessor
      */
     @Deprecated
     @NotNull
-    private static Map<Integer, NounDeclension> nounDeclensionMap = new HashMap<>(9);
+    private static final Map<Integer, NounDeclension> nounDeclensionMap = new HashMap<>(9);
 
     static
     {
@@ -156,7 +156,13 @@ public class CommandLineAccessor
                 Case caze = Case.valueOf(matcher.group(5).toUpperCase());
                 String form = matcher.group(6).toLowerCase();
 
-                a.defineForm(comparisonDegree, caze, count, gender, form);
+                try
+                {
+                    a.defineForm(comparisonDegree, caze, count, gender, form);
+                } catch (PropertyVetoException e)
+                {
+                    throw new RuntimeException(e); // Temporary compile fix until removal
+                }
             } catch (ClassCastException e)
             {
                 return new ImmutablePair<>("ID supplied does not point to a Adjective!", true);
@@ -182,7 +188,13 @@ public class CommandLineAccessor
                 boolean allow = matcher.group(3).equalsIgnoreCase("allow");
 
 
-                a.setAllows(comparisonDegree, allow);
+                try
+                {
+                    a.setAllows(comparisonDegree, allow);
+                } catch (PropertyVetoException e)
+                {
+                    throw new RuntimeException(e); // temporary compile fix until removal
+                }
                 return new ImmutablePair<>("Success: Set to " + (allow ? "allow " : "disallow ") + comparisonDegree.toString(), true);
             } catch (ClassCastException e)
             {
@@ -287,7 +299,7 @@ public class CommandLineAccessor
     // TODO remove this later once DB is implemented
     @NotNull
     @Deprecated
-    private List<Vocab> vocab = new ArrayList<>();
+    private final List<Vocab> vocab = new ArrayList<>();
 
     /**
      * Processes a command string.
@@ -295,7 +307,7 @@ public class CommandLineAccessor
      * If multiple command match the command (should not happen), they both get executed in the order they have been defined in the static initializer block.
      *
      * @param commandLine The command line string the user entered.
-     * @return A pair: A response string from this {@link CommandLineAccessor} that is to be printed to some sort of console and
+     * @return A pair: A response string from this that is to be printed to some sort of console and
      * a boolean whether the application should continue running.
      * @since 0.0.1
      */

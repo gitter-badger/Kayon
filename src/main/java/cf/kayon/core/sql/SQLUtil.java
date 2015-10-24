@@ -22,16 +22,39 @@ import cf.kayon.core.Gender;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Provides static utilities around database actions.
+ *
+ * @since 0.0.1
+ */
 public class SQLUtil
 {
-
-    public static int idForGender(Gender gender)
+    /**
+     * Gets the ID of a gender.
+     * <p>
+     * The ID is the enum ordinal (defined by the order in which the constants have been declared).
+     *
+     * @param gender The gender to get the ID for.
+     * @return A {@code byte} representing the ID.
+     * @since 0.0.1
+     */
+    public static byte idForGender(Gender gender)
     {
-        return ArrayUtils.indexOf(Gender.values(), gender);
+        return (byte) ArrayUtils.indexOf(Gender.values(), gender);
     }
 
+    /**
+     * Gets a gender for a ID.
+     * <p>
+     * The ID is the enum ordinal (defined by the order in which the constants have been declared).
+     *
+     * @param id The ID.
+     * @return The gender.
+     * @throws ArrayIndexOutOfBoundsException If the ID does not represent a gender.
+     * @since 0.0.1
+     */
     @NotNull
-    public static Gender genderForId(int id)
+    public static Gender genderForId(byte id)
     {
         return Gender.values()[id];
     }

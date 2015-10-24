@@ -23,12 +23,51 @@ import cf.kayon.core.noun.NounDeclension;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * The base abstract implementation for all NounDeclension implementations of this package.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public abstract class StandardNounDeclension implements NounDeclension
 {
 
+    /**
+     * Selects the correct ending for a specified form.
+     * <p>
+     * Only returns lowercase endings (see annotation).
+     * <p>
+     * Does not throw an unchecked exception (as documented in {@link NounDeclension#allowsGender(Gender)}) if the {@code gender} is disallowed,
+     * instead returns a arbitrary possibly wrong ending.
+     *
+     * @param caze   The case.
+     * @param count  The count.
+     * @param gender The gender.
+     * @return An ending. {@code null} if there is no standard ending for this form.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     protected abstract String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender);
 
+    /**
+     * Selects the correct ending for a specified form.
+     * <p>
+     * Only returns lowercase endings (see annotation).
+     * <p>
+     * Does not throw an unchecked exception (as documented in {@link NounDeclension#allowsGender(Gender)}) if the {@code gender} is disallowed,
+     * instead returns a arbitrary possibly wrong ending.
+     *
+     * @param caze   The case.
+     * @param count  The count.
+     * @param gender The gender.
+     * @return An ending.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @throws FormingException     If there is no standard ending for this form.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     public String selectCorrectEnding(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender) throws FormingException
     {
@@ -55,19 +94,22 @@ public abstract class StandardNounDeclension implements NounDeclension
     //        return buffer;
     //    }
 
-//    @Nullable
-//    @Override
-//    public List<String> getAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
-//    {
-//        return null;
-//    }
-//
-//    @Override
-//    public boolean hasAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
-//    {
-//        return getAlternateForms(caze, count, gender, rootWord) != null;
-//    }
+    //    @Nullable
+    //    @Override
+    //    public List<String> getAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
+    //    {
+    //        return null;
+    //    }
+    //
+    //    @Override
+    //    public boolean hasAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
+    //    {
+    //        return getAlternateForms(caze, count, gender, rootWord) != null;
+    //    }
 
+    /**
+     * @since 0.0.1
+     */
     @NotNull
     @Override
     public String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
@@ -75,6 +117,9 @@ public abstract class StandardNounDeclension implements NounDeclension
         return rootWord + selectCorrectEnding(caze, count, gender);
     }
 
+    /**
+     * @since 0.0.1
+     */
     @NotNull
     @Override
     public String determineRootWord(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException

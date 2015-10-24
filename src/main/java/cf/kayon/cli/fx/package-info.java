@@ -16,9 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.core.sql;
-
-public class VocabSQLFactory
-{
-
-}
+/**
+ * Contains the JavaFX command line interface.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ * @deprecated Use the JavaFX graphical interface instead.
+ */
+package cf.kayon.cli.fx;

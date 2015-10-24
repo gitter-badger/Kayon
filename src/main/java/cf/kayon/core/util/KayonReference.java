@@ -18,7 +18,6 @@
 
 package cf.kayon.core.util;
 
-import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,33 +26,50 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Provides static references about the Kayon application.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class KayonReference
 {
 
+    /**
+     * The version as written in {@code /src/main/resources/version}.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private static final String VERSION;
 
-    private static final int BUILD;
+    /**
+     * The build ID as written in {@code /src/main/resources/build}.
+     *
+     * @since 0.0.1
+     */
+    private static final long BUILD;
 
+    /**
+     * Gets the version.
+     *
+     * @return The version string, as written in {@code /src/main/resources/version}.
+     */
     @NotNull
     public static String getVersion()
     {
         return VERSION;
     }
 
-    public static int getBuild()
+    /**
+     * Gets the build ID.
+     *
+     * @return The build ID as written in {@code /src/main/resources/build}.
+     */
+    public static long getBuild()
     {
         return BUILD;
     }
-
-    @NotNull
-    public static Gson getGson()
-    {
-        return GSON;
-    }
-
-    @NotNull
-    private static final Gson GSON = new Gson();
 
     static
     {
@@ -69,7 +85,7 @@ public class KayonReference
         try (InputStream inputStream = KayonReference.class.getResourceAsStream("/build");
              InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         {
-            BUILD = Integer.parseInt(IOUtils.toString(inputStreamReader));
+            BUILD = Long.parseLong(IOUtils.toString(inputStreamReader));
         } catch (IOException ioe)
         {
             throw new Error(ioe);

@@ -19,10 +19,10 @@
 package cf.kayon.core.adjective;
 
 import cf.kayon.core.Case;
-import cf.kayon.core.Gender;
-import com.google.common.collect.Lists;
 import cf.kayon.core.Count;
+import cf.kayon.core.Gender;
 import cf.kayon.core.adjective.impl.ITwoEndAdjectiveDeclension;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -42,6 +42,7 @@ public class AdjectiveTest
                 Lists.newArrayList("gravis", "gravis", "gravi", "gravem", "gravi", "gravis", "graves", "gravium", "gravibus", "graves", "gravibus", "graves",
                                    "gravis", "gravis", "gravi", "gravem", "gravi", "gravis", "graves", "gravium", "gravibus", "graves", "gravibus", "graves",
                                    "grave", "gravis", "gravi", "grave", "gravi", "grave", "gravia", "gravium", "gravibus", "gravia", "gravibus", "gravia");
+        //TODO
 
 
     }

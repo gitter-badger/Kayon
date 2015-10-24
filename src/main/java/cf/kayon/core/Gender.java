@@ -18,6 +18,34 @@
 
 package cf.kayon.core;
 
-public enum Gender {
-    MASCULINE, FEMININE, NEUTER
+/**
+ * Describes a grammatical gender.
+ *
+ * @author Ruben Anders
+ * @see cf.kayon.core.sql.SQLUtil#idForGender(Gender)
+ * @see cf.kayon.core.sql.SQLUtil#genderForId(byte)
+ * @since 0.0.1
+ */
+public enum Gender
+{
+    /**
+     * The masculine gender.
+     *
+     * @since 0.0.1
+     */
+    MASCULINE,
+
+    /**
+     * The feminine gender.
+     *
+     * @since 0.0.1
+     */
+    FEMININE,
+
+    /**
+     * The neuter gender.
+     *
+     * @since 0.0.1
+     */
+    NEUTER
 }

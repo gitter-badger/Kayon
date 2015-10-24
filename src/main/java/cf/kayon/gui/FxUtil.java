@@ -33,6 +33,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class FxUtil
 {
     private static final Set<Image> images = Sets.newHashSet(new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo16.png")),
@@ -41,8 +43,9 @@ public class FxUtil
                                                              new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo128.png")),
                                                              new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo150.png")));
 
-    public static void initIcons(Stage stage)
+    public static void initIcons(@NotNull Stage stage)
     {
+        checkNotNull(stage);
         stage.getIcons().addAll(images);
     }
 

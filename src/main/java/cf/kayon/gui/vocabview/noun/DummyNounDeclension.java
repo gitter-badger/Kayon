@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.gui;
+package cf.kayon.gui.vocabview.noun;
 
 import cf.kayon.core.Case;
 import cf.kayon.core.Count;
@@ -26,24 +26,51 @@ import cf.kayon.core.noun.NounDeclension;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Represents {@code null} in the list of declensions in the {@link NounView}.
+ *
+ * @since 0.0.1
+ */
 public class DummyNounDeclension implements NounDeclension
 {
+    /**
+     * The only instance of this singleton.
+     *
+     * @since 0.0.1
+     */
     public static final DummyNounDeclension INSTANCE = new DummyNounDeclension();
 
+    /**
+     * Gets the only instance of this as specified by {@link cf.kayon.core.noun.NounDeclension}.
+     *
+     * @return The only instance.
+     * @since 0.0.1
+     */
     public static DummyNounDeclension getInstance()
     {
         return INSTANCE;
     }
 
+    /**
+     * The private constructor to never let anybody construct this class.
+     *
+     * @since 0.0.1
+     */
     private DummyNounDeclension() {}
 
+    /**
+     * @since 0.0.1
+     */
     @Nullable
     @Override
     public Gender getPrimaryGender()
     {
-        throw new UnsupportedOperationException();
+        return Gender.MASCULINE;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @NotNull
     @Override
     public String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
@@ -51,6 +78,9 @@ public class DummyNounDeclension implements NounDeclension
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * @since 0.0.1
+     */
     @NotNull
     @Override
     public String determineRootWord(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
@@ -58,6 +88,9 @@ public class DummyNounDeclension implements NounDeclension
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public boolean allowsGender(@NotNull Gender genderToCheck)
     {

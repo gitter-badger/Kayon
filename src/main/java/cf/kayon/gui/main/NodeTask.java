@@ -16,9 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.gui;
+package cf.kayon.gui.main;
 
 import cf.kayon.core.Vocab;
+import cf.kayon.core.noun.Noun;
+import cf.kayon.gui.vocabview.noun.NounView;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.Node;
@@ -45,15 +47,22 @@ public class NodeTask extends Task<Void>
     @Override
     protected Void call() throws Exception
     {
-        Node n = VocabNodeFactory.getNode(vocab);
-        if (latch.getCount() == 1)
-            Platform.runLater(() -> vBox.getChildren().add(n));
+        Node node;
+        if (vocab.getClass() == Noun.class)
+            node = NounView.createNewParent((Noun) vocab).getLeft();
         else
-            Platform.runLater(() -> {
-                vBox.getChildren().add(n);
-                vBox.getChildren().add(new Separator());
-            });
-        latch.countDown();
+            throw new IllegalArgumentException();
+        synchronized (latch) // Race condition, thread visibility
+        {
+            if (latch.getCount() == 1)
+                Platform.runLater(() -> vBox.getChildren().add(node));
+            else
+                Platform.runLater(() -> {
+                    vBox.getChildren().add(node);
+                    vBox.getChildren().add(new Separator());
+                });
+            latch.countDown();
+        }
         return null;
     }
 }

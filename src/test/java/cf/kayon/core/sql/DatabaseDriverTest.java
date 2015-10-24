@@ -22,22 +22,9 @@ import org.junit.Test;
 
 public class DatabaseDriverTest
 {
-
-    //    @Test
-    //    public void testHSQLDB() throws ClassNotFoundException
-    //    {
-    //        Class.forName("org.hsqldb.jdbc.JDBCDriver");
-    //    }
-
-    //    @Test
-    //    public void testH2() throws ClassNotFoundException
-    //    {
-    //        Class.forName("org.h2.Driver");
-    //    }
-
     @Test
-    public void testSQLite() throws ClassNotFoundException
+    public void testH2() throws ClassNotFoundException
     {
-        Class.forName("org.sqlite.JDBC");
+        Class.forName("org.h2.Driver");
     }
 }

@@ -19,12 +19,12 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Case;
+import cf.kayon.core.Count;
+import cf.kayon.core.FormingException;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.util.StringUtil;
 import com.google.common.base.Strings;
-import cf.kayon.core.Count;
-import cf.kayon.core.FormingException;
 import org.apache.commons.collections4.iterators.ObjectArrayIterator;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Iterator;
 
 import static com.github.stefanbirkner.fishbowl.Fishbowl.exceptionThrownBy;
-import static org.junit.Assert.assertEquals;
 
 public class NounDeclensionTestingUtil
 {

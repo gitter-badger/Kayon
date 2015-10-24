@@ -16,31 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.core;
-
-public class NoDeclensionException extends Exception
-{
-    public NoDeclensionException()
-    {
-    }
-
-    public NoDeclensionException(String message)
-    {
-        super(message);
-    }
-
-    public NoDeclensionException(String message, Throwable cause)
-    {
-        super(message, cause);
-    }
-
-    public NoDeclensionException(Throwable cause)
-    {
-        super(cause);
-    }
-
-    public NoDeclensionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
-    {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-}
+/**
+ * Contains all logic about nouns.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
+package cf.kayon.core.noun;

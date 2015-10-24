@@ -41,7 +41,7 @@ import static org.junit.Assert.assertNotNull;
 public class HugeDatabaseTest
 {
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-    List<Noun> examples = Lists.newArrayList();
+    final List<Noun> examples = Lists.newArrayList();
     private Connection connection;
 
     {
@@ -58,7 +58,7 @@ public class HugeDatabaseTest
     public void setUp() throws SQLException
     {
         LOGGER.info("Connecting...");
-        connection = DriverManager.getConnection("jdbc:sqlite:database-nouns-huge.db");
+        connection = DriverManager.getConnection("jdbc:h2:./database-nouns-huge");
         LOGGER.info("Connected.");
 
         LOGGER.info("Setting up database for usage...");

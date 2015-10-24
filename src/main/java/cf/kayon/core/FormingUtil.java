@@ -43,7 +43,7 @@ public class FormingUtil
     }
 
     @Nullable
-    public static String determineRootWordOrNull(@NotNull String declinedForm, @NotNull String ending) throws FormingException
+    public static String determineRootWordOrNull(@NotNull String declinedForm, @NotNull String ending)
     {
         checkNotNull(declinedForm);
         checkNotNull(ending);

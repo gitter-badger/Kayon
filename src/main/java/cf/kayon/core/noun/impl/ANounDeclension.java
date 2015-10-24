@@ -19,32 +19,63 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Case;
-import com.google.common.collect.Table;
+import cf.kayon.core.CaseHandling;
 import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclensionUtil;
+import com.google.common.collect.Table;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * The implementation for the first noun declension.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class ANounDeclension extends StandardNounDeclension
 {
+    /**
+     * The only instance of this singleton.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private static final ANounDeclension INSTANCE = new ANounDeclension();
 
+    /**
+     * The endings.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private final Table<Case, Count, String> endings = NounDeclensionUtil.endingsTable("a", "ae", "ae", "am", "ā", "a",
                                                                                        "ae", "ārum", "īs", "ās", "īs", "ae");
 
+    /**
+     * The private constructor to never let anybody construct this class.
+     *
+     * @since 0.0.1
+     */
     private ANounDeclension() {}
 
+    /**
+     * Gets the only instance of this as specified by {@link cf.kayon.core.noun.NounDeclension}.
+     *
+     * @return The only instance.
+     * @since 0.0.1
+     */
     @NotNull
     public static ANounDeclension getInstance()
     {
         return INSTANCE;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Nullable
     @Override
     public Gender getPrimaryGender()
@@ -52,12 +83,19 @@ public class ANounDeclension extends StandardNounDeclension
         return Gender.FEMININE;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public boolean allowsGender(@NotNull Gender genderToCheck)
     {
         return checkNotNull(genderToCheck) != Gender.NEUTER;
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     @Override
     protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)

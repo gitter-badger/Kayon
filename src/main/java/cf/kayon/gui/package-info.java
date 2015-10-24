@@ -16,39 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Contains the Kayon JavaFX graphical user interface.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 package cf.kayon.gui;
-
-import cf.kayon.core.noun.Noun;
-import cf.kayon.core.sql.NounSQLFactory;
-import javafx.concurrent.Task;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-
-public class NounSaveTask extends Task<Void>
-{
-    public NounSaveTask(final Noun noun, final Connection connection)
-    {
-        this.noun = noun;
-        this.connection = connection;
-    }
-
-    private final Noun noun;
-
-    private final Connection connection;
-
-    @Override
-    protected Void call() throws Exception
-    {
-        try
-        {
-            NounSQLFactory.saveNounToDatabase(connection, noun);
-        } catch (SQLException e)
-        {
-            e.printStackTrace();
-            throw e;
-        }
-        return null;
-    }
-
-}

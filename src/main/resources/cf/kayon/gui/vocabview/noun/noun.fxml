@@ -23,7 +23,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 <GridPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="935.0"
-          xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cf.kayon.gui.NounViewController">
+          xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cf.kayon.gui.vocabview.noun.NounViewController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>

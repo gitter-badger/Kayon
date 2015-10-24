@@ -31,10 +31,11 @@ import java.util.NoSuchElementException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Deprecated
 public class NounFormIterator implements Iterator<Pair<Boolean, String>>, ResettableIterator<Pair<Boolean, String>>
 {
     private final Noun noun;
-    private ObjectArrayIterator<Case> caseIterator = new ObjectArrayIterator<>(Case.values());
+    private final ObjectArrayIterator<Case> caseIterator = new ObjectArrayIterator<>(Case.values());
     private Count currentCount = Count.SINGULAR;
 
     public NounFormIterator(Noun noun)

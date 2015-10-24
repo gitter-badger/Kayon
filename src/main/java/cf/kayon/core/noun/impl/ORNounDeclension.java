@@ -27,22 +27,53 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * The implementation for the second noun declension, nominative singular in -r/-er.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class ORNounDeclension extends StandardNounDeclension
 {
+    /**
+     * The only instance of this singleton.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private static final ORNounDeclension INSTANCE = new ORNounDeclension();
+
+    /**
+     * The endings.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     private final Table<Case, Count, String> endings = NounDeclensionUtil.endingsTable(null, "ī", "ō", "um", "ō", null,
                                                                                        "ī", "ōrum", "īs", "ōs", "īs", "ī");
 
+    /**
+     * The private constructor to never let anybody construct this class.
+     *
+     * @since 0.0.1
+     */
     private ORNounDeclension() {}
 
+    /**
+     * Gets the only instance of this as specified by {@link cf.kayon.core.noun.NounDeclension}.
+     *
+     * @return The only instance.
+     * @since 0.0.1
+     */
     @NotNull
     public static ORNounDeclension getInstance()
     {
         return INSTANCE;
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Nullable
     @Override
     public Gender getPrimaryGender()
@@ -75,6 +106,10 @@ public class ORNounDeclension extends StandardNounDeclension
 //        return caze == Case.GENITIVE && count == Count.SINGULAR && StringUtil.unSpecialString(rootWord).endsWith("i");
 //    }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
     public String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
@@ -92,6 +127,10 @@ public class ORNounDeclension extends StandardNounDeclension
         return rootWord + this.selectCorrectEnding(caze, count, gender);
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
     public String determineRootWord(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
@@ -107,12 +146,19 @@ public class ORNounDeclension extends StandardNounDeclension
         return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(caze, count, gender));
     }
 
+    /**
+     * @since 0.0.1
+     */
     @Override
     public boolean allowsGender(@NotNull Gender genderToCheck)
     {
         return checkNotNull(genderToCheck) != Gender.NEUTER;
     }
 
+    /**
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     @Override
     protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)

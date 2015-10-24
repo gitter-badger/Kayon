@@ -24,9 +24,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
+@Deprecated
+// Abandoned
 public class JoinerNounFormIterator implements Iterator<String>, ResettableIterator<String>
 {
-    private NounFormIterator delegate;
+    private final NounFormIterator delegate;
 
     public JoinerNounFormIterator(Noun noun)
     {

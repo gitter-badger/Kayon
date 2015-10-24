@@ -24,7 +24,7 @@ apply from: 'javadocAndSourcesJar.gradle'
 
 group 'cf.kayon'
 version = file('src/main/resources/version').getText('utf8')
-mainClassName = 'cf.kayon.gui.SplashScreen'
+mainClassName = 'cf.kayon.gui.splash.Splash'
 
 if (System.getenv('CIRCLECI').equals('true')) {
     file('src/main/resources/build').write(System.getenv('CIRCLE_BUILD_NUM'))
@@ -40,11 +40,11 @@ buildscript {
     }
 }
 
-jar {
-    manifest {
-        attributes 'Main-Class': mainClassName
-    }
-}
+//jar {
+//    manifest {
+//        attributes 'Main-Class': mainClassName
+//    }
+//}
 
 //region Dependency Management
 repositories {
@@ -60,10 +60,9 @@ dependencies {
     compile 'com.intellij:annotations:14.1.4'
     compile "com.google.guava:guava:18.0" // Change version in doc link as well
     compile 'org.apache.commons:commons-lang3:3.4' // Pair & Triple
-    compile 'com.google.code.findbugs:annotations:3.0.0'
     compile 'commons-io:commons-io:2.4'
-    compile 'com.google.code.gson:gson:2.3.1'
-    compile 'org.xerial:sqlite-jdbc:3.8.11.2'
+    compile 'com.h2database:h2:1.4.190'
+    compile 'com.airhacks:afterburner.fx:1.6.2'
 //    compile fileTree(dir: 'libs', include: '*.jar')
 
     // Tests
@@ -100,6 +99,7 @@ tasks.javadoc {
     options.addStringOption('encoding', 'utf8')
     options.addStringOption('docencoding', 'utf8')
     options.addStringOption('charset', 'utf8')
+    options.showFromPrivate()
 //    options.setOutputLevel(JavadocOutputLevel.VERBOSE)
 }
 //endregion
@@ -108,10 +108,8 @@ tasks.withType(Test) {
     workingDir = "$buildDir/test-results/working-dir"
     systemProperty 'file.encoding', 'utf8'
     doFirst {
-        file(workingDir).mkdirs()
+        workingDir.mkdirs()
     }
 }
 
-tasks.build.dependsOn tasks.shadowJar
-
-defaultTasks 'clean', 'build'
+defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip', 'distShadowZip'

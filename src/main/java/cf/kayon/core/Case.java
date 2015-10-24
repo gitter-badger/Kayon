@@ -18,6 +18,53 @@
 
 package cf.kayon.core;
 
-public enum Case {
-    NOMINATIVE, GENITIVE, DATIVE, ACCUSATIVE, ABLATIVE, VOCATIVE
+/**
+ * Describes a grammatical case.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
+public enum Case
+{
+    /**
+     * The nominative case.
+     *
+     * @since 0.0.1
+     */
+    NOMINATIVE,
+
+    /**
+     * The genitive case.
+     *
+     * @since 0.0.1
+     */
+    GENITIVE,
+
+    /**
+     * The dative case.
+     *
+     * @since 0.0.1
+     */
+    DATIVE,
+
+    /**
+     * The accusative case.
+     *
+     * @since 0.0.1
+     */
+    ACCUSATIVE,
+
+    /**
+     * The ablative case.
+     *
+     * @since 0.0.1
+     */
+    ABLATIVE,
+
+    /**
+     * The vocative case.
+     *
+     * @since 0.0.1
+     */
+    VOCATIVE
 }

@@ -18,24 +18,51 @@
 
 package cf.kayon.core;
 
-public class FormingException extends Exception {
-    public FormingException() {
+/**
+ * Describes a failure when forming.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
+public class FormingException extends Exception
+{
+    /**
+     * @since 0.0.1
+     */
+    public FormingException()
+    {
         super();
     }
 
-    public FormingException(String message) {
+    /**
+     * @since 0.0.1
+     */
+    public FormingException(String message)
+    {
         super(message);
     }
 
-    public FormingException(String message, Throwable cause) {
+    /**
+     * @since 0.0.1
+     */
+    public FormingException(String message, Throwable cause)
+    {
         super(message, cause);
     }
 
-    public FormingException(Throwable cause) {
+    /**
+     * @since 0.0.1
+     */
+    public FormingException(Throwable cause)
+    {
         super(cause);
     }
 
-    protected FormingException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    /**
+     * @since 0.0.1
+     */
+    protected FormingException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
+    {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

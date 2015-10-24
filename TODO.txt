@@ -1,0 +1,9 @@
+TODO Add +x permissions to ./gradlew by using `git update-index --chmod=+x ./gradlew`
+TODO Write javadoc for the core
+TODO write tests once finished writing the code
+TODO add alternating forms to Noun class (or any vocab class) - things like turris/filius have alternating forms, that can all appear and are all pointing to the same
+TODO write more unit tests for adjectives
+TODO implement ORAAdjectiveDeclension (miser)
+TODO implement IOneAdjectiveDeclension, Two, Three!!! I simply created their stubs
+TODO Add equalForms support to Adjective, NounDeclension, StandardNounDeclension, Noun classes (especially _declineIntoBuffer() needs some changes - if a defined form for a set of equal forms exists, use that to fill out the declined table)
+TODO add to javadoc of equal forms that by all sides, everything must be returned equally

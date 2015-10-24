@@ -16,33 +16,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.gui;
+package cf.kayon.gui.vocabview.noun;
 
-import cf.kayon.core.Vocab;
+import cf.kayon.core.noun.Noun;
 import cf.kayon.core.sql.NounSQLFactory;
-import com.google.common.collect.Lists;
 import javafx.concurrent.Task;
 
 import java.sql.Connection;
-import java.util.List;
+import java.sql.SQLException;
 
-public class VocabTask extends Task<List<Vocab>>
+public class NounSaveTask extends Task<Void>
 {
-    private final String searchString;
-
-    private final Connection connection;
-
-    public VocabTask(final String searchString, final Connection connection)
+    public NounSaveTask(final Noun noun, final Connection connection)
     {
-        this.searchString = searchString;
+        this.noun = noun;
         this.connection = connection;
     }
 
+    private final Noun noun;
+
+    private final Connection connection;
+
     @Override
-    protected List<Vocab> call() throws Exception
+    protected Void call() throws Exception
     {
-        List<Vocab> vocabSet = Lists.newArrayList();
-        vocabSet.addAll(NounSQLFactory.queryNouns(connection, searchString));
-        return vocabSet;
+        try
+        {
+            NounSQLFactory.saveNounToDatabase(connection, noun);
+        } catch (SQLException e)
+        {
+            e.printStackTrace();
+            throw e;
+        }
+        return null;
     }
+
 }

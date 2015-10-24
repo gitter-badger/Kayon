@@ -1,25 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="DataSourceManagerImpl" format="xml" hash="3514937467">
-    <data-source source="LOCAL" name="SQLite - Test/Noun/Huge" uuid="704d24ab-e118-47b2-8969-e5e554a36db0">
-      <driver-ref>sqlite.xerial</driver-ref>
+  <component name="DataSourceManagerImpl" format="xml" hash="726887278">
+    <data-source source="LOCAL" name="H2 - database" uuid="be4ea7d7-928d-4506-ac75-de35573fe646">
+      <driver-ref>h2.embedded</driver-ref>
       <synchronize>true</synchronize>
-      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/build/test-results/working-dir/database-nouns-huge.db</jdbc-url>
-      <libraries />
-    </data-source>
-    <data-source source="LOCAL" name="SQLite - Test/Noun/Small" uuid="799fade3-384e-4285-a68a-e9e1d3d9495a">
-      <driver-ref>sqlite.xerial</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/build/test-results/working-dir/database-nouns-small.db</jdbc-url>
-      <libraries />
-    </data-source>
-    <data-source source="LOCAL" name="SQLite - RunDir DB" uuid="346db236-633f-4a91-a4dc-9d91f2b0e46a">
-      <driver-ref>sqlite.xerial</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/build/run-dir/database.db</jdbc-url>
+      <jdbc-driver>org.h2.Driver</jdbc-driver>
+      <jdbc-url>jdbc:h2:file:$PROJECT_DIR$/build/run-dir/database</jdbc-url>
       <libraries />
     </data-source>
   </component>

@@ -18,6 +18,7 @@
 
 package cf.kayon.core.util;
 
+import cf.kayon.core.CaseHandling;
 import com.google.common.collect.ArrayTable;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
@@ -46,7 +47,6 @@ public class StringUtil
         @NotNull
         ArrayTable<Boolean, Character, Character> tbl = ArrayTable.create(() -> new ObjectArrayIterator<>(Boolean.TRUE, Boolean.FALSE),
                                                                           () -> new ObjectArrayIterator<>('A', 'a', 'E', 'e', 'I', 'i', 'O', 'o', 'U', 'u'));
-        // Thanks to Commons Collections 4 for not being from the last century (no generics in 3.2.1 since java 1.2, *sigh*)
 
         tbl.put(true, 'A', 'Ā');
         tbl.put(true, 'a', 'ā');
@@ -212,5 +212,67 @@ public class StringUtil
             second = currentPair.getLeft().matcher(second).replaceAll(currentPair.getRight());
         }
         return first.equalsIgnoreCase(second);
+    }
+
+    /**
+     * Applies a all-special-form matching regular expression string. You can {@link Pattern#compile(String) compile} the resulting string into a {@link Pattern} and use it
+     * to match any possible special variant of the supplied form.
+     * <p>
+     * Example:
+     * <ul>
+     * <li>{@code dominus} -&gt; {@code d[oōŏ]m[iīĭ]n[uūŭ]s}</li>
+     * <li>{@code dominō} (notice the long {@code ō}) -&gt; {@code d[oōŏ]m[iīĭ]n[oōŏ]}</li>
+     * <li>{@code ancilla} -&gt; {@code [aāă]nc[iīĭ]ll[aāă]}</li>
+     * </ul>
+     * <p>
+     * This method does not handle uppercase characters (see annotation).
+     * If you have a {@link String} with mixed lowercase and uppercase characters, call {@link String#toLowerCase() .toLowerCase()} on it first.
+     *
+     * @param form The form to replace all special-able chars with regex in.
+     * @return A regular expression string matching any possible special form of the specified parameter. An empty string if the input is an empty string.
+     * @throws NullPointerException If the specified {@code form} is {@code null}.
+     * @since 0.0.1
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
+    @NotNull
+    public static String anySpecialRegex(String form)
+    {
+        StringBuilder patternBuilder = new StringBuilder();
+        for (int i = 0; i < form.length(); i++)
+        {
+            final char current = form.charAt(i);
+            switch (current)
+            {
+                case 'a':
+                case 'ā':
+                case 'ă':
+                    patternBuilder.append("[aāă]");
+                    break;
+                case 'e':
+                case 'ē':
+                case 'ĕ':
+                    patternBuilder.append("[eēĕ]");
+                    break;
+                case 'i':
+                case 'ī':
+                case 'ĭ':
+                    patternBuilder.append("[iīĭ]");
+                    break;
+                case 'o':
+                case 'ō':
+                case 'ŏ':
+                    patternBuilder.append("[oōŏ]");
+                    break;
+                case 'u':
+                case 'ū':
+                case 'ŭ':
+                    patternBuilder.append("[uūŭ]");
+                    break;
+                default:
+                    patternBuilder.append(current);
+                    break;
+            }
+        }
+        return patternBuilder.toString();
     }
 }

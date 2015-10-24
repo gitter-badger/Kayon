@@ -7,7 +7,7 @@ general:
     - "build/distributions/*.zip"
 dependencies:
   post:
-    - ./gradlew jar sourcesJar javadocJar distZip
+    - ./gradlew jar javadocJar sourcesJar shadowJar distZip
 test:
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
