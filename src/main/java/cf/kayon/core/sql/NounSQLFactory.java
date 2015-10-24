@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.beans.PropertyVetoException;
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -317,10 +318,27 @@ public class NounSQLFactory
         PreparedStatement queryStatement = doBuffer(connection, SQLQueryType.SQL_QUERY);
         ArrayList<Noun> list = Lists.newArrayList();
         queryStatement.setString(1, regex);
+        Pattern pattern = Pattern.compile(regex);
         try (ResultSet results = queryStatement.executeQuery())
         {
             while (results.next())
-                list.add(constructNounFromResultSet(results));
+            {
+                Noun currentResult = constructNounFromResultSet(results);
+                // label
+                formIteration:
+                {
+                    for (Count count : Count.values())
+                        for (Case caze : Case.values())
+                        {
+                            String form = currentResult.getForm(caze, count);
+                            if (form != null && pattern.matcher(form).matches()) // If a matching form has been found, short-circuit
+                            {
+                                list.add(currentResult);
+                                break formIteration; // break out of nested loop
+                            }
+                        }
+                }
+            }
         }
         return list;
     }
