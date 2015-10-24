@@ -30,6 +30,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 
@@ -207,6 +208,8 @@ public class MainController
         {
             throw new RuntimeException(e);
         }
+        newStage.initOwner(mainPane.getScene().getWindow());
+        newStage.initModality(Modality.WINDOW_MODAL);
         newStage.show();
     }
 }
