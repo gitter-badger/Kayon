@@ -37,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
@@ -143,7 +142,6 @@ public class SplashController
         try
         {
             NounSQLFactory.setupDatabaseForNouns(connection);
-            throw new SQLException();
         } catch (Throwable t)
         {
             splashException("StructureSetupFailure", t, 2);
