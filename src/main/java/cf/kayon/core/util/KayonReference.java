@@ -76,7 +76,7 @@ public class KayonReference
         try (InputStream inputStream = KayonReference.class.getResourceAsStream("/version");
              InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         {
-            VERSION = IOUtils.toString(inputStreamReader);
+            VERSION = IOUtils.toString(inputStreamReader).replaceAll("[\n\r]", "");
         } catch (IOException ioe)
         {
             throw new Error(ioe);
@@ -85,7 +85,7 @@ public class KayonReference
         try (InputStream inputStream = KayonReference.class.getResourceAsStream("/build");
              InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         {
-            BUILD = Long.parseLong(IOUtils.toString(inputStreamReader));
+            BUILD = Long.parseLong(IOUtils.toString(inputStreamReader).replaceAll("[\n\r]", ""));
         } catch (IOException ioe)
         {
             throw new Error(ioe);

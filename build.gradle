@@ -23,13 +23,23 @@ apply plugin: 'com.github.johnrengelman.shadow'
 apply from: 'javadocAndSourcesJar.gradle'
 
 group 'cf.kayon'
-version = file('src/main/resources/version').getText('utf8')
+version = file('src/main/resources/version').getText('utf8').replaceAll("[\n\r]", "") // eliminate newlines
 mainClassName = 'cf.kayon.gui.splash.Splash'
+
 
 if (System.getenv('CIRCLECI').equals('true')) {
     file('src/main/resources/build').write(System.getenv('CIRCLE_BUILD_NUM'))
+
+    def versionForFiles = project.version + '-b' + System.getenv('CIRCLE_BUILD_NUM')
+
     tasks.withType(Jar) {
-        version = project.version + '-b' + System.getenv('CIRCLE_BUILD_NUM')
+        version = versionForFiles
+    }
+    tasks.withType(Zip) {
+        version = versionForFiles
+    }
+    tasks.withType(Tar) {
+        version = versionForFiles
     }
 }
 
@@ -40,19 +50,11 @@ buildscript {
     }
 }
 
-//jar {
-//    manifest {
-//        attributes 'Main-Class': mainClassName
-//    }
-//}
-
 //region Dependency Management
 repositories {
     jcenter()
     maven { url 'http://dl.bintray.com/randers00/intellijannotations' } // Holds IntelliJ IDEA Annotations
 }
-
-//apply from: 'adjustedSource.gradle'
 
 dependencies {
     compile 'ch.qos.logback:logback-classic:1.1.3'
