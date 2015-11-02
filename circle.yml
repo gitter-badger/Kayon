@@ -8,7 +8,7 @@ general:
 dependencies:
   post:
     - if [ $CIRCLE_NODE_INDEX -eq 0 ] ; then
-      ./gradlew jar javadocJar sourcesJar shadowJar distZip
+      ./gradlew jar javadocJar sourcesJar shadowJar distZip;
       fi
 test:
   post:
