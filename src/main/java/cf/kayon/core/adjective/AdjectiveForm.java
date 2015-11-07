@@ -23,14 +23,18 @@ import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Describes a adjective form.
- * <p>
- * This class is only to be used when a form should be returned. When accepting a form, take in all the parameters separately.
  * <p>
  * Immutable.
  *
@@ -39,6 +43,94 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class AdjectiveForm
 {
+
+    /**
+     * The cache pool.
+     *
+     * @since 0.2.0
+     */
+    private static final EnumMap<ComparisonDegree, EnumMap<Count, EnumMap<Gender, EnumMap<Case, AdjectiveForm>>>> pool = new EnumMap<>(ComparisonDegree.class);
+
+    /**
+     * All instances of this class.
+     *
+     * @since 0.2.0
+     */
+    private static final List<AdjectiveForm> allValues;
+
+    static
+    {
+        List<AdjectiveForm> temporaryList = new ArrayList<>(108);
+        for (ComparisonDegree comparisonDegree : ComparisonDegree.values())
+        {
+            EnumMap<Count, EnumMap<Gender, EnumMap<Case, AdjectiveForm>>> sub1 = new EnumMap<>(Count.class);
+            pool.put(comparisonDegree, sub1);
+            for (Count count : Count.values())
+            {
+                EnumMap<Gender, EnumMap<Case, AdjectiveForm>> sub2 = new EnumMap<>(Gender.class);
+                sub1.put(count, sub2);
+                for (Gender gender : Gender.values())
+                {
+                    EnumMap<Case, AdjectiveForm> sub3 = new EnumMap<>(Case.class);
+                    sub2.put(gender, sub3);
+                    for (Case caze : Case.values())
+                    {
+                        AdjectiveForm adjectiveForm = new AdjectiveForm(comparisonDegree, caze, count, gender);
+                        sub3.put(caze, adjectiveForm);
+                        temporaryList.add(adjectiveForm);
+                    }
+                }
+            }
+        }
+        allValues = Collections.unmodifiableList(temporaryList);
+    }
+
+    /**
+     * Returns a pooled instance of AdjectiveForm representing the specified arguments.
+     *
+     * @param comparisonDegree The comparison degree.
+     * @param count            The count.
+     * @param gender           The gender.
+     * @param caze             The case.
+     * @return A AdjectiveForm instance.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.2.0
+     */
+    @NotNull
+    public static AdjectiveForm of(@NotNull ComparisonDegree comparisonDegree, @NotNull Count count, @NotNull Gender gender, @NotNull Case caze)
+    {
+        checkNotNull(comparisonDegree);
+        checkNotNull(count);
+        checkNotNull(gender);
+        checkNotNull(caze);
+        return pool.get(comparisonDegree).get(count).get(gender).get(caze);
+    }
+
+    /**
+     * Gets all instances of this class in a list.
+     * <p>
+     * The entries in this list are ordered as follows:
+     * <p>
+     * All comparison degrees -&gt; All counts -&gt; All genders -&gt; All cases
+     * <p>
+     * For example:
+     * <ol>
+     * <li>Positive Singular Nominative Masculine</li>
+     * <li>Positive Singular Nominative Feminine</li>
+     * <li>Positive Singular Nominative Neuter</li>
+     * <li>Positive Singular Genitive Masculine</li>
+     * <li>...</li>
+     * </ol>
+     *
+     * @return The list. The list is {@link Collections#unmodifiableList(List) unmodifiable}.
+     * @since 0.2.0
+     */
+    @NotNull
+    @Contract(pure = true)
+    public static List<AdjectiveForm> values()
+    {
+        return allValues;
+    }
 
     /**
      * The comparison degree.
@@ -82,7 +174,7 @@ public class AdjectiveForm
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.0.1
      */
-    public AdjectiveForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    private AdjectiveForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
     {
         checkNotNull(comparisonDegree);
         checkNotNull(caze);

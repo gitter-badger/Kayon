@@ -18,11 +18,10 @@
 
 package cf.kayon.gui.vocabview.noun;
 
-import cf.kayon.core.Case;
-import cf.kayon.core.Count;
 import cf.kayon.core.FormingException;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclension;
+import cf.kayon.core.noun.NounForm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +72,7 @@ public class DummyNounDeclension implements NounDeclension
      */
     @NotNull
     @Override
-    public String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
+    public String decline(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
     {
         throw new UnsupportedOperationException();
     }
@@ -83,7 +82,7 @@ public class DummyNounDeclension implements NounDeclension
      */
     @NotNull
     @Override
-    public String determineRootWord(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
+    public String determineRootWord(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
     {
         throw new UnsupportedOperationException();
     }

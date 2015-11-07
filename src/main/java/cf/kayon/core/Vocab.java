@@ -21,7 +21,6 @@ package cf.kayon.core;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -32,17 +31,6 @@ import java.util.UUID;
  */
 public interface Vocab extends Translatable
 {
-    /**
-     * Gets the command line representation of this Vocab.
-     *
-     * @return A list of lines.
-     * @since 0.0.1
-     * @deprecated Use the JavaFX graphical interface instead. Scheduled for removal as of 0.1.0.
-     */
-    @Deprecated
-    @NotNull
-    List<String> commandLineRepresentation();
-
     /**
      * Returns the UUID of this Vocab.
      *

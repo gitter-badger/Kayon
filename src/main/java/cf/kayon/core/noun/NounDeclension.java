@@ -18,7 +18,9 @@
 
 package cf.kayon.core.noun;
 
-import cf.kayon.core.*;
+import cf.kayon.core.CaseHandling;
+import cf.kayon.core.FormingException;
+import cf.kayon.core.Gender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,8 +75,7 @@ public interface NounDeclension
      * One should only apply lowercase root words, since the declining logic might depend on special character constellations
      * in the root word. Only applies lowercase endings (see annotation).
      *
-     * @param caze     The case.
-     * @param count    The count.
+     * @param nounForm The noun form.
      * @param gender   The gender.
      * @param rootWord The root word.
      * @return A declined form.
@@ -85,7 +86,7 @@ public interface NounDeclension
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
-    String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException;
+    String decline(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String rootWord) throws FormingException;
 
     /**
      * Determines the root word based on a declined form.
@@ -93,8 +94,7 @@ public interface NounDeclension
      * One should only apply lowercase declined forms, since the underlying logic is only required to detect lowercase endings
      * and character constellations. The determined root word will be lowercased, if the declined form is lowercase as well (see annotation).
      *
-     * @param caze         The case.
-     * @param count        The count.
+     * @param nounForm     The noun form.
      * @param gender       The gender.
      * @param declinedForm The declined form.
      * @return The root word.
@@ -105,7 +105,7 @@ public interface NounDeclension
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
-    String determineRootWord(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException;
+    String determineRootWord(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException;
 
     /**
      * Returns whether a specified gender is supported by this NounDeclension. If a gender is not allowed, a usage cannot expect declining results to be accurate,

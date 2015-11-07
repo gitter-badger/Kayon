@@ -22,6 +22,7 @@ import cf.kayon.core.Case;
 import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.Noun;
+import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.noun.impl.ANounDeclension;
 import cf.kayon.core.noun.impl.ONounDeclension;
 import com.google.common.collect.Lists;
@@ -37,6 +38,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -56,66 +58,50 @@ public class BaseDatabaseTest
         examples.add(new Noun(ANounDeclension.getInstance(), Gender.MASCULINE, "conviv")); // conviva
 
         Noun defExample = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv"); // servus
-        defExample.setDefinedForm(Case.DATIVE, Count.SINGULAR, "DatSgDef");
-        defExample.setDefinedForm(Case.GENITIVE, Count.PLURAL, "banana");
-        defExample.setDefinedForm(Case.ACCUSATIVE, Count.SINGULAR, "jetbrains");
+        defExample.setDefinedForm(NounForm.of(Case.DATIVE, Count.SINGULAR), "DatSgDef");
+        defExample.setDefinedForm(NounForm.of(Case.GENITIVE, Count.PLURAL), "banana");
+        defExample.setDefinedForm(NounForm.of(Case.ACCUSATIVE, Count.SINGULAR), "jetbrains");
         examples.add(defExample);
 
         Noun translationExample = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin"); // dominus
-        translationExample.getTranslations().put("de", "(Haus-) Herr");
-        translationExample.getTranslations().put("en", "owner of a residence, a lord");
+        translationExample.getTranslations().put(new Locale("de"), "(Haus-) Herr");
+        translationExample.getTranslations().put(new Locale("en"), "owner of a residence, a lord");
         examples.add(translationExample);
 
         Noun defAndTranslationExample = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "mur"); // murus
-        defAndTranslationExample.setDefinedForm(Case.ACCUSATIVE, Count.PLURAL, "awudhaowudhaowd");
-        defAndTranslationExample.setDefinedForm(Case.GENITIVE, Count.PLURAL, "aiwjdw");
-        defAndTranslationExample.getTranslations().put("de", "Mauer");
-        defAndTranslationExample.getTranslations().put("en", "wall");
-        defAndTranslationExample.getTranslations().put("fr", "mur");
+        defAndTranslationExample.setDefinedForm(NounForm.of(Case.ACCUSATIVE, Count.PLURAL), "awudhaowudhaowd");
+        defAndTranslationExample.setDefinedForm(NounForm.of(Case.GENITIVE, Count.PLURAL), "aiwjdw");
+        defAndTranslationExample.getTranslations().put(new Locale("de"), "Mauer");
+        defAndTranslationExample.getTranslations().put(new Locale("en"), "wall");
+        defAndTranslationExample.getTranslations().put(new Locale("fr"), "mur");
         examples.add(defAndTranslationExample);
 
         Noun noDeclensionExample = new Noun(Gender.MASCULINE, "abc123def");
-        for (Count count : Count.values())
-            for (Case caze : Case.values())
-                noDeclensionExample.setDefinedForm(caze, count, count + "-āēīōū-" + caze); // Unicode test
+        for (NounForm nounForm : NounForm.values())
+            noDeclensionExample.setDefinedForm(nounForm, nounForm.getCount() + "-āēīōū-" + nounForm.getCase()); // Unicode test
         examples.add(noDeclensionExample);
 
-        LOGGER.info("Connecting...");
         connection = DriverManager.getConnection("jdbc:h2:./database-nouns-small");
-        LOGGER.info("Connected.");
-
-        LOGGER.info("Setting up database for usage...");
         NounSQLFactory.setupDatabaseForNouns(connection);
-        LOGGER.info("Finished.");
     }
 
     @Test
     public void testFactory() throws SQLException
     {
-        LOGGER.info("Saving examples to database...");
         for (Noun current : examples)
-        {
-            LOGGER.info((examples.indexOf(current) + 1) + "/" + examples.size() + "...");
             NounSQLFactory.saveNounToDatabase(connection, current);
-            LOGGER.info("Done.");
-        }
 
         int iterations;
-        LOGGER.info("Querying everything from NOUNS...");
         try (ResultSet results = connection.createStatement().executeQuery("SELECT * FROM NOUNS;"))
         {
-            LOGGER.info("Done Querying.");
             iterations = 0;
             while (results.next())
             {
-                LOGGER.info("Reconstructing noun...");
-                Noun exampleTemplate = examples.get(iterations);
+                Noun exampleTemplate = examples.get(iterations++);
                 Noun reconstructed = NounSQLFactory.constructNounFromResultSet(results);
                 assertNotNull(reconstructed);
-                LOGGER.info("Reconstructed noun with root word " + reconstructed.getRootWord());
                 assertEquals(exampleTemplate, reconstructed);
-                iterations++;
-            } // results.getRow() seems broken, so instead iterate like this -.-
+            }
         }
         assertEquals(examples.size(), iterations);
     }

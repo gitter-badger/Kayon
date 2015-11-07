@@ -18,14 +18,14 @@
 
 package cf.kayon.core.noun.impl;
 
-import cf.kayon.core.Case;
 import cf.kayon.core.CaseHandling;
-import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclensionUtil;
-import com.google.common.collect.Table;
+import cf.kayon.core.noun.NounForm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -51,8 +51,8 @@ public class INounDeclension extends StandardNounDeclension
      * @since 0.0.1
      */
     @NotNull
-    private final Table<Case, Count, String> endingsFeminine = NounDeclensionUtil.endingsTable(null, "is", "ī", "em", "e", null,
-                                                                                               "ēs", "ium", "ibus", "ēs", "ibus", "ēs");
+    private final Map<NounForm, String> endingsFeminine = NounDeclensionUtil.endingsMap(null, "is", "ī", "em", "e", null,
+                                                                                        "ēs", "ium", "ibus", "ēs", "ibus", "ēs");
 
     /**
      * The endings for the neuter forms.
@@ -60,8 +60,8 @@ public class INounDeclension extends StandardNounDeclension
      * @since 0.0.1
      */
     @NotNull
-    private final Table<Case, Count, String> endingsNeuter = NounDeclensionUtil.endingsTable(null, "is", "ī", null, "ī", null,
-                                                                                             "ia", "ium", "ibus", "ia", "ibus", "ia");
+    private final Map<NounForm, String> endingsNeuter = NounDeclensionUtil.endingsMap(null, "is", "ī", null, "ī", null,
+                                                                                      "ia", "ium", "ibus", "ia", "ibus", "ia");
 
     /**
      * The private constructor to never let anybody construct this class.
@@ -88,29 +88,12 @@ public class INounDeclension extends StandardNounDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     @Override
-    protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    protected String selectCorrectEndingOrNull(@NotNull NounForm nounForm, @NotNull Gender gender)
     {
-        checkNotNull(caze);
-        checkNotNull(count);
+        checkNotNull(nounForm);
         checkNotNull(gender);
-        return gender == Gender.NEUTER ? endingsNeuter.get(caze, count) : endingsFeminine.get(caze, count);
+        return gender == Gender.NEUTER ? endingsNeuter.get(nounForm) : endingsFeminine.get(nounForm);
     }
-
-    // TODO decide to remove this - see <turris>
-    //    @NotNull
-    //    @Override
-    //    public List<String> getPossibleForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
-    //    {
-    //        // Accusative plural: Possibly
-    //        if (caze == Case.ACCUSATIVE && count == Count.PLURAL)
-    //        {
-    //            ArrayList<String> buffer = new ArrayList<>(2);
-    //            buffer.add(this.decline(caze, count, gender, rootWord));
-    //            buffer.add(rootWord + "īs");
-    //            return buffer;
-    //        }
-    //        return super.getPossibleForms(caze, count, gender, rootWord);
-    //    }
 
     /**
      * @since 0.0.1

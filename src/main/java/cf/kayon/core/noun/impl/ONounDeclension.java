@@ -20,10 +20,12 @@ package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.*;
 import cf.kayon.core.noun.NounDeclensionUtil;
+import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.util.StringUtil;
-import com.google.common.collect.Table;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -49,9 +51,9 @@ public class ONounDeclension extends StandardNounDeclension
      * @since 0.0.1
      */
     @NotNull
-    public final Table<Case, Count, String> endingsMasculineFeminine =
-            NounDeclensionUtil.endingsTable("us", "ī", "ō", "um", "ō", "e",
-                                            "ī", "ōrum", "īs", "ōs", "īs", "ī");
+    public final Map<NounForm, String> endingsMasculineFeminine =
+            NounDeclensionUtil.endingsMap("us", "ī", "ō", "um", "ō", "e",
+                                          "ī", "ōrum", "īs", "ōs", "īs", "ī");
 
     /**
      * The endings for the neuter forms.
@@ -59,9 +61,9 @@ public class ONounDeclension extends StandardNounDeclension
      * @since 0.0.1
      */
     @NotNull
-    public final Table<Case, Count, String> endingsNeuter =
-            NounDeclensionUtil.endingsTable("um", "ī", "ō", "um", "ō", "um",
-                                            "a", "ōrum", "īs", "a", "īs", "a");
+    public final Map<NounForm, String> endingsNeuter =
+            NounDeclensionUtil.endingsMap("um", "ī", "ō", "um", "ō", "um",
+                                          "a", "ōrum", "īs", "a", "īs", "a");
 
     /**
      * The private constructor to never let anybody construct this class.
@@ -88,38 +90,12 @@ public class ONounDeclension extends StandardNounDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     @Override
-    protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    protected String selectCorrectEndingOrNull(@NotNull NounForm nounForm, @NotNull Gender gender)
     {
-        checkNotNull(caze);
-        checkNotNull(count);
+        checkNotNull(nounForm);
         checkNotNull(gender);
-        return gender == Gender.NEUTER ? endingsNeuter.get(caze, count) : endingsMasculineFeminine.get(caze, count);
+        return gender == Gender.NEUTER ? endingsNeuter.get(nounForm) : endingsMasculineFeminine.get(nounForm);
     }
-
-//    @Nullable
-//    @Override
-//    public List<String> getAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
-//    {
-//        checkNotNull(caze);
-//        checkNotNull(count);
-//        checkNotNull(gender);
-//        checkNotNull(rootWord);
-//
-//        if (caze == Case.GENITIVE && count == Count.SINGULAR &&
-//            StringUtil.unSpecialString(rootWord).endsWith("i")) // Most expensive check last (short-circuiting statement)
-//        {
-//            ArrayList<String> buffer = new ArrayList<>(4);
-//            buffer.add(rootWord + "iī");
-//            return buffer;
-//        }
-//        return null;
-//    }
-//
-//    @Override
-//    public boolean hasAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
-//    {
-//        return caze == Case.GENITIVE && count == Count.SINGULAR && StringUtil.unSpecialString(rootWord).endsWith("i");
-//    }
 
     /**
      * @since 0.0.1
@@ -127,22 +103,21 @@ public class ONounDeclension extends StandardNounDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
-    public String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
+    public String decline(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String rootWord)
             throws FormingException
     {
-        checkNotNull(caze);
-        checkNotNull(count);
+        checkNotNull(nounForm);
         checkNotNull(gender);
         checkNotNull(rootWord);
         /*
          * Sample: Vocative Singular Masculine, root word is <fili>
          * Return: <fili>
          */
-        if (caze == Case.VOCATIVE && count == Count.SINGULAR &&
+        if (nounForm.getCase() == Case.VOCATIVE && nounForm.getCount() == Count.SINGULAR &&
             StringUtil.unSpecialString(rootWord).endsWith("i")) // Most expensive check last (short-circuiting statement)
             return rootWord;
 
-        return rootWord + this.selectCorrectEnding(caze, count, gender);
+        return rootWord + this.selectCorrectEnding(nounForm, gender);
     }
 
     /**
@@ -151,20 +126,19 @@ public class ONounDeclension extends StandardNounDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
-    public String determineRootWord(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
+    public String determineRootWord(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
     {
-        checkNotNull(caze);
-        checkNotNull(count);
+        checkNotNull(nounForm);
         checkNotNull(gender);
         checkNotNull(declinedForm);
         /*
          * Sample: Vocative Singular Masculine, form is <fili>
          * Root Word: fili (-us, -i, etc...)
          */
-        if (caze == Case.VOCATIVE && count == Count.SINGULAR &&
+        if (nounForm.getCase() == Case.VOCATIVE && nounForm.getCount() == Count.SINGULAR &&
             StringUtil.unSpecialString(declinedForm).endsWith("i")) // Most expensive check last (short-circuiting statement)
             return declinedForm;
-        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(caze, count, gender));
+        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(nounForm, gender));
     }
 
     /**

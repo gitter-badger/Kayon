@@ -18,14 +18,14 @@
 
 package cf.kayon.core.noun.impl;
 
-import cf.kayon.core.Case;
 import cf.kayon.core.CaseHandling;
-import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclensionUtil;
-import com.google.common.collect.Table;
+import cf.kayon.core.noun.NounForm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -51,8 +51,8 @@ public class ANounDeclension extends StandardNounDeclension
      * @since 0.0.1
      */
     @NotNull
-    private final Table<Case, Count, String> endings = NounDeclensionUtil.endingsTable("a", "ae", "ae", "am", "ā", "a",
-                                                                                       "ae", "ārum", "īs", "ās", "īs", "ae");
+    private final Map<NounForm, String> endings = NounDeclensionUtil.endingsMap("a", "ae", "ae", "am", "ā", "a",
+                                                                                "ae", "ārum", "īs", "ās", "īs", "ae");
 
     /**
      * The private constructor to never let anybody construct this class.
@@ -98,11 +98,10 @@ public class ANounDeclension extends StandardNounDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     @Override
-    protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    protected String selectCorrectEndingOrNull(@NotNull NounForm nounForm, @NotNull Gender gender)
     {
-        checkNotNull(caze);
-        checkNotNull(count);
+        checkNotNull(nounForm);
         checkNotNull(gender);
-        return endings.get(caze, count);
+        return endings.get(nounForm);
     }
 }

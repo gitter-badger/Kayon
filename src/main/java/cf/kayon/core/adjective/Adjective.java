@@ -18,27 +18,87 @@
 
 package cf.kayon.core.adjective;
 
-import cf.kayon.core.*;
-import cf.kayon.core.Count;
-import com.google.common.base.Strings;
-import com.google.common.collect.*;
-import org.apache.commons.collections4.iterators.ObjectArrayIterator;
+import cf.kayon.core.CaseHandling;
+import cf.kayon.core.FormingException;
+import cf.kayon.core.StandardVocab;
+import cf.kayon.core.Vocab;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.beans.*;
-import java.util.*;
+import java.beans.PropertyVetoException;
+import java.beans.VetoableChangeSupport;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.UUID;
 
 import static cf.kayon.core.util.StringUtil.requireNonEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Describes a latin adjective.
+ * <p>
+ * List of property change events fired by this class:
+ * <table summary="">
+ * <thead>
+ * <tr>
+ * <td>Property name</td>
+ * <td>Fired by</td>
+ * <td>Vetoable?</td>
+ * <td>Triggers</td>
+ * <td>Default checks</td>
+ * </tr>
+ * </thead>
+ * <tbody>
+ * <tr>
+ * <td>{@code $COMPARISONDEGREE_allowed}</td>
+ * <td>{@link #setAllows(ComparisonDegree, boolean)}, {@link #setAllowsPositive(boolean)},
+ * {@link #setAllowsComparative(boolean)}, {@link #setAllowsSuperlative(boolean)}</td>
+ * <td>Yes</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td>{@code $COMPARISONDEGREE_$CASE_$COUNT_$GENDER_defined}</td>
+ * <td>{@link #defineForm(AdjectiveForm, String)}</td>
+ * <td>Yes</td>
+ * <td>{@link #_declineIntoBuffer()}</td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td>{@code $COMPARISONDEGREE_$CASE_$COUNT_$GENDER_declined}</td>
+ * <td>{@link #_declineIntoBuffer()}</td>
+ * <td>No</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td>{@code adjectiveDeclension}</td>
+ * <td>{@link #setAdjectiveDeclension(AdjectiveDeclension)}</td>
+ * <td>Yes</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td>{@code rootWord}</td>
+ * <td>{@link #setRootWord(String)}</td>
+ * <td>Yes</td>
+ * <td></td>
+ * <td>Not {@code null}, not {@link String#isEmpty() empty}.</td>
+ * </tr>
+ * <tr>
+ * <td>{@code uuid}</td>
+ * <td>{@link #initializeUuid(UUID)}</td>
+ * <td>No (as specified by {@link Vocab#initializeUuid(UUID)})</td>
+ * <td></td>
+ * <td></td>
+ * </tr>
+ * </tbody>
+ * </table>
  *
  * @author Ruben Anders
  * @since 0.0.1
  */
-public class Adjective implements Vocab
+public class Adjective extends StandardVocab
 {
 
     //region Fields
@@ -48,8 +108,7 @@ public class Adjective implements Vocab
      * @since 0.0.1
      */
     @NotNull
-    private final ArrayTable<ComparisonDegree, Case, ArrayTable<Count, Gender, String>> declinedForms =
-            ArrayTable.create(() -> new ObjectArrayIterator<>(ComparisonDegree.values(), 0), () -> new ObjectArrayIterator<>(Case.values(), 0));
+    private final HashMap<AdjectiveForm, String> declinedForms = new HashMap<>(106);
 
     /**
      * The defined forms of this adjective.
@@ -57,7 +116,7 @@ public class Adjective implements Vocab
      * @since 0.0.1
      */
     @NotNull
-    private final HashBasedTable<ComparisonDegree, Case, Table<Count, Gender, String>> definedForms = HashBasedTable.create(3, 6);
+    private final HashMap<AdjectiveForm, String> definedForms = new HashMap<>(106);
 
     /**
      * The root word of this adjective.
@@ -74,14 +133,6 @@ public class Adjective implements Vocab
      */
     @Nullable
     private AdjectiveDeclension adjectiveDeclension;
-
-    /**
-     * The translations of this adjective.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final HashMap<String, String> translations = Maps.newHashMap();
 
     /**
      * Whether this adjective allows positive forms.
@@ -103,82 +154,6 @@ public class Adjective implements Vocab
      * @since 0.0.1
      */
     private boolean allowsSuperlative = true;
-
-    /**
-     * The property change support for this class.
-     * <p>
-     * List of property change events fired by this class:
-     * <table summary="">
-     * <thead>
-     * <tr>
-     * <td>Property name</td>
-     * <td>Fired by</td>
-     * <td>Vetoable?</td>
-     * <td>Triggers</td>
-     * <td>Default checks</td>
-     * </tr>
-     * </thead>
-     * <tbody>
-     * <tr>
-     * <td>{@code $COMPARISONDEGREE_allowed}</td>
-     * <td>{@link #setAllows(ComparisonDegree, boolean)}, {@link #setAllowsPositive(boolean)},
-     * {@link #setAllowsComparative(boolean)}, {@link #setAllowsSuperlative(boolean)}</td>
-     * <td>Yes</td>
-     * <td></td>
-     * <td></td>
-     * </tr>
-     * <tr>
-     * <td>{@code $COMPARISONDEGREE_$CASE_$COUNT_$GENDER_defined}</td>
-     * <td>{@link #defineForm(ComparisonDegree, Case, Count, Gender, String)}</td>
-     * <td>Yes</td>
-     * <td>{@link #_declineIntoBuffer()}</td>
-     * <td></td>
-     * </tr>
-     * <tr>
-     * <td>{@code $COMPARISONDEGREE_$CASE_$COUNT_$GENDER_declined}</td>
-     * <td>{@link #_declineIntoBuffer()}</td>
-     * <td>No</td>
-     * <td></td>
-     * <td></td>
-     * </tr>
-     * <tr>
-     * <td>{@code adjectiveDeclension}</td>
-     * <td>{@link #setAdjectiveDeclension(AdjectiveDeclension)}</td>
-     * <td>Yes</td>
-     * <td></td>
-     * <td></td>
-     * </tr>
-     * <tr>
-     * <td>{@code rootWord}</td>
-     * <td>{@link #setRootWord(String)}</td>
-     * <td>Yes</td>
-     * <td></td>
-     * <td>Not {@code null}, not {@link String#isEmpty() empty}.</td>
-     * </tr>
-     * <tr>
-     * <td>{@code uuid}</td>
-     * <td>{@link #initializeUuid(UUID)}</td>
-     * <td>No (as specified by {@link Vocab#initializeUuid(UUID)})</td>
-     * <td></td>
-     * <td></td>
-     * </tr>
-     * </tbody>
-     * </table>
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
-
-    /**
-     * The vetoable change support for this class.
-     * <p>
-     * List of vetoable change events fired by this class can be reviewed by taking a look at {@link #changeSupport}.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final VetoableChangeSupport vetoSupport = new VetoableChangeSupport(this);
     //endregion
 
     //region Constructors
@@ -200,7 +175,7 @@ public class Adjective implements Vocab
         requireNonEmpty(rootWord);
         this.adjectiveDeclension = adjectiveDeclension;
         this.rootWord = rootWord;
-        _declineIntoBuffer(); // So one does not have to deal with vetoexceptions
+        _declineIntoBuffer(); // So one does not have to deal with PropertyVetoExceptions
     }
 
     /**
@@ -433,65 +408,47 @@ public class Adjective implements Vocab
      * The general contract of this class is to only contain lowercase forms (see annotation).
      * Code should only apply lowercase forms to this method.
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
-     * @param form             The form to define. A empty string or a null value results in the defined form being removed.
+     * @param adjectiveForm The adjective form.
+     * @param form          The form to define. A empty string or a null value results in the defined form being removed.
      * @throws NullPointerException     If any of the arguments (except for {@code form}) is {@code null}.
      * @throws IllegalArgumentException If the {@code comparisonDegree} is {@link #allows(ComparisonDegree) disallowed}.
      * @throws PropertyVetoException    If the {@link VetoableChangeSupport} of this class decides that new value is not valid.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public void defineForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @Nullable String form)
+    public void defineForm(@NotNull AdjectiveForm adjectiveForm, @Nullable String form)
             throws PropertyVetoException
     {
-        requireAllowedComparisonDegree(comparisonDegree);
-        checkNotNull(caze);
-        checkNotNull(count);
-        checkNotNull(gender);
+        requireAllowedComparisonDegree(adjectiveForm);
 
         if (form == null || form.isEmpty())
         {
             // Fires its own events and throws PropertyVetoExceptions as well
-            removeDefinedForm(comparisonDegree, caze, count, gender);
+            removeDefinedForm(adjectiveForm);
             return;
         }
 
-        String oldForm = getDefinedForm(comparisonDegree, caze, count, gender);
-        String propertyName = comparisonDegree + "_" + caze + "_" + count + "_" + gender + "_defined";
+        String oldForm = getDefinedForm(adjectiveForm);
+        String propertyName =
+                adjectiveForm.getComparisonDegree() + "_" + adjectiveForm.getCase() + "_" + adjectiveForm.getCount() + "_" + adjectiveForm.getGender() + "_defined";
         vetoSupport.fireVetoableChange(propertyName, oldForm, form);
 
-        Table<Count, Gender, String> subTable = this.definedForms.get(comparisonDegree, caze);
-        if (subTable == null)
-        {
-            subTable = HashBasedTable.create(2, 3);
-            this.definedForms.put(comparisonDegree, caze, subTable);
-        }
-        subTable.put(count, gender, form);
+        definedForms.put(adjectiveForm, form);
         changeSupport.firePropertyChange(propertyName, oldForm, form);
     }
 
     /**
      * Returns whether a form has been defined.
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
+     * @param adjectiveForm The adjective form.
      * @return Whether the form has been defined.
      * @since 0.0.1
      */
-    public boolean isFormDefined(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    public boolean isFormDefined(@NotNull AdjectiveForm adjectiveForm)
     {
-        requireAllowedComparisonDegree(comparisonDegree);
-        checkNotNull(caze);
-        checkNotNull(count);
-        checkNotNull(gender);
+        requireAllowedComparisonDegree(adjectiveForm);
 
-        Table<Count, Gender, String> subTable = definedForms.get(comparisonDegree, caze);
-        return subTable != null && subTable.contains(count, gender);
+        return definedForms.containsKey(adjectiveForm);
     }
 
     /**
@@ -500,10 +457,7 @@ public class Adjective implements Vocab
      * The general contract of this class is to only contain lowercase forms (see annotation).
      * Code using this method may rely on this contract.
      *
-     * @param comparisonDegree The comparsion degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
+     * @param adjectiveForm The adjective form.
      * @return The defined form. {@code null} if no such form has been defined.
      * @throws NullPointerException     If any of the arguments is {@code null}.
      * @throws IllegalArgumentException If the {@code comparisonDegree} is {@link #allows(ComparisonDegree) disallowed}.
@@ -511,67 +465,31 @@ public class Adjective implements Vocab
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
-    public String getDefinedForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    public String getDefinedForm(@NotNull AdjectiveForm adjectiveForm)
     {
-        requireAllowedComparisonDegree(comparisonDegree);
-        checkNotNull(caze);
-        checkNotNull(count);
-        checkNotNull(gender);
-
-        @Nullable
-        Table<Count, Gender, String> subTable = definedForms.get(comparisonDegree, caze);
-        if (subTable == null)
-            return null;
-
-        // Nullable
-        return subTable.get(count, gender);
-    }
-
-    /**
-     * Gets an immutable view of the defined forms.
-     * <p>
-     * This method trusts the caller, since the subtables are not immutable views. Be careful, do not modify them.
-     * <p>
-     * The general contract of this class is to only contain lowercase forms (see annotation).
-     * Code using this method may rely on this contract.
-     *
-     * @return A table of forms. The table itself is backed in the adjective, if there are changes to the defined forms, they will be reflected in the table.
-     * @since 0.0.1
-     */
-    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    @NotNull
-    public Table<ComparisonDegree, Case, Table<Count, Gender, String>> getDefinedForms()
-    {
-        return Tables.unmodifiableTable(this.definedForms);
+        requireAllowedComparisonDegree(adjectiveForm);
+        return definedForms.get(adjectiveForm);
     }
 
     /**
      * Removes a defined form.
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
+     * @param adjectiveForm The adjective form.
      * @throws PropertyVetoException If the {@link VetoableChangeSupport} of this class decides that the new value {@code null} is not valid.
      * @since 0.0.1
      */
-    public void removeDefinedForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    public void removeDefinedForm(@NotNull AdjectiveForm adjectiveForm)
             throws PropertyVetoException
     {
-        requireAllowedComparisonDegree(comparisonDegree);
-        checkNotNull(caze);
-        checkNotNull(count);
-        checkNotNull(gender);
+        requireAllowedComparisonDegree(adjectiveForm);
 
-        String propertyName = comparisonDegree + "_" + caze + "_" + count + "_" + gender + "_defined";
-        String oldForm = getDefinedForm(comparisonDegree, caze, count, gender);
+        String propertyName =
+                adjectiveForm.getComparisonDegree() + "_" + adjectiveForm.getCase() + "_" + adjectiveForm.getCount() + "_" + adjectiveForm.getGender() + "_defined";
+        String oldForm = definedForms.get(adjectiveForm);
         vetoSupport.fireVetoableChange(propertyName, oldForm, null);
 
-        @Nullable
-        Table<Count, Gender, String> subTable = this.definedForms.get(comparisonDegree, caze);
-        if (subTable == null)
-            return; // No changes performed (removing a non-existent form)
-        subTable.remove(count, gender);
+        definedForms.remove(adjectiveForm);
+
         changeSupport.firePropertyChange(propertyName, oldForm, null);
     }
     //endregion
@@ -584,10 +502,7 @@ public class Adjective implements Vocab
      * The general contract of this class is to only contain lowercase forms (see annotation).
      * Code using this method may rely on this contract.
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
+     * @param adjectiveForm The adjective form.
      * @return A declined form.
      * @throws NullPointerException     If any of the arguments is {@code null}.
      * @throws IllegalArgumentException If the {@code comparisonDegree} is {@link #allows(ComparisonDegree) disallowed}.
@@ -595,43 +510,12 @@ public class Adjective implements Vocab
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
-    public String getDeclinedForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    public String getDeclinedForm(@NotNull AdjectiveForm adjectiveForm)
     {
-        requireAllowedComparisonDegree(comparisonDegree);
-        checkNotNull(caze);
-        checkNotNull(count);
-        checkNotNull(gender);
+        requireAllowedComparisonDegree(adjectiveForm);
         if (this.adjectiveDeclension == null)
             return null;
-        @Nullable
-        ArrayTable<Count, Gender, String> subTable = this.declinedForms.get(comparisonDegree, caze);
-        if (subTable == null)
-            return null;
-        return subTable.get(count, gender);
-    }
-
-    /**
-     * Saves a declined form if it does not exist yet.
-     * <p>
-     * The general contract of this class is to only contain lowercase forms (see annotation).
-     * Code should only apply lowercase forms to this method.
-     *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
-     * @param form             The form.
-     * @throws NullPointerException     If any of the arguments is {@code null}.
-     * @throws IllegalArgumentException If the {@code form} is {@link String#isEmpty() empty} or
-     *                                  the {@code comparisonDegree} is {@link #allows(ComparisonDegree) disallowed}.
-     * @since 0.0.1
-     */
-    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    private void putDeclinedFormIfAbsent(
-            @NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String form)
-    {
-        if (getDeclinedForm(comparisonDegree, caze, count, gender) == null)
-            putDeclinedForm(comparisonDegree, caze, count, gender, form);
+        return declinedForms.get(adjectiveForm);
     }
 
     /**
@@ -640,33 +524,27 @@ public class Adjective implements Vocab
      * The general contract of this class is to only contain lowercase forms (see annotation).
      * Code should only apply lowercase forms to this method.
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
-     * @param form             The form to save. If it is {@code null} or an {@link String#isEmpty() empty} string, {@code null} is saved.
+     * @param adjectiveForm The adjective form.
+     * @param form          The form to save. If it is {@code null} or an {@link String#isEmpty() empty} string, {@code null} is saved.
+     * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    private void putDeclinedForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @Nullable String form)
+    private void putDeclinedForm(@NotNull AdjectiveForm adjectiveForm, @Nullable String form)
     {
-        requireAllowedComparisonDegree(comparisonDegree);
-        checkNotNull(caze);
-        checkNotNull(count);
-        checkNotNull(gender);
-        if (form != null && form.isEmpty())
-            form = null;
+        requireAllowedComparisonDegree(adjectiveForm);
 
-        @Nullable
-        ArrayTable<Count, Gender, String> subTable = this.declinedForms.get(comparisonDegree, caze);
-        if (subTable == null) // First time only or after declension had been cleared
+        String oldForm = declinedForms.get(adjectiveForm);
+        String propertyName =
+                adjectiveForm.getComparisonDegree() + "_" + adjectiveForm.getCase() + "_" + adjectiveForm.getCount() + "_" + adjectiveForm.getGender() + "_declined";
+        if (form == null || form.isEmpty())
         {
-            subTable = ArrayTable.create(() -> new ObjectArrayIterator<>(Count.values()), () -> new ObjectArrayIterator<>(Gender.values()));
-            this.declinedForms.put(comparisonDegree, caze, subTable);
+            definedForms.remove(adjectiveForm);
+            changeSupport.firePropertyChange(propertyName, oldForm, null);
+        } else
+        {
+            definedForms.put(adjectiveForm, form);
+            changeSupport.firePropertyChange(propertyName, oldForm, form);
         }
-        String oldForm = subTable.get(count, gender);
-        String propertyName = comparisonDegree + "_" + caze + "_" + count + "_" + gender + "_declined";
-        subTable.put(count, gender, form); // inserting null is equal to .erase()
-        changeSupport.firePropertyChange(propertyName, oldForm, form);
     }
 
     /**
@@ -681,45 +559,34 @@ public class Adjective implements Vocab
     {
         if (this.adjectiveDeclension == null)
         { // Properly invoke all change/veto listeners
-            for (ComparisonDegree comparisonDegree : ComparisonDegree.values())
-                for (Case caze : Case.values())
-                    for (Count count : Count.values())
-                        for (Gender gender : Gender.values())
-                        {
-                            putDeclinedForm(comparisonDegree, caze, count, gender, null); // Fire PropertyChangeEvent, override old value
-                        }
+            for (AdjectiveForm adjectiveForm : AdjectiveForm.values())
+            {
+                putDeclinedForm(adjectiveForm, null); // Fire PropertyChangeEvent, override old value
+            }
         }
 
         // Equal forms
-        for (ComparisonDegree comparisonDegree : ComparisonDegree.values())
-            for (Case caze : Case.values())
-                for (Count count : Count.values())
-                    for (Gender gender : Gender.values())
-                        if (this.isFormDefined(comparisonDegree, caze, count, gender))
+        for (AdjectiveForm adjectiveForm : AdjectiveForm.values())
+            if (this.isFormDefined(adjectiveForm))
+            {
+                Set<AdjectiveForm> equalForms = adjectiveDeclension.getEqualForms(adjectiveForm);
+                if (equalForms != null)
+                    equalForms.stream().filter(form -> !form.equals(adjectiveForm)).forEach(form -> {
+                        String definedFormOrNull = getDefinedForm(adjectiveForm);
+                        if (definedFormOrNull != null && !declinedForms.containsKey(adjectiveForm))
                         {
-                            // noinspection ConstantConditions
-                            Set<AdjectiveForm> equalForms = adjectiveDeclension.getEqualForms(comparisonDegree, caze, count, gender);
-                            if (equalForms != null)
-                                equalForms.stream().filter(form -> !form.equals(new AdjectiveForm(comparisonDegree, caze, count, gender))).forEach(form -> {
-                                    String definedFormOrNull = getDefinedForm(comparisonDegree, caze, count, gender);
-                                    if (definedFormOrNull != null)
-                                    {
-                                        putDeclinedFormIfAbsent(form.getComparisonDegree(), form.getCase(), form.getCount(), form.getGender(),
-                                                                definedFormOrNull);
-                                    }
-                                });
+                            putDeclinedForm(adjectiveForm, definedFormOrNull);
                         }
+                    });
+            }
 
         // Declining
-        for (ComparisonDegree comparisonDegree : ComparisonDegree.values())
-            for (Case caze : Case.values())
-                for (Count count : Count.values())
-                    for (Gender gender : Gender.values())
-                        try
-                        {
-                            putDeclinedFormIfAbsent(comparisonDegree, caze, count, gender,
-                                                    this.adjectiveDeclension.decline(comparisonDegree, caze, count, gender, getRootWord()));
-                        } catch (FormingException ignored) {} // null will reside
+        for (AdjectiveForm adjectiveForm : AdjectiveForm.values())
+            try
+            {
+                if (!declinedForms.containsKey(adjectiveForm))
+                    putDeclinedForm(adjectiveForm, this.adjectiveDeclension.decline(adjectiveForm, rootWord));
+            } catch (FormingException ignored) {} // null will reside
     }
     //endregion
 
@@ -736,126 +603,25 @@ public class Adjective implements Vocab
     private ComparisonDegree requireAllowedComparisonDegree(@NotNull ComparisonDegree comparisonDegree)
     {
         if (!allows(comparisonDegree)) // Delegates null check
-            throw new IllegalArgumentException("Unallowed Comparison degree " + comparisonDegree.toString());
+            throw new IllegalArgumentException("Disallowed Comparison degree " + comparisonDegree.toString());
         return comparisonDegree;
     }
 
     /**
-     * Gets a form - if a defined form exists, gets the defined form, if it does not exist, return a declined form.
-     * {@code null} if there is both no defined and declined form.
-     * <p>
-     * The general contract of this class is to only contain lowercase forms (see annotation).
-     * Code using this method may rely on this contract.
+     * Precondition to call to make sure a passed AdjectiveForm is not {@code null} and its comparison degree is allowed.
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
-     * @return The form. {@code null} if there is both no defined and declined form.
-     * @since 0.0.1
-     */
-    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    @Nullable
-    public String getForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
-    {
-        @Nullable
-        String defined = this.getDefinedForm(comparisonDegree, caze, count, gender); // Delegates not null checks
-        if (defined != null)
-            return defined;
-        return this.getDeclinedForm(comparisonDegree, caze, count, gender);
-    }
-
-    /**
-     * @since 0.0.1
-     * @deprecated Use the JavaFX graphical interface instead. Scheduled for removal as of 0.1.0.
+     * @param adjectiveForm The adjective form to check.
+     * @return The adjective form itself, if it is valid.
+     * @throws IllegalArgumentException If the comparison degree is disallowed.
+     * @throws NullPointerException     If {@code adjectiveForm} is {@code null}.
+     * @since 0.2.0
      */
     @NotNull
-    @Override
-    @Deprecated
-    public List<String> commandLineRepresentation()
+    private AdjectiveForm requireAllowedComparisonDegree(@NotNull AdjectiveForm adjectiveForm)
     {
-        List<String> buffer = new ArrayList<>(53);
-
-        for (ComparisonDegree comparisonDegree : ComparisonDegree.values())
-        {
-            if (this.allows(comparisonDegree))
-            {
-                buffer.add("+----------+---------------+---------------+---------------+");
-                buffer.add("| " + comparisonDegree.toString().substring(0, 8) + " |   MASCULINE   |    FEMININE   |     NEUTER    |");
-                buffer.add("+----------+---------------+---------------+---------------+");
-                for (Count count : Count.values())
-                {
-                    for (Case caze : Case.values())
-                    {
-                        StringBuilder builder = new StringBuilder(60);
-
-                        builder.append("|");
-                        builder.append(Strings.padStart(caze.toString(), 10, ' '));
-                        builder.append("|");
-
-                        for (Gender gender : Gender.values())
-                        {
-                            @Nullable
-                            String formOrNull = getForm(comparisonDegree, caze, count, gender);
-                            formOrNull = formOrNull == null ? "???????????????" : formOrNull;
-                            builder.append(isFormDefined(comparisonDegree, caze, count, gender) ? "$" : " ");
-                            builder.append(Strings.padEnd(formOrNull, 14, ' '));
-                            builder.append("|");
-                        }
-
-                        buffer.add(builder.toString());
-                    }
-                    buffer.add("+----------+---------------+---------------+---------------+");
-                }
-
-            } else
-            {
-                buffer.add(comparisonDegree.toString() + " is disallowed");
-            }
-            buffer.add("");
-        }
-
-        return buffer;
-    }
-
-    /**
-     * The UUID of this Adjective.
-     *
-     * @since 0.0.1
-     */
-    private UUID uuid;
-
-    /**
-     * @since 0.0.1
-     */
-    @Nullable
-    @Override
-    public UUID getUuid()
-    {
-        return uuid;
-    }
-
-    /**
-     * @since 0.0.1
-     */
-    @Override
-    public void initializeUuid(@NotNull UUID uuid)
-    {
-        checkNotNull(uuid);
-        if (this.uuid != null)
-            throw new IllegalStateException("UUID has already been initialized");
-        this.uuid = uuid;
-        changeSupport.firePropertyChange("uuid", null, uuid);
-    }
-
-    /**
-     * @since 0.0.1
-     */
-    @NotNull
-    @Override
-    public Map<String, String> getTranslations()
-    {
-        return translations;
+        checkNotNull(adjectiveForm);
+        requireAllowedComparisonDegree(adjectiveForm.getComparisonDegree());
+        return adjectiveForm;
     }
 
     // since 0.0.1
@@ -874,75 +640,5 @@ public class Adjective implements Vocab
             if (newValue instanceof String && ((String) newValue).isEmpty() && propertyName.equals("rootWord"))
                 throw new PropertyVetoException("New String value may not be empty!", evt);
         });
-    }
-
-    /**
-     * Add a PropertyChangeListener to the listener list.
-     * The listener is registered for all properties.
-     * The same listener object may be added more than once, and will be called
-     * as many times as it is added.
-     * If {@code listener} is null, no exception is thrown and no action
-     * is taken.
-     *
-     * @param listener The PropertyChangeListener to be added
-     * @see PropertyChangeSupport#addPropertyChangeListener(PropertyChangeListener)
-     * @since 0.0.1
-     */
-    public void addPropertyChangeListener(PropertyChangeListener listener)
-    {
-        changeSupport.addPropertyChangeListener(listener);
-    }
-
-    /**
-     * Remove a PropertyChangeListener from the listener list.
-     * This removes a PropertyChangeListener that was registered
-     * for all properties.
-     * If {@code listener} was added more than once to the same event
-     * source, it will be notified one less time after being removed.
-     * If {@code listener} is null, or was never added, no exception is
-     * thrown and no action is taken.
-     *
-     * @param listener The PropertyChangeListener to be removed
-     * @see PropertyChangeSupport#removePropertyChangeListener(PropertyChangeListener)
-     * @since 0.0.1
-     */
-    public void removePropertyChangeListener(PropertyChangeListener listener)
-    {
-        changeSupport.removePropertyChangeListener(listener);
-    }
-
-    /**
-     * Add a VetoableChangeListener to the listener list.
-     * The listener is registered for all properties.
-     * The same listener object may be added more than once, and will be called
-     * as many times as it is added.
-     * If {@code listener} is null, no exception is thrown and no action
-     * is taken.
-     *
-     * @param listener The VetoableChangeListener to be added
-     * @see VetoableChangeSupport#addVetoableChangeListener(VetoableChangeListener)
-     * @since 0.0.1
-     */
-    public void addVetoableChangeListener(VetoableChangeListener listener)
-    {
-        vetoSupport.addVetoableChangeListener(listener);
-    }
-
-    /**
-     * Remove a VetoableChangeListener from the listener list.
-     * This removes a VetoableChangeListener that was registered
-     * for all properties.
-     * If {@code listener} was added more than once to the same event
-     * source, it will be notified one less time after being removed.
-     * If {@code listener} is null, or was never added, no exception is
-     * thrown and no action is taken.
-     *
-     * @param listener The VetoableChangeListener to be removed
-     * @see VetoableChangeSupport#removeVetoableChangeListener(VetoableChangeListener)
-     * @since 0.0.1
-     */
-    public void removeVetoableChangeListener(VetoableChangeListener listener)
-    {
-        vetoSupport.removeVetoableChangeListener(listener);
     }
 }

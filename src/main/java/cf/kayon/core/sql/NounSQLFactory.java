@@ -18,13 +18,12 @@
 
 package cf.kayon.core.sql;
 
-import cf.kayon.core.Case;
 import cf.kayon.core.CaseHandling;
-import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounDeclensionUtil;
+import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.util.StringUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -65,10 +64,11 @@ public class NounSQLFactory
      *
      * @since 0.0.1
      */
+    @SuppressWarnings("SqlResolve")
     public static final String SQL_QUERY = "SELECT * FROM NOUNS WHERE " +
                                            "CONCAT_WS('|', `NOMSG`, `GENSG`, `DATSG`, `ACCSG`, `ABLSG`, `VOCSG`, `NOMPL`, `GENPL`, `DATPL`, `ACCPL`, `ABLPL`, `VOCPL`, " +
                                            "`NOMSGDEF`, `GENSGDEF`, `DATSGDEF`, `ACCSGDEF`, `ABLSGDEF`, `VOCSGDEF`, `NOMPLDEF`, `GENPLDEF`, `DATPLDEF`, `ACCPLDEF`, `ABLPLDEF`, `VOCPLDEF`) " +
-                                           "REGEXP ?;"; // Thanks @Buttle Butkus http://stackoverflow.com/a/20834505/4464702
+                                           "REGEXP ?;"; // Thanks http://stackoverflow.com/a/20834505/4464702
 
     /**
      * The SQL string for setting up a H2 database for noun operations.
@@ -195,17 +195,16 @@ public class NounSQLFactory
             insertStatement.setString(4, null);
         insertStatement.setObject(5, noun.getTranslations());
         int counter = 6;
-        for (Count count : Count.values())
-            for (Case caze : Case.values())
-            {
-                @Nullable
-                String formOrNull = noun.getForm(caze, count);
-                @Nullable
-                String definedForm = noun.getDefinedForm(caze, count);
+        for (NounForm nounForm : NounForm.values())
+        {
+            @Nullable
+            String formOrNull = noun.getForm(nounForm);
+            @Nullable
+            String definedForm = noun.getDefinedForm(nounForm);
 
-                insertStatement.setString(counter + 12, definedForm);
-                insertStatement.setString(counter++, formOrNull);
-            }
+            insertStatement.setString(counter + 12, definedForm);
+            insertStatement.setString(counter++, formOrNull);
+        }
         insertStatement.executeUpdate();
     }
 
@@ -225,7 +224,7 @@ public class NounSQLFactory
     public static Noun constructNounFromDatabase(@NotNull Connection connection, @NotNull UUID uuidToSelect) throws SQLException
     {
         checkNotNull(uuidToSelect);
-        PreparedStatement singleReconstructStatement = doBuffer(connection, SQLQueryType.SQL_SINGLE_RECONSTRUCT);
+        PreparedStatement singleReconstructStatement = doBuffer(connection, SQLQueryType.SQL_SINGLE_RECONSTRUCT); // delegates @NotNull for connection
         singleReconstructStatement.setObject(1, uuidToSelect);
         try (ResultSet results = singleReconstructStatement.executeQuery())
         {
@@ -259,21 +258,20 @@ public class NounSQLFactory
         @NotNull
         Gender gender = SQLUtil.genderForId(resultSet.getByte(3));
         NounDeclension nounDeclension = NounDeclensionUtil.forName(resultSet.getString(4));
-        Map<String, String> translations = (Map<String, String>) resultSet.getObject(5);
+        Map<Locale, String> translations = (Map<Locale, String>) resultSet.getObject(5);
         Noun noun = new Noun(nounDeclension, gender, rootWord);
         noun.setTranslations(translations);
         noun.initializeUuid(uuid);
         int counter = 18;
-        for (Count count : Count.values())
-            for (Case caze : Case.values())
+        for (NounForm nounForm : NounForm.values())
+        {
+            @Nullable
+            String formOrNull = resultSet.getString(counter++);
+            try
             {
-                @Nullable
-                String formOrNull = resultSet.getString(counter++);
-                try
-                {
-                    noun.setDefinedForm(caze, count, formOrNull);
-                } catch (PropertyVetoException ignored) {} // Empty value in cell, leave defined form as null
-            }
+                noun.setDefinedForm(nounForm, formOrNull);
+            } catch (PropertyVetoException ignored) {} // Empty value in cell, leave defined form as null
+        }
         return noun;
     }
 
@@ -324,20 +322,16 @@ public class NounSQLFactory
             while (results.next())
             {
                 Noun currentResult = constructNounFromResultSet(results);
-                // label
-                formIteration:
+                for (NounForm nounForm : NounForm.values())
                 {
-                    for (Count count : Count.values())
-                        for (Case caze : Case.values())
-                        {
-                            String form = currentResult.getForm(caze, count);
-                            if (form != null && pattern.matcher(form).matches()) // If a matching form has been found, short-circuit
-                            {
-                                list.add(currentResult);
-                                break formIteration; // break out of nested loop
-                            }
-                        }
+                    String form = currentResult.getForm(nounForm);
+                    if (form != null && pattern.matcher(form).matches()) // If a matching form has been found, short-circuit
+                    {
+                        list.add(currentResult);
+                        break; // break out of nested loop
+                    }
                 }
+
             }
         }
         return list;

@@ -20,10 +20,12 @@ package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.*;
 import cf.kayon.core.noun.NounDeclensionUtil;
+import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.util.StringUtil;
-import com.google.common.collect.Table;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -47,8 +49,8 @@ public class ENounDeclension extends StandardNounDeclension
      *
      * @since 0.0.1
      */
-    private final Table<Case, Count, String> endings = NounDeclensionUtil.endingsTable("ēs", "eī", "eī", "em", "ē", "ēs",
-                                                                                       "ēs", "ērum", "ēbus", "ēs", "ēbus", "ēs");
+    private final Map<NounForm, String> endings = NounDeclensionUtil.endingsMap("ēs", "eī", "eī", "em", "ē", "ēs",
+                                                                                "ēs", "ērum", "ēbus", "ēs", "ēbus", "ēs");
 
     /**
      * The private constructor to never let anybody construct this class.
@@ -74,14 +76,13 @@ public class ENounDeclension extends StandardNounDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
     @Override
-    protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    protected String selectCorrectEndingOrNull(@NotNull NounForm nounForm, @NotNull Gender gender)
     {
-        checkNotNull(caze);
-        checkNotNull(count);
+        checkNotNull(nounForm);
         checkNotNull(gender);
-        if (count == Count.SINGULAR && (caze == Case.GENITIVE || caze == Case.DATIVE))
+        if (nounForm.getCount() == Count.SINGULAR && (nounForm.getCase() == Case.GENITIVE || nounForm.getCase() == Case.DATIVE))
             return "ēī";
-        return endings.get(caze, count);
+        return endings.get(nounForm);
     }
 
     /**
@@ -90,16 +91,15 @@ public class ENounDeclension extends StandardNounDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
-    public String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
+    public String decline(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
     {
-        checkNotNull(caze);
-        checkNotNull(count);
+        checkNotNull(nounForm);
         checkNotNull(gender);
         checkNotNull(rootWord);
-        if (count == Count.SINGULAR && (caze == Case.GENITIVE || caze == Case.DATIVE) &&
+        if (nounForm.getCount() == Count.SINGULAR && (nounForm.getCase() == Case.GENITIVE || nounForm.getCase() == Case.DATIVE) &&
             StringUtil.unSpecialString(rootWord).endsWith("i")) // Most expensive check last
             return rootWord + "ēī";
-        return rootWord + selectCorrectEnding(caze, count, gender);
+        return rootWord + selectCorrectEnding(nounForm, gender);
     }
 
     /**

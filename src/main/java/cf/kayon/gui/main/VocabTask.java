@@ -82,7 +82,7 @@ public class VocabTask extends Task<List<Vocab>>
     @Override
     @NotNull
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    protected List<Vocab> call() throws Exception
+    protected synchronized List<Vocab> call() throws Exception
     {
         List<Vocab> collectedResults = Lists.newArrayList();
         collectedResults.addAll(NounSQLFactory.queryNouns(connection, searchString));

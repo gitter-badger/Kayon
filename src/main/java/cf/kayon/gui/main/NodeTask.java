@@ -44,10 +44,12 @@ public class NodeTask extends Task<Void>
         this.latch = latch;
     }
 
+    // snychronized for visibility to other threads
     @Override
-    protected Void call() throws Exception
+    protected synchronized Void call() throws Exception
     {
         Node node;
+
         if (vocab.getClass() == Noun.class)
             node = NounView.createNewParent((Noun) vocab).getLeft();
         else

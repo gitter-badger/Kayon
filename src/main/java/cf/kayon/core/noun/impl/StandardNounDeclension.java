@@ -18,8 +18,12 @@
 
 package cf.kayon.core.noun.impl;
 
-import cf.kayon.core.*;
+import cf.kayon.core.CaseHandling;
+import cf.kayon.core.FormingException;
+import cf.kayon.core.FormingUtil;
+import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclension;
+import cf.kayon.core.noun.NounForm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,16 +44,15 @@ public abstract class StandardNounDeclension implements NounDeclension
      * Does not throw an unchecked exception (as documented in {@link NounDeclension#allowsGender(Gender)}) if the {@code gender} is disallowed,
      * instead returns a arbitrary possibly wrong ending.
      *
-     * @param caze   The case.
-     * @param count  The count.
-     * @param gender The gender.
+     * @param nounForm The noun form.
+     * @param gender   The gender.
      * @return An ending. {@code null} if there is no standard ending for this form.
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
-    protected abstract String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender);
+    protected abstract String selectCorrectEndingOrNull(@NotNull NounForm nounForm, @NotNull Gender gender);
 
     /**
      * Selects the correct ending for a specified form.
@@ -59,9 +62,8 @@ public abstract class StandardNounDeclension implements NounDeclension
      * Does not throw an unchecked exception (as documented in {@link NounDeclension#allowsGender(Gender)}) if the {@code gender} is disallowed,
      * instead returns a arbitrary possibly wrong ending.
      *
-     * @param caze   The case.
-     * @param count  The count.
-     * @param gender The gender.
+     * @param nounForm The noun form.
+     * @param gender   The gender.
      * @return An ending.
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @throws FormingException     If there is no standard ending for this form.
@@ -69,52 +71,23 @@ public abstract class StandardNounDeclension implements NounDeclension
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
-    public String selectCorrectEnding(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender) throws FormingException
+    public String selectCorrectEnding(@NotNull NounForm nounForm, @NotNull Gender gender) throws FormingException
     {
         @Nullable
-        String selectedCorrectEndingsOrNull = this.selectCorrectEndingOrNull(caze, count, gender);
+        String selectedCorrectEndingsOrNull = this.selectCorrectEndingOrNull(nounForm, gender);
         if (selectedCorrectEndingsOrNull == null)
             throw new FormingException();
         return selectedCorrectEndingsOrNull;
     }
 
-    //    @NotNull
-    //    @Override
-    //    public List<String> getPossibleForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
-    //    {
-    //        List<String> buffer = getAlternateForms(caze, count, gender, rootWord);
-    //        if (buffer == null)
-    //            buffer = new ArrayList<>(1);
-    //        try
-    //        {
-    //            buffer.add(this.decline(caze, count, gender, rootWord));
-    //        } catch (FormingException ignored) {}
-    //        if (buffer.isEmpty())
-    //            throw new FormingException("Neither any main nor alternative forms!");
-    //        return buffer;
-    //    }
-
-    //    @Nullable
-    //    @Override
-    //    public List<String> getAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
-    //    {
-    //        return null;
-    //    }
-    //
-    //    @Override
-    //    public boolean hasAlternateForms(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
-    //    {
-    //        return getAlternateForms(caze, count, gender, rootWord) != null;
-    //    }
-
     /**
      * @since 0.0.1
      */
     @NotNull
     @Override
-    public String decline(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
+    public String decline(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
     {
-        return rootWord + selectCorrectEnding(caze, count, gender);
+        return rootWord + selectCorrectEnding(nounForm, gender);
     }
 
     /**
@@ -122,8 +95,8 @@ public abstract class StandardNounDeclension implements NounDeclension
      */
     @NotNull
     @Override
-    public String determineRootWord(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
+    public String determineRootWord(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
     {
-        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(caze, count, gender));
+        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(nounForm, gender));
     }
 }

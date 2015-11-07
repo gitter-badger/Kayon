@@ -18,18 +18,17 @@
 
 package cf.kayon.core.adjective.impl;
 
-import cf.kayon.core.Case;
-import cf.kayon.core.Gender;
-import com.google.common.base.Strings;
 import cf.kayon.core.Count;
 import cf.kayon.core.adjective.AdjectiveForm;
-import cf.kayon.core.adjective.ComparisonDegree;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+
+import static cf.kayon.core.adjective.impl.AdjectiveDeclensionTestingUtil.assertStandardEquals;
+import static cf.kayon.core.adjective.impl.AdjectiveDeclensionTestingUtil.assertVocativeEquals;
 
 public class OAAdjectiveDeclensionTest
 {
@@ -47,12 +46,6 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("bonum", true),
                                                             new ImmutablePair<>("bono", true),
                                                             new ImmutablePair<>("bone", true),
-                                                            new ImmutablePair<>("boni", true),
-                                                            new ImmutablePair<>("bonorum", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("bonos", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("boni", true),
 
                                                             new ImmutablePair<>("bona", true),
                                                             new ImmutablePair<>("bonae", true),
@@ -60,12 +53,6 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("bonam", true),
                                                             new ImmutablePair<>("bona", true),
                                                             new ImmutablePair<>("bona", true),
-                                                            new ImmutablePair<>("bonae", true),
-                                                            new ImmutablePair<>("bonarum", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("bonas", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("bonae", true),
 
                                                             new ImmutablePair<>("bonum", true),
                                                             new ImmutablePair<>("boni", true),
@@ -73,6 +60,21 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("bonum", true),
                                                             new ImmutablePair<>("bono", true),
                                                             new ImmutablePair<>("bonum", true),
+
+                                                            new ImmutablePair<>("boni", true),
+                                                            new ImmutablePair<>("bonorum", true),
+                                                            new ImmutablePair<>("bonis", true),
+                                                            new ImmutablePair<>("bonos", true),
+                                                            new ImmutablePair<>("bonis", true),
+                                                            new ImmutablePair<>("boni", true),
+
+                                                            new ImmutablePair<>("bonae", true),
+                                                            new ImmutablePair<>("bonarum", true),
+                                                            new ImmutablePair<>("bonis", true),
+                                                            new ImmutablePair<>("bonas", true),
+                                                            new ImmutablePair<>("bonis", true),
+                                                            new ImmutablePair<>("bonae", true),
+
                                                             new ImmutablePair<>("bona", true),
                                                             new ImmutablePair<>("bonorum", true),
                                                             new ImmutablePair<>("bonis", true),
@@ -87,12 +89,6 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("boniorem", true),
                                                             new ImmutablePair<>("boniore", true),
                                                             new ImmutablePair<>("bonior", true),
-                                                            new ImmutablePair<>("boniores", true),
-                                                            new ImmutablePair<>("boniorum", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniores", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniores", true),
 
                                                             new ImmutablePair<>("bonior", true),
                                                             new ImmutablePair<>("bonioris", true),
@@ -100,12 +96,6 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("boniorem", true),
                                                             new ImmutablePair<>("boniore", true),
                                                             new ImmutablePair<>("bonior", true),
-                                                            new ImmutablePair<>("boniores", true),
-                                                            new ImmutablePair<>("boniorum", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniores", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniores", true),
 
                                                             new ImmutablePair<>("bonius", true),
                                                             new ImmutablePair<>("bonioris", true),
@@ -113,6 +103,21 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("bonius", true),
                                                             new ImmutablePair<>("boniore", true),
                                                             new ImmutablePair<>("bonius", true),
+
+                                                            new ImmutablePair<>("boniores", true),
+                                                            new ImmutablePair<>("boniorum", true),
+                                                            new ImmutablePair<>("bonioribus", true),
+                                                            new ImmutablePair<>("boniores", true),
+                                                            new ImmutablePair<>("bonioribus", true),
+                                                            new ImmutablePair<>("boniores", true),
+
+                                                            new ImmutablePair<>("boniores", true),
+                                                            new ImmutablePair<>("boniorum", true),
+                                                            new ImmutablePair<>("bonioribus", true),
+                                                            new ImmutablePair<>("boniores", true),
+                                                            new ImmutablePair<>("bonioribus", true),
+                                                            new ImmutablePair<>("boniores", true),
+
                                                             new ImmutablePair<>("boniora", true),
                                                             new ImmutablePair<>("boniorum", true),
                                                             new ImmutablePair<>("bonioribus", true),
@@ -127,12 +132,6 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("bonissimum", true),
                                                             new ImmutablePair<>("bonissimo", true),
                                                             new ImmutablePair<>("bonissime", true),
-                                                            new ImmutablePair<>("bonissimi", true),
-                                                            new ImmutablePair<>("bonissimorum", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissimos", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissimi", true),
 
                                                             new ImmutablePair<>("bonissima", true),
                                                             new ImmutablePair<>("bonissimae", true),
@@ -140,12 +139,6 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("bonissimam", true),
                                                             new ImmutablePair<>("bonissima", true),
                                                             new ImmutablePair<>("bonissima", true),
-                                                            new ImmutablePair<>("bonissimae", true),
-                                                            new ImmutablePair<>("bonissimarum", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissimas", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissimae", true),
 
                                                             new ImmutablePair<>("bonissimum", true),
                                                             new ImmutablePair<>("bonissimi", true),
@@ -153,6 +146,23 @@ public class OAAdjectiveDeclensionTest
                                                             new ImmutablePair<>("bonissimum", true),
                                                             new ImmutablePair<>("bonissimo", true),
                                                             new ImmutablePair<>("bonissimum", true),
+
+
+                                                            new ImmutablePair<>("bonissimi", true),
+                                                            new ImmutablePair<>("bonissimorum", true),
+                                                            new ImmutablePair<>("bonissimis", true),
+                                                            new ImmutablePair<>("bonissimos", true),
+                                                            new ImmutablePair<>("bonissimis", true),
+                                                            new ImmutablePair<>("bonissimi", true),
+
+
+                                                            new ImmutablePair<>("bonissimae", true),
+                                                            new ImmutablePair<>("bonissimarum", true),
+                                                            new ImmutablePair<>("bonissimis", true),
+                                                            new ImmutablePair<>("bonissimas", true),
+                                                            new ImmutablePair<>("bonissimis", true),
+                                                            new ImmutablePair<>("bonissimae", true),
+
                                                             new ImmutablePair<>("bonissima", true),
                                                             new ImmutablePair<>("bonissimorum", true),
                                                             new ImmutablePair<>("bonissimis", true),
@@ -164,25 +174,13 @@ public class OAAdjectiveDeclensionTest
     @Test
     public void testEqualForms()
     {
-        for (ComparisonDegree comparisonDegree : ComparisonDegree.values())
+        for (AdjectiveForm adjectiveForm : AdjectiveForm.values())
         {
-            LOGGER.info(comparisonDegree.toString());
-            for (Count count : Count.values())
-            {
-                LOGGER.info(count.toString());
-                for (Gender gender : Gender.values())
-                {
-                    LOGGER.info(gender.toString());
-                    for (Case caze : Case.values())
-                    {
-                        Set<AdjectiveForm> equalForms = OAAdjectiveDeclension.getInstance().getEqualForms(comparisonDegree, caze, count, gender);
-                        if (equalForms != null)
-                            LOGGER.info("  " + Strings.padEnd(caze.toString(), 12, ' ') + " -> " + equalForms.toString());
-                        else
-                            LOGGER.info("  " + Strings.padEnd(caze.toString(), 12, ' ') + " -> NULL");
-                    }
-                }
-            }
+            Set<AdjectiveForm> equalForms = OAAdjectiveDeclension.getInstance().getEqualForms(adjectiveForm);
+            if (adjectiveForm.getCount() == Count.PLURAL)
+                assertVocativeEquals(adjectiveForm, equalForms);
+            else
+                assertStandardEquals(adjectiveForm, equalForms);
         }
     }
 }

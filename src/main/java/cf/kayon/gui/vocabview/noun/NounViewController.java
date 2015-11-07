@@ -23,6 +23,7 @@ import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounDeclension;
+import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.noun.impl.*;
 import cf.kayon.core.sql.ConnectionHolder;
 import cf.kayon.gui.FxUtil;
@@ -318,9 +319,7 @@ public class NounViewController
     {
         boolean reRegisterListeners = noun != this.currentBackingNoun && noun != null; // Reference check
         if (reRegisterListeners) // If the whole instance changed
-        {
             unregisterAll(noun);
-        }
 
         this.currentBackingNoun = noun;
         if (doInit) this.initialBackingNoun = noun;
@@ -355,14 +354,14 @@ public class NounViewController
                 }
 
                 // Text
-                String declinedForm = noun != null ? noun.getDeclinedForm(caze, count) : null;
+                String declinedForm = noun != null ? noun.getDeclinedForm(NounForm.of(caze, count)) : null;
                 currentText.setText(declinedForm != null ? declinedForm : resources.getString("Text.DeclinedForm.NoDeclinedForm"));
                 // TextField
-                String definedForm = noun != null ? noun.getDefinedForm(caze, count) : null;
+                String definedForm = noun != null ? noun.getDefinedForm(NounForm.of(caze, count)) : null;
                 currentTextField.setText(definedForm != null ? definedForm : resources.getString("Text.NoSuchForm"));
                 // CheckBox
                 if (isReset && noun != null)
-                    currentCheckBox.setSelected(noun.getDefinedForm(caze, count) != null);
+                    currentCheckBox.setSelected(noun.getDefinedForm(NounForm.of(caze, count)) != null);
 
                 if (reRegisterListeners)
                 {
@@ -394,7 +393,7 @@ public class NounViewController
             if (currentBackingNoun != null)
                 try
                 {
-                    currentBackingNoun.setDefinedForm(caze, count, newValue);
+                    currentBackingNoun.setDefinedForm(NounForm.of(caze, count), newValue);
                 } catch (PropertyVetoException e)
                 {
                     throw new RuntimeException(e);
@@ -416,7 +415,7 @@ public class NounViewController
             if (!newValue)
                 try
                 {
-                    currentBackingNoun.removeDefinedForm(caze, count);
+                    currentBackingNoun.removeDefinedForm(NounForm.of(caze, count));
                 } catch (PropertyVetoException e)
                 {
                     throw new RuntimeException(e);
@@ -424,7 +423,7 @@ public class NounViewController
             else
                 try
                 {
-                    currentBackingNoun.setDefinedForm(caze, count, tableElements.get(caze, count).getMiddle().getText());
+                    currentBackingNoun.setDefinedForm(NounForm.of(caze, count), tableElements.get(caze, count).getMiddle().getText());
                 } catch (PropertyVetoException e)
                 {
                     throw new RuntimeException(e);

@@ -62,10 +62,7 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
      * <p>
      * Only returns lowercase endings (see annotation).
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
+     * @param adjectiveForm The adjective form.
      * @return An ending. Never null.
      * @throws FormingException     If the ending could not be determined.
      * @throws NullPointerException If any of the arguments is null.
@@ -73,21 +70,21 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
      */
     @NotNull
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public String selectCorrectEnding(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    public String selectCorrectEnding(@NotNull AdjectiveForm adjectiveForm)
             throws FormingException
     {
         @Nullable
         String endingOrNull = null;
-        switch (comparisonDegree)
+        switch (adjectiveForm.getComparisonDegree())
         {
             case POSITIVE: // Choose from this AdjectiveDeclension
-                endingOrNull = selectCorrectPositiveEndingOrNull(caze, count, gender);
+                endingOrNull = selectCorrectPositiveEndingOrNull(adjectiveForm.getCase(), adjectiveForm.getCount(), adjectiveForm.getGender());
                 break;
             case COMPARATIVE: // Choose from a preset of endings (always)
-                endingOrNull = AdjectiveDeclensionUtil.endingsComparative.get(gender, count).get(caze);
+                endingOrNull = AdjectiveDeclensionUtil.endingsComparative.get(adjectiveForm.getGender(), adjectiveForm.getCount()).get(adjectiveForm.getCase());
                 break;
             case SUPERLATIVE: // Choose from a preset of endings (always)
-                endingOrNull = AdjectiveDeclensionUtil.endingsSuperlative.get(gender, count).get(caze);
+                endingOrNull = AdjectiveDeclensionUtil.endingsSuperlative.get(adjectiveForm.getGender(), adjectiveForm.getCount()).get(adjectiveForm.getCase());
                 break;
             default:
                 break;
@@ -103,16 +100,16 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
     @Override
-    public String decline(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
+    public String decline(@NotNull AdjectiveForm adjectiveForm, @NotNull String rootWord)
             throws FormingException
     {
-        if (comparisonDegree == ComparisonDegree.SUPERLATIVE)
+        if (adjectiveForm.getComparisonDegree() == ComparisonDegree.SUPERLATIVE)
         {
             String unSpecialRootWord = StringUtil.unSpecialString(rootWord);
             return rootWord + (unSpecialRootWord.endsWith("er") ? "rim" : unSpecialRootWord.endsWith("l") ? "lim" : "issim") +
-                   selectCorrectEnding(comparisonDegree, caze, count, gender);
+                   selectCorrectEnding(adjectiveForm);
         }
-        return rootWord + selectCorrectEnding(comparisonDegree, caze, count, gender);
+        return rootWord + selectCorrectEnding(adjectiveForm);
     }
 
     /**
@@ -122,13 +119,13 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
     @NotNull
     @Override
     public String determineRootWord(
-            @NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm)
+            @NotNull AdjectiveForm adjectiveForm, @NotNull String declinedForm)
             throws FormingException
     {
-        if (comparisonDegree == ComparisonDegree.SUPERLATIVE)
+        if (adjectiveForm.getComparisonDegree() == ComparisonDegree.SUPERLATIVE)
         {
             @NotNull
-            String chosenEnding = selectCorrectEnding(comparisonDegree, caze, count, gender);
+            String chosenEnding = selectCorrectEnding(adjectiveForm);
 
             @Nullable
             String attempt = FormingUtil.determineRootWordOrNull(declinedForm, "issim" + chosenEnding);
@@ -137,7 +134,7 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
 
             return FormingUtil.determineRootWord(declinedForm, "im" + chosenEnding);
         }
-        return FormingUtil.determineRootWord(declinedForm, selectCorrectEnding(comparisonDegree, caze, count, gender));
+        return FormingUtil.determineRootWord(declinedForm, selectCorrectEnding(adjectiveForm));
     }
 
     /**
@@ -145,37 +142,31 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
      */
     @Nullable
     @Override
-    public Set<AdjectiveForm> getEqualForms(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    public Set<AdjectiveForm> getEqualForms(@NotNull AdjectiveForm adjectiveForm)
     {
-        return getEqualForms(comparisonDegree, caze, count, gender, true);
+        return getEqualForms(adjectiveForm, true);
     }
 
     /**
      * Gets all equal forms to a specified form.
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
+     * @param adjectiveForm The adjective form.
      * @param goRecursive      Whether to include equal forms of equal forms.
      * @return A Set of adjective forms.
      * @since 0.0.1
      */
     @Nullable
     private Set<AdjectiveForm> getEqualForms(
-            @NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, boolean goRecursive)
+            @NotNull AdjectiveForm adjectiveForm, boolean goRecursive)
     {
-        checkNotNull(comparisonDegree);
-        checkNotNull(caze);
-        checkNotNull(count);
-        checkNotNull(gender);
+        checkNotNull(adjectiveForm);
 
         // First, prepare a set that is a) empty or b) filled with forms from implementation
         @NotNull
         Set<AdjectiveForm> workingSet;
-        if (comparisonDegree == ComparisonDegree.POSITIVE)
+        if (adjectiveForm.getComparisonDegree() == ComparisonDegree.POSITIVE)
         {
-            Set<AdjectiveForm> formsFromImplementation = this.getEqualFormsPositive(caze, count, gender);
+            Set<AdjectiveForm> formsFromImplementation = this.getEqualFormsPositive(adjectiveForm.getCase(), adjectiveForm.getCount(), adjectiveForm.getGender());
             if (formsFromImplementation != null)
                 workingSet = formsFromImplementation;
             else
@@ -186,41 +177,43 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
         }
 
         // Add the form itself
-        workingSet.add(new AdjectiveForm(comparisonDegree, caze, count, gender));
+        workingSet.add(adjectiveForm);
 
         // Now, add neuter rules
-        if (gender == Gender.NEUTER && (caze == Case.NOMINATIVE || caze == Case.ACCUSATIVE || caze == Case.VOCATIVE))
+        if (adjectiveForm.getGender() == Gender.NEUTER &&
+            (adjectiveForm.getCase() == Case.NOMINATIVE || adjectiveForm.getCase() == Case.ACCUSATIVE || adjectiveForm.getCase() == Case.VOCATIVE))
         {
-            workingSet.add(new AdjectiveForm(comparisonDegree, Case.NOMINATIVE, count, gender));
-            workingSet.add(new AdjectiveForm(comparisonDegree, Case.ACCUSATIVE, count, gender));
-            workingSet.add(new AdjectiveForm(comparisonDegree, Case.VOCATIVE, count, gender));
+            workingSet.add(AdjectiveForm.of(adjectiveForm.getComparisonDegree(), adjectiveForm.getCount(), adjectiveForm.getGender(), Case.NOMINATIVE));
+            workingSet.add(AdjectiveForm.of(adjectiveForm.getComparisonDegree(), adjectiveForm.getCount(), adjectiveForm.getGender(), Case.ACCUSATIVE));
+            workingSet.add(AdjectiveForm.of(adjectiveForm.getComparisonDegree(), adjectiveForm.getCount(), adjectiveForm.getGender(), Case.VOCATIVE));
         }
 
         // Now, add vocative rules
-        if (applyPositiveVocativeEquals(count) && (caze == Case.NOMINATIVE || caze == Case.VOCATIVE))
+        if ((adjectiveForm.getComparisonDegree() != ComparisonDegree.POSITIVE) ||
+            (applyPositiveVocativeEquals(adjectiveForm.getCount()) && ((adjectiveForm.getCase() == Case.NOMINATIVE) || (adjectiveForm.getCase() == Case.VOCATIVE))))
         {
-            workingSet.add(new AdjectiveForm(comparisonDegree, Case.NOMINATIVE, count, gender));
-            workingSet.add(new AdjectiveForm(comparisonDegree, Case.VOCATIVE, count, gender));
+            workingSet.add(AdjectiveForm.of(adjectiveForm.getComparisonDegree(), adjectiveForm.getCount(), adjectiveForm.getGender(), Case.NOMINATIVE));
+            workingSet.add(AdjectiveForm.of(adjectiveForm.getComparisonDegree(), adjectiveForm.getCount(), adjectiveForm.getGender(), Case.VOCATIVE));
         }
 
         // Now, recursively (depth = 1) add equal forms of equal forms
         if (goRecursive)
             workingSet.forEach(form -> {
                 Set<AdjectiveForm> currentEquals =
-                        StandardAdjectiveDeclension.this.getEqualForms(form.getComparisonDegree(), form.getCase(), form.getCount(), form.getGender(), false);
+                        StandardAdjectiveDeclension.this.getEqualForms(adjectiveForm, false);
                 if (currentEquals != null)
                     workingSet.addAll(currentEquals);
             });
 
-        return workingSet.size() <= 1 ? null : workingSet; // Because it is now backed anywhere, it's okay to return the mutable HashSet
+        return workingSet.size() <= 1 ? null : workingSet; // Because it is not backed anywhere, it's okay to return the mutable HashSet
     }
 
     /**
      * Gets all equal forms to a specified positive form.
      * <p>
-     * This method is not supposed to handle neuter rules, those are applied afterwards by {@link #getEqualForms(ComparisonDegree, Case, Count, Gender)}.
+     * This method is not supposed to handle neuter rules, those are applied afterwards by {@link #getEqualForms(AdjectiveForm)}.
      * <br>
-     * It is perfecly valid to only have a method {@code return null;} if that actually applies for the implementation. In that case, it is recommended to,
+     * It is perfectly valid to only have a method {@code return null;} if that actually applies for the implementation. In that case, it is recommended to,
      * for semantic reasons, include {@link com.google.common.base.Preconditions#checkNotNull(Object) checkNotNull(Object)} calls for all the arguments as well.
      *
      * @param caze   The {@link Case} of the form to get the equal forms to.

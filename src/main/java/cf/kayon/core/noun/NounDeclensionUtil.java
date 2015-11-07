@@ -20,14 +20,14 @@ package cf.kayon.core.noun;
 
 import cf.kayon.core.Case;
 import cf.kayon.core.Count;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-import com.google.common.collect.Tables;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -41,88 +41,75 @@ public class NounDeclensionUtil
 {
 
     /**
-     * Constructs a {@link Tables#unmodifiableTable(Table) unmodifiable} table of endings.
+     * Constructs a {@link java.util.Collections#unmodifiableMap(Map) unmodifiable} map of endings.
      *
-     * @param NomSg The nominative singular form.
-     * @param GenSg The genitive singular form.
-     * @param DatSg The dative singular form.
-     * @param AccSg The accusative singular form.
-     * @param AblSg The ablative singular form.
-     * @param VocSg The vocative singular form.
-     * @param NomPl The nominative  plural form.
-     * @param GenPl The genitive plural form.
-     * @param DatPl The dative plural form.
-     * @param AccPl The accusative plural form.
-     * @param AblPl The ablative plural form.
-     * @param VocPl The vocative plural form.
-     * @return A table of endings.
-     * @since 0.0.1
+     * @param nomSg The nominative singular form.
+     * @param genSg The genitive singular form.
+     * @param datSg The dative singular form.
+     * @param accSg The accusative singular form.
+     * @param ablSg The ablative singular form.
+     * @param vocSg The vocative singular form.
+     * @param nomPl The nominative  plural form.
+     * @param genPl The genitive plural form.
+     * @param datPl The dative plural form.
+     * @param accPl The accusative plural form.
+     * @param ablPl The ablative plural form.
+     * @param vocPl The vocative plural form.
+     * @return A map of endings.
+     * @since 0.2.0
      */
     @NotNull
-    public static Table<Case, Count, String> endingsTable(
-            @Nullable String NomSg,
-            @Nullable String GenSg,
-            @Nullable String DatSg,
-            @Nullable String AccSg,
-            @Nullable String AblSg,
-            @Nullable String VocSg,
-            @Nullable String NomPl,
-            @Nullable String GenPl,
-            @Nullable String DatPl, @Nullable String AccPl, @Nullable String AblPl, @Nullable String VocPl)
+    public static Map<NounForm, String> endingsMap(
+            @Nullable String nomSg,
+            @Nullable String genSg,
+            @Nullable String datSg,
+            @Nullable String accSg,
+            @Nullable String ablSg,
+            @Nullable String vocSg,
+            @Nullable String nomPl,
+            @Nullable String genPl,
+            @Nullable String datPl, @Nullable String accPl, @Nullable String ablPl, @Nullable String vocPl)
     {
         @NotNull
-        HashBasedTable<Case, Count, String> tbl = HashBasedTable.create(6, 2);
+        Map<NounForm, String> map = new HashMap<>(12);
 
-        putIfNotNull(tbl, Case.NOMINATIVE, Count.SINGULAR, NomSg);
-        putIfNotNull(tbl, Case.GENITIVE, Count.SINGULAR, GenSg);
-        putIfNotNull(tbl, Case.DATIVE, Count.SINGULAR, DatSg);
-        putIfNotNull(tbl, Case.ACCUSATIVE, Count.SINGULAR, AccSg);
-        putIfNotNull(tbl, Case.ABLATIVE, Count.SINGULAR, AblSg);
-        putIfNotNull(tbl, Case.VOCATIVE, Count.SINGULAR, VocSg);
+        putIfNotNull(map, NounForm.of(Case.NOMINATIVE, Count.SINGULAR), nomSg);
+        putIfNotNull(map, NounForm.of(Case.GENITIVE, Count.SINGULAR), genSg);
+        putIfNotNull(map, NounForm.of(Case.DATIVE, Count.SINGULAR), datSg);
+        putIfNotNull(map, NounForm.of(Case.ACCUSATIVE, Count.SINGULAR), accSg);
+        putIfNotNull(map, NounForm.of(Case.ABLATIVE, Count.SINGULAR), ablSg);
+        putIfNotNull(map, NounForm.of(Case.VOCATIVE, Count.SINGULAR), vocSg);
+        putIfNotNull(map, NounForm.of(Case.NOMINATIVE, Count.PLURAL), nomPl);
+        putIfNotNull(map, NounForm.of(Case.GENITIVE, Count.PLURAL), genPl);
+        putIfNotNull(map, NounForm.of(Case.DATIVE, Count.PLURAL), datPl);
+        putIfNotNull(map, NounForm.of(Case.ACCUSATIVE, Count.PLURAL), accPl);
+        putIfNotNull(map, NounForm.of(Case.ABLATIVE, Count.PLURAL), ablPl);
+        putIfNotNull(map, NounForm.of(Case.VOCATIVE, Count.PLURAL), vocPl);
 
-        putIfNotNull(tbl, Case.NOMINATIVE, Count.PLURAL, NomPl);
-        putIfNotNull(tbl, Case.GENITIVE, Count.PLURAL, GenPl);
-        putIfNotNull(tbl, Case.DATIVE, Count.PLURAL, DatPl);
-        putIfNotNull(tbl, Case.ACCUSATIVE, Count.PLURAL, AccPl);
-        putIfNotNull(tbl, Case.ABLATIVE, Count.PLURAL, AblPl);
-        putIfNotNull(tbl, Case.VOCATIVE, Count.PLURAL, VocPl);
-
-        return Tables.unmodifiableTable(tbl);
+        return Collections.unmodifiableMap(map);
     }
 
     /**
-     * Puts a entry into a table, if the value is not {@code null}.
+     * Puts an entry into a map, if the value is not {@code null.}
      *
-     * @param tableToInsertInto The mutable table to insert into.
-     * @param row               The row key.
-     * @param column            The column key.
-     * @param value             The value.
-     * @param <R>               The type of the row key.
-     * @param <C>               The type of the column key.
-     * @param <V>               The type of the value.
-     * @throws NullPointerException If {@code tableToInsertInto}, {@code row} or {@code column} is {@code null}
-     * @since 0.0.1
+     * @param map   The map.
+     * @param key   The key.
+     * @param value The value.
+     * @param <K>   The type of the key.
+     * @param <V>   The type of the value.
+     * @throws NullPointerException If {@code map} or {@code key} are {@code null}.
+     * @since 0.2.0
      */
-    public static <R, C, V> void putIfNotNull(@NotNull Table<R, C, V> tableToInsertInto, @NotNull R row, @NotNull C column, @Nullable V value)
+    public static <K, V> void putIfNotNull(@NotNull Map<K, V> map, @NotNull K key, @Nullable V value)
     {
-        checkNotNull(tableToInsertInto);
-        checkNotNull(row);
-        checkNotNull(column);
+        checkNotNull(map);
+        checkNotNull(key);
         if (value != null)
-            tableToInsertInto.put(row, column, value);
+            map.put(key, value);
     }
 
-    //    @NotNull
-    //    public static List<String> getPossibleForms(
-    //            @NotNull NounDeclension nounDeclension, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord) throws FormingException
-    //    {
-    //        ArrayList<String> buffer = new ArrayList<>(1);
-    //        buffer.add(nounDeclension.decline(caze, count, gender, rootWord));
-    //        return buffer;
-    //    }
-
     /**
-     * Reflectively reconstructs a NounDeclension by invoking its {@code public static <theClass> getInstance()}
+     * Reflectively reconstructs a NounDeclension by invoking its {@code public static NounDeclension getInstance()}
      *
      * @param className The name of the class.
      * @return A NounDeclension. {@code null} if the reconstruction was not successful or the class name was {@code null}.

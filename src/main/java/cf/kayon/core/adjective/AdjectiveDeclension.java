@@ -18,7 +18,8 @@
 
 package cf.kayon.core.adjective;
 
-import cf.kayon.core.*;
+import cf.kayon.core.CaseHandling;
+import cf.kayon.core.FormingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,11 +39,8 @@ public interface AdjectiveDeclension
      * One should only apply lowercase root words, since the declining logic might depend on special character constellations
      * in the root word. Only applies lowercase endings (see annotation).
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
-     * @param rootWord         The root word to base form generation on.
+     * @param adjectiveForm The adjective form.
+     * @param rootWord      The root word to base form generation on.
      * @return A declined form.
      * @throws FormingException         If the form could not be determined.
      * @throws NullPointerException     If any of the arguments is null.
@@ -51,8 +49,7 @@ public interface AdjectiveDeclension
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
-    String decline(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String rootWord)
-            throws FormingException;
+    String decline(@NotNull AdjectiveForm adjectiveForm, @NotNull String rootWord) throws FormingException;
 
     /**
      * Determines the root word based on a declined form.
@@ -60,11 +57,8 @@ public interface AdjectiveDeclension
      * One should only apply lowercase declined forms, since the underlying logic is only required to detect lowercase endings
      * and character constellations. The determined root word will be lowercased, if the declined form is lowercase as well (see annotation).
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
-     * @param declinedForm     The declined form to base root word generation on.
+     * @param adjectiveForm The adjective form.
+     * @param declinedForm  The declined form to base root word generation on.
      * @return The root word.
      * @throws FormingException         If the root word could not be determined.
      * @throws NullPointerException     If any of the arguments is null.
@@ -73,8 +67,7 @@ public interface AdjectiveDeclension
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
-    String determineRootWord(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender, @NotNull String declinedForm)
-            throws FormingException;
+    String determineRootWord(@NotNull AdjectiveForm adjectiveForm, @NotNull String declinedForm) throws FormingException;
 
     /**
      * Gets all equal forms of the specified form.
@@ -85,13 +78,10 @@ public interface AdjectiveDeclension
      * <p>
      * The resulting set may be immutable.
      *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
+     * @param adjectiveForm The adjective form.
      * @return A set of equal forms. {@code null} if there are no equal forms.
      * @since 0.0.1
      */
     @Nullable
-    Set<AdjectiveForm> getEqualForms(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender);
+    Set<AdjectiveForm> getEqualForms(@NotNull AdjectiveForm adjectiveForm);
 }

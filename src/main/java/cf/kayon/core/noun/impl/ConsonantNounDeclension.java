@@ -18,14 +18,14 @@
 
 package cf.kayon.core.noun.impl;
 
-import cf.kayon.core.Case;
 import cf.kayon.core.CaseHandling;
-import cf.kayon.core.Count;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclensionUtil;
-import com.google.common.collect.Table;
+import cf.kayon.core.noun.NounForm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -52,9 +52,9 @@ public class ConsonantNounDeclension extends StandardNounDeclension
      * @since 0.0.1
      */
     @NotNull
-    private final Table<Case, Count, String> endingsMasculineFeminine =
-            NounDeclensionUtil.endingsTable(null, "is", "ī", "em", "e", null,
-                                            "ēs", "um", "ibus", "ēs", "ibus", "ēs");
+    private final Map<NounForm, String> endingsMasculineFeminine =
+            NounDeclensionUtil.endingsMap(null, "is", "ī", "em", "e", null,
+                                          "ēs", "um", "ibus", "ēs", "ibus", "ēs");
 
     /**
      * The endings for the neuter forms.
@@ -62,9 +62,9 @@ public class ConsonantNounDeclension extends StandardNounDeclension
      * @since 0.0.1
      */
     @NotNull
-    private final Table<Case, Count, String> endingsNeuter =
-            NounDeclensionUtil.endingsTable(null, "is", "ī", null, "e", null,
-                                            "a", "um", "ibus", "a", "ibus", "a");
+    private final Map<NounForm, String> endingsNeuter =
+            NounDeclensionUtil.endingsMap(null, "is", "ī", null, "e", null,
+                                          "a", "um", "ibus", "a", "ibus", "a");
 
     /**
      * The private constructor to never let anybody construct this class.
@@ -90,12 +90,11 @@ public class ConsonantNounDeclension extends StandardNounDeclension
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
-    protected String selectCorrectEndingOrNull(@NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    protected String selectCorrectEndingOrNull(@NotNull NounForm nounForm, @NotNull Gender gender)
     {
-        checkNotNull(caze);
-        checkNotNull(count);
+        checkNotNull(nounForm);
         checkNotNull(gender);
-        return gender == Gender.NEUTER ? endingsNeuter.get(caze, count) : endingsMasculineFeminine.get(caze, count);
+        return gender == Gender.NEUTER ? endingsNeuter.get(nounForm) : endingsMasculineFeminine.get(nounForm);
     }
 
     /**

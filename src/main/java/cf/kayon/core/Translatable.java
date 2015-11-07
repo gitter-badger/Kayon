@@ -19,20 +19,55 @@
 package cf.kayon.core;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
  * Describes something translatable with dynamic translations that can be modified at runtime.
+ * <p>
+ * Major incompatible changes as of 0.2.0.
  *
  * @author Ruben Anders
+ * @see Locale
  * @since 0.0.1
  */
 public interface Translatable
 {
-
-    // https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+    /**
+     * Gets the translations of this translatable.
+     * <p>
+     * May not return {@code null}, but may be empty.
+     *
+     * @return The translations.
+     * @since 0.2.0
+     */
     @NotNull
-    Map<String, String> getTranslations();
+    Map<Locale, String> getTranslations();
+
+    /**
+     * Gets a translation string.
+     * <p>
+     * This method is supposed to fall back on other alternate locales of same language, if necessary.
+     *
+     * @param locale The locale to translate to.
+     * @return A translation. {@code null} if no translation could be found.
+     * @throws NullPointerException If {@code locale} is {@code null}.
+     * @since 0.2.0
+     */
+    @Nullable
+    String getTranslation(@NotNull Locale locale);
+
+    /**
+     * Sets the translations of this Translatable.
+     * <p>
+     * This method is used by deserialization.
+     *
+     * @param map The map to set.
+     * @throws NullPointerException If {@code map} is {@code null}.
+     * @since 0.2.0
+     */
+    void setTranslations(@NotNull Map<Locale, String> map);
 
 }

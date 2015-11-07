@@ -108,13 +108,13 @@ public class IThreeEndAdjectiveDeclension extends StandardAdjectiveDeclension
             if (gender == Gender.NEUTER)
                 return null; // Do not handle neuter rules, StandardAdjectiveDeclension applies those
             // Whole "row" except the neuter form is equal
-            return Sets.newHashSet(new AdjectiveForm(ComparisonDegree.POSITIVE, caze, count, Gender.MASCULINE),
-                                   new AdjectiveForm(ComparisonDegree.POSITIVE, caze, count, Gender.FEMININE));
+            return Sets.newHashSet(AdjectiveForm.of(ComparisonDegree.POSITIVE, count, Gender.MASCULINE, caze),
+                                   AdjectiveForm.of(ComparisonDegree.POSITIVE, count, Gender.FEMININE, caze));
         }
         // Whole "row" is equal
-        return Sets.newHashSet(new AdjectiveForm(ComparisonDegree.POSITIVE, caze, count, Gender.MASCULINE),
-                               new AdjectiveForm(ComparisonDegree.POSITIVE, caze, count, Gender.FEMININE),
-                               new AdjectiveForm(ComparisonDegree.POSITIVE, caze, count, Gender.NEUTER));
+        return Sets.newHashSet(AdjectiveForm.of(ComparisonDegree.POSITIVE, count, Gender.MASCULINE, caze),
+                               AdjectiveForm.of(ComparisonDegree.POSITIVE, count, Gender.FEMININE, caze),
+                               AdjectiveForm.of(ComparisonDegree.POSITIVE, count, Gender.NEUTER, caze));
     }
 
     /**
