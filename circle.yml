@@ -7,9 +7,7 @@ general:
     - "build/distributions/*.zip"
 dependencies:
   post:
-    - if [ $CIRCLE_NODE_INDEX -eq 0 ] ; then
-      ./gradlew jar javadocJar sourcesJar shadowJar distZip;
-      fi
+    - if [ $CIRCLE_NODE_INDEX -eq 0 ] ; then ./gradlew jar javadocJar sourcesJar shadowJar distZip; fi
 test:
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
