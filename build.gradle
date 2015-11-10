@@ -113,4 +113,4 @@ tasks.withType(Test) {
     }
 }
 
-defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip', 'distShadowZip'
+defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip'
