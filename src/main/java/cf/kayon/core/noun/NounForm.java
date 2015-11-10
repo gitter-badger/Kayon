@@ -136,7 +136,6 @@ public class NounForm
      * All counts -&gt; All cases
      * <p>
      * For example:
-     * <p>
      * <ol>
      * <li>Singular Nominative</li>
      * <li>Singular Genitive</li>
