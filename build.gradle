@@ -113,4 +113,10 @@ tasks.withType(Test) {
     }
 }
 
+task copyCIArtifacts(type: Copy) << {
+    from "$buildDir/libs/*.jar"
+    from "$buildDir/distributions/*.zip"
+    into System.getenv('CIRCLE_ARTIFACTS')
+}
+
 defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip'
