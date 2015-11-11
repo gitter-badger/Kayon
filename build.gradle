@@ -115,9 +115,8 @@ tasks.withType(Test) {
 
 task copyCIArtifacts << { // because why not
     copy {
-        from(file('build\\libs\\').listFiles() + file('build\\distributions\\').listFiles())
-//    into System.getenv('CIRCLE_ARTIFACTS')
-        into 'C:\\Users\\ruben\\Desktop\\'
+        from(file('build/libs/').listFiles() + file('build/distributions/').listFiles())
+        into System.getenv('CIRCLE_ARTIFACTS')
     }
 }
 
