@@ -52,7 +52,7 @@ buildscript {
 
 //region Dependency Management
 repositories {
-    maven { url  "http://dl.bintray.com/randers00/intellijannotations" }
+    maven { url "http://dl.bintray.com/randers00/intellijannotations" }
     jcenter()
 }
 
@@ -113,10 +113,12 @@ tasks.withType(Test) {
     }
 }
 
-task copyCIArtifacts(type: Copy) << {
-    from "$buildDir/libs/"
-    from "$buildDir/distributions/"
-    into System.getenv('CIRCLE_ARTIFACTS')
+task copyCIArtifacts << { // because why not
+    copy {
+        from(file('build\\libs\\').listFiles() + file('build\\distributions\\').listFiles())
+//    into System.getenv('CIRCLE_ARTIFACTS')
+        into 'C:\\Users\\ruben\\Desktop\\'
+    }
 }
 
 defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip'
