@@ -3,8 +3,8 @@ machine:
     version: oraclejdk8
 general:
   artifacts:
-    - "build/libs/*.jar"
-    - "build/distributions/*.zip"
+    - "~/Kayon/build/libs/*.jar"
+    - "/home/ubuntu/Kayon/build/distributions/*.zip"
 dependencies:
   post:
     - ./gradlew jar javadocJar sourcesJar shadowJar distZip
