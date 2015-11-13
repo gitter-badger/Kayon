@@ -3,13 +3,10 @@ machine:
     version: oraclejdk8
 general:
   artifacts:
-    - "~/Kayon/build/libs/*.jar"
-    - "/home/ubuntu/Kayon/build/distributions/*.zip"
+    - "build/libs/.*\.jar"
+    - "build/distributions/.*\.zip"
 test:
-  pre:
-    - java -version
-    - javac -version
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
-    - ./gradlew jar javadocJar sourcesJar shadowJar distZip copyCIArtifacts
+    - ./gradlew jar javadocJar sourcesJar shadowJar distZip
