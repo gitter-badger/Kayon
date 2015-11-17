@@ -16,7 +16,7 @@ You also need a Java Development Kit (JDK) installed on your computer. Consult a
 * Windows: Double-click the `gradlew.bat` file.
 * Unix-like systems: Run the `./gradlew` file in a terminal. (It should already have the required `+x` mode.)
 
-Once the process finishes, the jar files will be ready for you in `build/libs/`. **If you just wish to run the application, double-click `Kayon-<version>-b-1-all.jar`.**
+Once the process finishes, the jar files will be ready for you in `build/libs/`. **If you just wish to run the application, double-click `Kayon-<version>-all.jar`.**
 The javadoc files can be accessed by  viewing the file `build/docs/javadoc/index.html` or by unzipping the javadoc jar file (located in `build/libs/`) and then viewing the extracted `index.html` file.
 
 To re-build the project after you changed some sources, simply repeat the steps above. There is no need to delete the `build` directory, it will be done automatically for you every time.
