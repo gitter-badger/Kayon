@@ -23,8 +23,6 @@ import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeSupport;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
@@ -57,7 +55,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * </tr>
  * <tr>
  * <td>{@code $COMPARISONDEGREE_$CASE_$COUNT_$GENDER_defined}</td>
- * <td>{@link #defineForm(AdjectiveForm, String)}</td>
+ * <td>{@link #setDefinedForm(AdjectiveForm, String)}</td>
  * <td>Yes</td>
  * <td>{@link #_declineIntoBuffer()}</td>
  * <td></td>
@@ -173,7 +171,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
         requireNonEmpty(rootWord);
         this.adjectiveDeclension = adjectiveDeclension;
         this.rootWord = rootWord;
-        _declineIntoBuffer(); // So one does not have to deal with PropertyVetoExceptions
+        _declineIntoBuffer(); // speed improvement
     }
 
     /**
@@ -220,13 +218,12 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @param rootWord The root word to set.
      * @throws NullPointerException     If {@code rootWord} is {@code null}.
      * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
-     * @throws PropertyVetoException    If the {@link VetoableChangeSupport} of this class decides that the new value is not valid.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public void setRootWord(@NotNull String rootWord) throws PropertyVetoException
+    public void setRootWord(@NotNull String rootWord)
     {
-        vetoSupport.fireVetoableChange("rootWord", this.rootWord, rootWord);
+        requireNonEmpty(rootWord);
         String oldValue = this.rootWord;
         this.rootWord = rootWord;
         changeSupport.firePropertyChange("rootWord", oldValue, rootWord);
@@ -248,12 +245,10 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * Sets the declension of this adjective.
      *
      * @param adjectiveDeclension The new declension. May be null to set this adjective into no-declension-mode.
-     * @throws PropertyVetoException If the {@link VetoableChangeSupport} of this class decides that the new value is not valid.
      * @since 0.0.1
      */
-    public void setAdjectiveDeclension(@Nullable AdjectiveDeclension adjectiveDeclension) throws PropertyVetoException
+    public void setAdjectiveDeclension(@Nullable AdjectiveDeclension adjectiveDeclension)
     {
-        vetoSupport.fireVetoableChange("adjectiveDeclension", this.adjectiveDeclension, adjectiveDeclension);
         AdjectiveDeclension oldValue = this.adjectiveDeclension;
         this.adjectiveDeclension = adjectiveDeclension;
         changeSupport.firePropertyChange("adjectiveDeclension", oldValue, adjectiveDeclension);
@@ -275,13 +270,11 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * Sets whether this adjective allows positive forms.
      *
      * @param allowsPositive Whether this adjective allows positive forms.
-     * @throws PropertyVetoException If the {@link VetoableChangeSupport} of this class decides that the new value is not valid.
      * @see #setAllows(ComparisonDegree, boolean)
      * @since 0.0.1
      */
-    public void setAllowsPositive(boolean allowsPositive) throws PropertyVetoException
+    public void setAllowsPositive(boolean allowsPositive)
     {
-        vetoSupport.fireVetoableChange("POSITIVE_allowed", this.allowsPositive, allowsPositive);
         boolean oldValue = this.allowsPositive;
         this.allowsPositive = allowsPositive;
         changeSupport.firePropertyChange("POSTIVE_allowed", oldValue, allowsPositive);
@@ -303,13 +296,11 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * Sets whether this adjective allows comparative forms.
      *
      * @param allowsComparative Whether this adjective allows comparative forms.
-     * @throws PropertyVetoException If the {@link VetoableChangeSupport} of this class decides that the new value is not valid.
      * @see #setAllows(ComparisonDegree, boolean)
      * @since 0.0.1
      */
-    public void setAllowsComparative(boolean allowsComparative) throws PropertyVetoException
+    public void setAllowsComparative(boolean allowsComparative)
     {
-        vetoSupport.fireVetoableChange("COMPARATIVE_allowed", this.allowsComparative, allowsComparative);
         boolean oldValue = this.allowsComparative;
         this.allowsComparative = allowsComparative;
         changeSupport.firePropertyChange("COMPARATIVE_allowed", oldValue, allowsComparative);
@@ -331,13 +322,11 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * Sets whether this adjective allows positive forms.
      *
      * @param allowsSuperlative Whether this adjective allows superlative forms.
-     * @throws PropertyVetoException If the {@link VetoableChangeSupport} of this class decides that the new value is not valid.
      * @see #setAllows(ComparisonDegree, boolean)
      * @since 0.0.1
      */
-    public void setAllowsSuperlative(boolean allowsSuperlative) throws PropertyVetoException
+    public void setAllowsSuperlative(boolean allowsSuperlative)
     {
-        vetoSupport.fireVetoableChange("SUPERLATIVE_allowed", this.allowsSuperlative, allowsSuperlative);
         boolean oldValue = this.allowsSuperlative;
         this.allowsSuperlative = allowsSuperlative;
         changeSupport.firePropertyChange("SUPERLATIVE_allowed", oldValue, allowsSuperlative);
@@ -366,7 +355,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
             case SUPERLATIVE:
                 return this.allowsSuperlative();
             default:
-                return false;
+                throw new RuntimeException();
         }
     }
 
@@ -375,13 +364,12 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      *
      * @param comparisonDegree The comparison degree to check for.
      * @param allows           Whether to allow or disallow.
-     * @throws PropertyVetoException If the {@link VetoableChangeSupport} of this class decides that the new value is not valid.
      * @see #setAllowsPositive(boolean)
      * @see #setAllowsComparative(boolean)
      * @see #setAllowsSuperlative(boolean)
      * @since 0.0.1
      */
-    public void setAllows(@NotNull ComparisonDegree comparisonDegree, boolean allows) throws PropertyVetoException
+    public void setAllows(@NotNull ComparisonDegree comparisonDegree, boolean allows)
     {
         switch (comparisonDegree)
         {
@@ -394,6 +382,8 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
             case SUPERLATIVE:
                 this.setAllowsSuperlative(allows);
                 break;
+            default:
+                throw new RuntimeException();
         }
     }
     //endregion
@@ -408,28 +398,25 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      *
      * @param adjectiveForm The adjective form.
      * @param form          The form to define. A empty string or a null value results in the defined form being removed.
-     * @throws NullPointerException     If any of the arguments (except for {@code form}) is {@code null}.
+     * @throws NullPointerException     If {@code adjectiveForm} is {@code null}.
      * @throws IllegalArgumentException If the {@code comparisonDegree} is {@link #allows(ComparisonDegree) disallowed}.
-     * @throws PropertyVetoException    If the {@link VetoableChangeSupport} of this class decides that new value is not valid.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public void defineForm(@NotNull AdjectiveForm adjectiveForm, @Nullable String form)
-            throws PropertyVetoException
+    public void setDefinedForm(@NotNull AdjectiveForm adjectiveForm, @Nullable String form)
     {
         requireAllowedComparisonDegree(adjectiveForm);
+        checkNotNull(adjectiveForm);
 
         if (form == null || form.isEmpty())
         {
-            // Fires its own events and throws PropertyVetoExceptions as well
+            // Fires its own events
             removeDefinedForm(adjectiveForm);
             return;
         }
 
         String oldForm = getDefinedForm(adjectiveForm);
-        String propertyName =
-                adjectiveForm.getComparisonDegree() + "_" + adjectiveForm.getCase() + "_" + adjectiveForm.getCount() + "_" + adjectiveForm.getGender() + "_defined";
-        vetoSupport.fireVetoableChange(propertyName, oldForm, form);
+        String propertyName = adjectiveForm.getPropertyName("defined");
 
         definedForms.put(adjectiveForm, form);
         changeSupport.firePropertyChange(propertyName, oldForm, form);
@@ -471,7 +458,6 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     }
 
     /**
-
      * Gets a defined form.
      * <p>
      * The general contract of this class is to only contain lowercase forms (see annotation).
@@ -495,18 +481,17 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * Removes a defined form.
      *
      * @param adjectiveForm The adjective form.
-     * @throws PropertyVetoException If the {@link VetoableChangeSupport} of this class decides that the new value {@code null} is not valid.
+     * @throws NullPointerException If {@code adjectiveForm} is {@code null}.
      * @since 0.0.1
      */
     public void removeDefinedForm(@NotNull AdjectiveForm adjectiveForm)
-            throws PropertyVetoException
     {
         requireAllowedComparisonDegree(adjectiveForm);
+        checkNotNull(adjectiveForm);
 
         String propertyName =
                 adjectiveForm.getComparisonDegree() + "_" + adjectiveForm.getCase() + "_" + adjectiveForm.getCount() + "_" + adjectiveForm.getGender() + "_defined";
         String oldForm = definedForms.get(adjectiveForm);
-        vetoSupport.fireVetoableChange(propertyName, oldForm, null);
 
         definedForms.remove(adjectiveForm);
 
@@ -554,8 +539,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
         requireAllowedComparisonDegree(adjectiveForm);
 
         String oldForm = declinedForms.get(adjectiveForm);
-        String propertyName =
-                adjectiveForm.getComparisonDegree() + "_" + adjectiveForm.getCase() + "_" + adjectiveForm.getCount() + "_" + adjectiveForm.getGender() + "_declined";
+        String propertyName = adjectiveForm.getPropertyName("declined");
         if (form == null || form.isEmpty())
         {
             declinedForms.remove(adjectiveForm);
@@ -651,15 +635,6 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
             if (propertyName.endsWith("_defined") || propertyName.equals("adjectiveDeclension") || propertyName.equals("rootWord") || propertyName.endsWith("_allowed"))
                 _declineIntoBuffer();
         });
-
-        addVetoableChangeListener(evt -> {
-            String propertyName = evt.getPropertyName();
-            Object newValue = evt.getNewValue();
-            if (newValue == null && !propertyName.endsWith("_defined") || !propertyName.equals("adjectiveDeclension"))
-                throw new PropertyVetoException("New value may not be null!", evt);
-            if (newValue instanceof String && ((String) newValue).isEmpty() && propertyName.equals("rootWord"))
-                throw new PropertyVetoException("New String value may not be empty!", evt);
-        });
     }
 
     /**
@@ -688,15 +663,9 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
         // Translations (Locale and String are immutable)
         adjective.setTranslations(new HashMap<>(this.getTranslations()));
 
-        try
-        {
-            adjective.setAllowsPositive(this.allowsPositive);
-            adjective.setAllowsComparative(this.allowsComparative);
-            adjective.setAllowsSuperlative(this.allowsSuperlative);
-        } catch (PropertyVetoException e)
-        {
-            throw new RuntimeException(e); // There are no VetoListeners on new Adjective
-        }
+        adjective.setAllowsPositive(this.allowsPositive);
+        adjective.setAllowsComparative(this.allowsComparative);
+        adjective.setAllowsSuperlative(this.allowsSuperlative);
 
         adjective._declineIntoBuffer();
 

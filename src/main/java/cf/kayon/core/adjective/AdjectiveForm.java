@@ -165,6 +165,14 @@ public class AdjectiveForm
     private final Gender gender;
 
     /**
+     * The prefix of the property name as used by the {@link java.beans.PropertyChangeSupport} of {@link Adjective}.
+     *
+     * @since 0.2.0
+     */
+    @NotNull
+    private final String propertyName;
+
+    /**
      * Constructs a new AdjectiveForm.
      *
      * @param comparisonDegree The comparison degree.
@@ -184,6 +192,7 @@ public class AdjectiveForm
         this.caze = caze;
         this.count = count;
         this.gender = gender;
+        this.propertyName = comparisonDegree + "_" + caze + "_" + count + "_" + gender + "_";
     }
 
     /**
@@ -224,6 +233,18 @@ public class AdjectiveForm
     public Gender getGender()
     {
         return gender;
+    }
+
+    /**
+     * Returns the property name for usage with a {@link java.beans.PropertyChangeSupport}.
+     *
+     * @param suffix The suffix to append.
+     * @return A property name.
+     * @since 0.2.0
+     */
+    public String getPropertyName(String suffix)
+    {
+        return propertyName + suffix;
     }
 
     /**

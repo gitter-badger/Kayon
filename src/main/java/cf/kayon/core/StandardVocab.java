@@ -24,8 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.beans.VetoableChangeListener;
-import java.beans.VetoableChangeSupport;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -147,14 +145,6 @@ public class StandardVocab implements Vocab
     protected final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this); // protected for usage in subclasses
 
     /**
-     * The VetoableChangeSupport for this class.
-     *
-     * @since 0.2.0
-     */
-    @NotNull
-    protected final VetoableChangeSupport vetoSupport = new VetoableChangeSupport(this); // protected for usage in subclasses
-
-    /**
      * Add a PropertyChangeListener to the listener list.
      * The listener is registered for all properties.
      * The same listener object may be added more than once, and will be called
@@ -189,38 +179,4 @@ public class StandardVocab implements Vocab
         changeSupport.removePropertyChangeListener(listener);
     }
 
-    /**
-     * Add a VetoableChangeListener to the listener list.
-     * The listener is registered for all properties.
-     * The same listener object may be added more than once, and will be called
-     * as many times as it is added.
-     * If {@code listener} is null, no exception is thrown and no action
-     * is taken.
-     *
-     * @param listener The VetoableChangeListener to be added
-     * @see VetoableChangeSupport#addVetoableChangeListener(VetoableChangeListener)
-     * @since 0.0.1
-     */
-    public void addVetoableChangeListener(VetoableChangeListener listener)
-    {
-        vetoSupport.addVetoableChangeListener(listener);
-    }
-
-    /**
-     * Remove a VetoableChangeListener from the listener list.
-     * This removes a VetoableChangeListener that was registered
-     * for all properties.
-     * If {@code listener} was added more than once to the same event
-     * source, it will be notified one less time after being removed.
-     * If {@code listener} is null, or was never added, no exception is
-     * thrown and no action is taken.
-     *
-     * @param listener The VetoableChangeListener to be removed
-     * @see VetoableChangeSupport#removeVetoableChangeListener(VetoableChangeListener)
-     * @since 0.0.1
-     */
-    public void removeVetoableChangeListener(VetoableChangeListener listener)
-    {
-        vetoSupport.removeVetoableChangeListener(listener);
-    }
 }

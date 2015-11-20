@@ -30,7 +30,6 @@ import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.beans.PropertyVetoException;
 import java.sql.*;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -267,10 +266,7 @@ public class NounSQLFactory
         {
             @Nullable
             String formOrNull = resultSet.getString(counter++);
-            try
-            {
-                noun.setDefinedForm(nounForm, formOrNull);
-            } catch (PropertyVetoException ignored) {} // Empty value in cell, leave defined form as null
+            noun.setDefinedForm(nounForm, formOrNull);
         }
         return noun;
     }

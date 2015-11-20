@@ -26,7 +26,6 @@ import cf.kayon.core.noun.impl.ENounDeclension;
 import cf.kayon.core.noun.impl.ONounDeclension;
 import org.junit.Test;
 
-import java.beans.PropertyVetoException;
 import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Map;
@@ -40,7 +39,7 @@ public class NounDeepCopyTest
 {
 
     @Test
-    public void testDeepCopyNounDeclension() throws PropertyVetoException
+    public void testDeepCopyNounDeclension()
     {
         Noun noun = new Noun(ANounDeclension.getInstance(), Gender.FEMININE, "domin");
         Noun copy = noun.copyDeep();
@@ -54,7 +53,7 @@ public class NounDeepCopyTest
     }
 
     @Test
-    public void testDeepCopyRootWord() throws PropertyVetoException
+    public void testDeepCopyRootWord()
     {
         Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
@@ -68,7 +67,7 @@ public class NounDeepCopyTest
     }
 
     @Test
-    public void testDeepCopyUuid() throws PropertyVetoException
+    public void testDeepCopyUuid()
     {
         Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
@@ -82,7 +81,7 @@ public class NounDeepCopyTest
     }
 
     @Test
-    public void testDeepCopyTranslations() throws PropertyVetoException
+    public void testDeepCopyTranslations()
     {
         Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
@@ -96,7 +95,7 @@ public class NounDeepCopyTest
     }
 
     @Test
-    public void testDeepCopyGender() throws PropertyVetoException
+    public void testDeepCopyGender()
     {
         Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();

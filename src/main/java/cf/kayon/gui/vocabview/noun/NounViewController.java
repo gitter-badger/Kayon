@@ -44,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyVetoException;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -391,13 +390,9 @@ public class NounViewController
                 return;
             }
             if (currentBackingNoun != null)
-                try
-                {
-                    currentBackingNoun.setDefinedForm(NounForm.of(caze, count), newValue);
-                } catch (PropertyVetoException e)
-                {
-                    throw new RuntimeException(e);
-                }
+            {
+                currentBackingNoun.setDefinedForm(NounForm.of(caze, count), newValue);
+            }
         }
     }
 
@@ -413,21 +408,12 @@ public class NounViewController
     {
         if (currentBackingNoun != null)
             if (!newValue)
-                try
-                {
-                    currentBackingNoun.removeDefinedForm(NounForm.of(caze, count));
-                } catch (PropertyVetoException e)
-                {
-                    throw new RuntimeException(e);
-                }
-            else
-                try
-                {
-                    currentBackingNoun.setDefinedForm(NounForm.of(caze, count), tableElements.get(caze, count).getMiddle().getText());
-                } catch (PropertyVetoException e)
-                {
-                    throw new RuntimeException(e);
-                }
+            {
+                currentBackingNoun.removeDefinedForm(NounForm.of(caze, count));
+            }
+            {
+                currentBackingNoun.setDefinedForm(NounForm.of(caze, count), tableElements.get(caze, count).getMiddle().getText());
+            }
     }
 
     /**
@@ -448,10 +434,9 @@ public class NounViewController
             }
             tryBackingNoun();
             if (currentBackingNoun != null)
-                try
-                {
-                    currentBackingNoun.setRootWord(newValue);
-                } catch (PropertyVetoException ignored) {}
+            {
+                currentBackingNoun.setRootWord(newValue);
+            }
         }
     }
 
@@ -465,10 +450,9 @@ public class NounViewController
     {
         tryBackingNoun();
         if (currentBackingNoun != null)
-            try
-            {
-                currentBackingNoun.setNounDeclension(newValue instanceof DummyNounDeclension ? null : newValue);
-            } catch (PropertyVetoException ignored) {}
+        {
+            currentBackingNoun.setNounDeclension(newValue instanceof DummyNounDeclension ? null : newValue);
+        }
     }
 
     /**
@@ -481,10 +465,9 @@ public class NounViewController
     {
         tryBackingNoun();
         if (currentBackingNoun != null)
-            try
-            {
-                currentBackingNoun.setGender(newValue);
-            } catch (PropertyVetoException ignored) {}
+        {
+            currentBackingNoun.setGender(newValue);
+        }
     }
 
     /**

@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -51,7 +50,7 @@ public class BaseDatabaseTest
     private Connection connection;
 
     @Before
-    public void setUp() throws SQLException, PropertyVetoException
+    public void setUp() throws SQLException
     {
         examples.add(new Noun(ANounDeclension.getInstance(), Gender.FEMININE, "ancill"));  // ancilla
         examples.add(new Noun(ANounDeclension.getInstance(), Gender.FEMININE, "silv"));    // serva

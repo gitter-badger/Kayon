@@ -25,7 +25,6 @@ import cf.kayon.core.noun.impl.ANounDeclension;
 import cf.kayon.core.noun.impl.ONounDeclension;
 import org.junit.Test;
 
-import java.beans.PropertyVetoException;
 import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Map;
@@ -77,7 +76,7 @@ public class NounEqualityTest
     }
 
     @Test
-    public void testNounDeclensionEquality() throws PropertyVetoException
+    public void testNounDeclensionEquality()
     {
         Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
@@ -90,7 +89,7 @@ public class NounEqualityTest
     }
 
     @Test
-    public void testGenderEquality() throws PropertyVetoException
+    public void testGenderEquality()
     {
         Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
@@ -103,7 +102,7 @@ public class NounEqualityTest
     }
 
     @Test
-    public void testRootWordEquality() throws PropertyVetoException
+    public void testRootWordEquality()
     {
         Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
@@ -116,7 +115,7 @@ public class NounEqualityTest
     }
 
     @Test
-    public void testDefinedFormsEquality() throws PropertyVetoException
+    public void testDefinedFormsEquality()
     {
         Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
@@ -154,19 +153,6 @@ public class NounEqualityTest
         assertNotSame(noun1, noun2);
 
         noun2.addPropertyChangeListener(evt -> fail());
-
-        assertBidirectionalEquals(noun1, noun2);
-    }
-
-    @Test
-    public void testVetoableChangeSupportEquality()
-    {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        assertBidirectionalEquals(noun1, noun2);
-        assertNotSame(noun1, noun2);
-
-        noun2.addVetoableChangeListener(evt -> fail());
 
         assertBidirectionalEquals(noun1, noun2);
     }

@@ -24,7 +24,6 @@ import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -194,21 +193,19 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @param form     The form. If the form is {@code null} or is {@link String#isEmpty() empty}, the defined forms is instead removed.
      *                 A note about change/veto listeners: empty strings get converted to nulls before they are passed to listeners.
      *                 A removal of a form is represented by a new value of {@code null}.
-     * @throws NullPointerException  If {@code caze} or {@code count} is {@code null}.
-     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value is not valid.
+     * @throws NullPointerException If {@code nounForm} is {@code null}.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public void setDefinedForm(@NotNull NounForm nounForm, @Nullable String form) throws PropertyVetoException
+    public void setDefinedForm(@NotNull NounForm nounForm, @Nullable String form)
     {
         String oldForm = getDefinedForm(nounForm);
-        if (form != null && form.isEmpty())
-            form = null; // empty strings get converted to nulls
-        vetoSupport.fireVetoableChange(nounForm.getCase() + "_" + nounForm.getCount() + "_defined", oldForm, form);
-        if (form != null)
-            definedForms.put(nounForm, form);
-        else
+
+        if (form == null || form.isEmpty())
             definedForms.remove(nounForm);
+        else
+            definedForms.put(nounForm, form);
+
         changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_defined", oldForm, form);
     }
 
@@ -239,11 +236,10 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * See {@link #setDefinedForm(NounForm, String)} for more information on property change/veto listeners.
      *
      * @param nounForm The noun form.
-     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value {@code null} is not valid.
-     * @throws NullPointerException  If any of the arguments is {@code null}.
+     * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.0.1
      */
-    public void removeDefinedForm(@NotNull NounForm nounForm) throws PropertyVetoException
+    public void removeDefinedForm(@NotNull NounForm nounForm)
     {
         setDefinedForm(nounForm, null);
     }
@@ -320,12 +316,10 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * Sets the gender of this noun.
      *
      * @param gender The new gender.
-     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value is invalid.
      * @since 0.0.1
      */
-    public void setGender(@NotNull Gender gender) throws PropertyVetoException
+    public void setGender(@NotNull Gender gender)
     {
-        vetoSupport.fireVetoableChange("gender", this.gender, gender);
         Gender oldGender = this.gender;
         this.gender = gender;
         changeSupport.firePropertyChange("gender", oldGender, gender);
@@ -354,13 +348,11 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * Code should only apply lowercase forms to this method.
      *
      * @param rootWord The new root word.
-     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value is invalid.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public void setRootWord(@NotNull String rootWord) throws PropertyVetoException
+    public void setRootWord(@NotNull String rootWord)
     {
-        vetoSupport.fireVetoableChange("rootWord", this.rootWord, rootWord);
         String oldRootWord = this.rootWord;
         this.rootWord = rootWord;
         changeSupport.firePropertyChange("rootWord", oldRootWord, rootWord);
@@ -382,12 +374,10 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * Sets the NounDeclension of this class.
      *
      * @param nounDeclension The new NounDeclension. {@code null} if the noun should not have a noun declension.
-     * @throws PropertyVetoException If the {@link #vetoSupport} of this class decides that the new value is invalid.
      * @since 0.0.1
      */
-    public void setNounDeclension(@Nullable NounDeclension nounDeclension) throws PropertyVetoException
+    public void setNounDeclension(@Nullable NounDeclension nounDeclension)
     {
-        vetoSupport.fireVetoableChange("nounDeclension", this.nounDeclension, nounDeclension);
         NounDeclension oldNounDeclension = this.nounDeclension;
         this.nounDeclension = nounDeclension;
         changeSupport.firePropertyChange("nounDeclension", oldNounDeclension, nounDeclension);
@@ -418,17 +408,6 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
             String propertyName = evt.getPropertyName();
             if (propertyName.equals("gender") || propertyName.equals("rootWord") || propertyName.equals("nounDeclension") || propertyName.endsWith("_defined"))
                 _declineIntoBuffer();
-        });
-
-        addVetoableChangeListener(evt -> {
-            if (!evt.getPropertyName().endsWith("defined"))
-            {
-                Object newValue = evt.getNewValue();
-                if (newValue == null)
-                    throw new PropertyVetoException("New value may not be null!", evt);
-                if (newValue instanceof String && ((String) newValue).isEmpty())
-                    throw new PropertyVetoException("New String value may not be empty!", evt);
-            }
         });
     }
     //endregion
