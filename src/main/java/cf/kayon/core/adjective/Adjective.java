@@ -18,10 +18,8 @@
 
 package cf.kayon.core.adjective;
 
-import cf.kayon.core.CaseHandling;
-import cf.kayon.core.FormingException;
-import cf.kayon.core.StandardVocab;
-import cf.kayon.core.Vocab;
+import cf.kayon.core.*;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,7 +96,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.0.1
  */
-public class Adjective extends StandardVocab
+public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
 {
 
     //region Fields
@@ -451,7 +449,29 @@ public class Adjective extends StandardVocab
         return definedForms.containsKey(adjectiveForm);
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Adjective adjective = (Adjective) o;
+        return allowsPositive == adjective.allowsPositive &&
+               allowsComparative == adjective.allowsComparative &&
+               allowsSuperlative == adjective.allowsSuperlative &&
+               Objects.equal(declinedForms, adjective.declinedForms) &&
+               Objects.equal(definedForms, adjective.definedForms) &&
+               Objects.equal(rootWord, adjective.rootWord) &&
+               Objects.equal(adjectiveDeclension, adjective.adjectiveDeclension);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(declinedForms, definedForms, rootWord, adjectiveDeclension, allowsPositive, allowsComparative, allowsSuperlative);
+    }
+
     /**
+
      * Gets a defined form.
      * <p>
      * The general contract of this class is to only contain lowercase forms (see annotation).
@@ -538,11 +558,11 @@ public class Adjective extends StandardVocab
                 adjectiveForm.getComparisonDegree() + "_" + adjectiveForm.getCase() + "_" + adjectiveForm.getCount() + "_" + adjectiveForm.getGender() + "_declined";
         if (form == null || form.isEmpty())
         {
-            definedForms.remove(adjectiveForm);
+            declinedForms.remove(adjectiveForm);
             changeSupport.firePropertyChange(propertyName, oldForm, null);
         } else
         {
-            definedForms.put(adjectiveForm, form);
+            declinedForms.put(adjectiveForm, form);
             changeSupport.firePropertyChange(propertyName, oldForm, form);
         }
     }
@@ -640,5 +660,46 @@ public class Adjective extends StandardVocab
             if (newValue instanceof String && ((String) newValue).isEmpty() && propertyName.equals("rootWord"))
                 throw new PropertyVetoException("New String value may not be empty!", evt);
         });
+    }
+
+    /**
+     * This will also copy the UUID over, if it exists (the resulting object will have the same UUID as this one).
+     * <p>
+     * PropertyChangeListeners and VetoableChangeListeners will <strong>not</strong> be copied.
+     * {@inheritDoc}
+     *
+     * @since 0.2.0
+     */
+    @NotNull
+    @Override
+    public Adjective copyDeep()
+    {
+        // Adjective Declension and root word (both immutable)
+        Adjective adjective = new Adjective(this.adjectiveDeclension, this.rootWord);
+
+        // Copy defined forms map (AdjectiveForm and String are immutable)
+        adjective.definedForms.putAll(this.definedForms);
+
+        // UUID (immutable)
+        UUID uuid = this.getUuid();
+        if (uuid != null)
+            adjective.initializeUuid(uuid);
+
+        // Translations (Locale and String are immutable)
+        adjective.setTranslations(new HashMap<>(this.getTranslations()));
+
+        try
+        {
+            adjective.setAllowsPositive(this.allowsPositive);
+            adjective.setAllowsComparative(this.allowsComparative);
+            adjective.setAllowsSuperlative(this.allowsSuperlative);
+        } catch (PropertyVetoException e)
+        {
+            throw new RuntimeException(e); // There are no VetoListeners on new Adjective
+        }
+
+        adjective._declineIntoBuffer();
+
+        return adjective;
     }
 }

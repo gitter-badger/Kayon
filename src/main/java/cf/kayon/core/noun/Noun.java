@@ -18,10 +18,7 @@
 
 package cf.kayon.core.noun;
 
-import cf.kayon.core.CaseHandling;
-import cf.kayon.core.FormingException;
-import cf.kayon.core.Gender;
-import cf.kayon.core.StandardVocab;
+import cf.kayon.core.*;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.beans.PropertyVetoException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static cf.kayon.core.util.StringUtil.requireNonEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -90,7 +88,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.0.1
  */
-public class Noun extends StandardVocab
+public class Noun extends StandardVocab implements DeepCopyable<Noun>
 {
     //region Fields
     /**
@@ -132,6 +130,7 @@ public class Noun extends StandardVocab
      */
     @Nullable
     private NounDeclension nounDeclension;
+    //endregion
 
     //region Constructors
 
@@ -251,37 +250,6 @@ public class Noun extends StandardVocab
     //endregion
 
     //region Declining forms
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Noun noun = (Noun) o;
-        return Objects.equal(declinedForms, noun.declinedForms) &&
-               Objects.equal(definedForms, noun.definedForms) &&
-               gender == noun.gender &&
-               Objects.equal(rootWord, noun.rootWord) &&
-               Objects.equal(nounDeclension, noun.nounDeclension);
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper(this)
-                          .add("declinedForms", declinedForms)
-                          .add("definedForms", definedForms)
-                          .add("gender", gender)
-                          .add("rootWord", rootWord)
-                          .add("nounDeclension", nounDeclension)
-                          .toString();
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hashCode(declinedForms, definedForms, gender, rootWord, nounDeclension);
-    }
 
     /**
      * Gets a form, as it has been declined by the underlying {@link NounDeclension}.
@@ -424,7 +392,6 @@ public class Noun extends StandardVocab
         this.nounDeclension = nounDeclension;
         changeSupport.firePropertyChange("nounDeclension", oldNounDeclension, nounDeclension);
     }
-    //endregion
 
     /**
      * Gets a form - defined or declined (defined takes precedence).
@@ -443,6 +410,7 @@ public class Noun extends StandardVocab
             return definedFormOrNull;
         return getDeclinedForm(nounForm);
     }
+    //endregion
 
     //region Bean support
     {
@@ -464,4 +432,68 @@ public class Noun extends StandardVocab
         });
     }
     //endregion
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!(o instanceof Noun)) return false;
+        if (!super.equals(o)) return false;
+        Noun noun = (Noun) o;
+        return Objects.equal(declinedForms, noun.declinedForms) &&
+               Objects.equal(definedForms, noun.definedForms) &&
+               gender == noun.gender &&
+               Objects.equal(rootWord, noun.rootWord) &&
+               Objects.equal(nounDeclension, noun.nounDeclension);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(super.hashCode(), declinedForms, definedForms, gender, rootWord, nounDeclension);
+    }
+
+    /**
+     * This will also copy the UUID over, if it exists (the resulting object will have the same UUID as this one).
+     * <p>
+     * PropertyChangeListeners and VetoableChangeListeners will <strong>not</strong> be copied.
+     * {@inheritDoc}
+     *
+     * @since 0.2.0
+     */
+    @NotNull
+    @Override
+    public Noun copyDeep()
+    {
+        // Noun Declension, Gender, root word (all immutable)
+        Noun noun = new Noun(this.nounDeclension, this.gender, this.rootWord);
+
+        // Defined forms (NounForm and String are immutable)
+        noun.definedForms.putAll(this.definedForms);
+
+        // UUID (immutable)
+        UUID uuid = this.getUuid();
+        if (uuid != null)
+            noun.initializeUuid(uuid);
+
+        // Translations (Locale and String are immutable)
+        noun.setTranslations(new HashMap<>(this.getTranslations()));
+
+        // Declined forms refresh
+        noun._declineIntoBuffer();
+
+        return noun;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper(this)
+                          .add("declinedForms", declinedForms)
+                          .add("definedForms", definedForms)
+                          .add("gender", gender)
+                          .add("rootWord", rootWord)
+                          .add("nounDeclension", nounDeclension)
+                          .toString();
+    }
 }

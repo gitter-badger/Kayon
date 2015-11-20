@@ -18,6 +18,7 @@
 
 package cf.kayon.core;
 
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,10 +68,27 @@ public class StandardVocab implements Vocab
         changeSupport.firePropertyChange("uuid", null, uuid);
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!(o instanceof StandardVocab)) return false;
+        StandardVocab vocab = (StandardVocab) o;
+        return Objects.equal(uuid, vocab.uuid) &&
+               Objects.equal(translations, vocab.translations);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(uuid, translations);
+    }
+
     /**
      * The translation storage of this StandardVocab.
      *
      * @since 0.2.0
+
      */
     private Map<Locale, String> translations = new HashMap<>();
 
