@@ -83,8 +83,6 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
             def message = "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message\nBuild URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}"
             git.commit().setAuthor(json.author.name, json.author.email).setCommitter('KayonBot', 'rubenanders@hotmail.de').setMessage(message).call()
             git.push().setPushAll().setCredentialsProvider(new UsernamePasswordCredentialsProvider('KayonBot', System.getenv('KAYONBOT_PASSWORD'))).call()
-        } catch (Throwable thr) {
-            thr.printStackTrace()
         } finally {
             if (git != null)
                 git.close()
