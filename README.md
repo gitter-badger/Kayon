@@ -5,12 +5,14 @@ and get it's translation(s), what form it is, etc...
 
 It is currently in it's creation stage. Nothing is final or finished yet.
 
+You can find documentation for the `master` branch [here][1]. The repository for the docs is [here][2].
+
 ## Building artifacts from source
 
 Building from source sounds scary. In this case, it really is not. All you will need is a Java Development Kit (8 or higher) and the source code of this repository.
 The build setup of this project will take care of the rest for you.
 
-If you don't have it already, get the source code by either [cloning this repository][1] or downloading the [source zip file][2] (you will need to extract the zip file into an empty new directory).
+If you don't have it already, get the source code by either [cloning this repository][3] or downloading the [source zip file][4] (you will need to extract the zip file into an empty new directory).
 You also need a Java Development Kit (JDK) installed on your computer. Consult a search engine to find out on how to do this.
 
 * Windows: Double-click the `gradlew.bat` file.
@@ -23,22 +25,27 @@ To re-build the project after you changed some sources, simply repeat the steps 
 
 ## Executing other tasks
 
-If you don't have it already, get the source code by either [cloning this repository][1] or downloading the [source zip file][2] (you will need to extract the zip file into an empty new directory).
+If you don't have it already, get the source code by either [cloning this repository][3] or downloading the [source zip file][4] (you will need to extract the zip file into an empty new directory).
 You also need a Java Development Kit (JDK) installed on your computer. Consult a search engine to find out on how to do this.
 Open a terminal (on windows the command prompt) and type `./gradlew <your tasks>`, for example `./gradlew test jar javadocJar`.
 
 ## Changing the version
 
-The version of the projects is written to [`src/main/resources/version`][3]. This is where the version should be changed.
-You can access this property in programming by calling `public static String cf.kayon.core.util.KayonReference.getVersion()`.
+The version of the projects is written to [`src/main/resources/version`][5]. This is where the version should be changed.
+You can access this property in programming by calling [`public static String cf.kayon.core.util.KayonReference.getVersion()`][6].
 
-The build ID is written to [`src/main/resources/build`][4]. If the project is being built by CircleCI (determined by the `CIRCLECI` environment variable being set to `true`),
-the build ID will be injected into this file by Gradle.
+The build ID is written to [`src/main/resources/build`][7]. If the project is being built by CircleCI (determined by the `CIRCLECI` environment variable being set to `true`),
+the build ID [will be injected][8] into this file by Gradle.
 If you build Kayon manually, the build ID will remain as `-1`.
 
-You can access this property in programming by calling `public static int cf.kayon.core.util.KayonReference.getBuild()`.
+You can access this property in programming by calling [`public static int cf.kayon.core.util.KayonReference.getBuild()`][9].
 
-[1]: https://help.github.com/articles/cloning-a-repository/
-[2]: https://github.com/RAnders00/Kayon/archive/master.zip
-[3]: https://github.com/RAnders00/Kayon/blob/master/src/main/resources/version
-[4]: https://github.com/RAnders00/Kayon/blob/master/src/main/resources/build
+[1]: https://randers00.github.io/KayonDoc/
+[2]: https://github.com/RAnders00/KayonDoc
+[3]: https://help.github.com/articles/cloning-a-repository/
+[4]: https://github.com/RAnders00/Kayon/archive/master.zip
+[5]: https://github.com/RAnders00/Kayon/blob/master/src/main/resources/version
+[6]: https://randers00.github.io/KayonDoc/cf/kayon/core/util/KayonReference.html#getVersion--
+[7]: https://github.com/RAnders00/Kayon/blob/master/src/main/resources/build
+[8]: https://github.com/RAnders00/Kayon/blob/master/build.gradle#L32-L33
+[9]: https://randers00.github.io/KayonDoc/cf/kayon/core/util/KayonReference.html#getBuild--
