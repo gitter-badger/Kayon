@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 import groovy.json.JsonSlurper
 
 apply plugin: 'java'
@@ -29,6 +28,7 @@ group 'cf.kayon'
 version = file('src/main/resources/version').getText('utf8').replaceAll("[\n\r]", "") // eliminate newlines
 mainClassName = 'cf.kayon.gui.splash.Splash'
 
+//region CircleCI tasks
 if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
     file('src/main/resources/build').write(System.getenv('CIRCLE_BUILD_NUM'))
 
@@ -93,22 +93,17 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
         cmd('git', 'push', 'origin', 'gh-pages')
     }
 }
-
-buildscript {
-    repositories {
-        jcenter()
-        maven { url 'https://repo.eclipse.org/content/groups/releases/' }
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
-        classpath 'org.eclipse.jgit:org.eclipse.jgit:4.1.1.201511131810-r'
-    }
-}
+//endregion
 
 //region Dependency Management
+buildscript {
+    repositories { jcenter() }
+    dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2' }
+}
+
 repositories {
-    maven { url "http://dl.bintray.com/randers00/intellijannotations" }
     jcenter()
+    maven { url "http://dl.bintray.com/randers00/intellijannotations" }
 }
 
 dependencies {
@@ -121,48 +116,45 @@ dependencies {
     compile 'com.h2database:h2:1.4.190'
 //    compile fileTree(dir: 'libs', include: '*.jar')
 
-    // Tests
     testCompile 'junit:junit:4.7'
     testCompile 'com.github.stefanbirkner:fishbowl:1.3.0'
 }
 //endregion
 
-//region utf8
+//region UTF-8
 tasks.withType(JavaCompile) {
     options.encoding = 'utf8'
 }
 
 tasks.run {
     workingDir "$buildDir/run-dir/"
-    doFirst {
-        workingDir.mkdirs()
-    }
-}
-
-String buildOptionsString(String... links) {
-    StringBuilder stringBuilder = new StringBuilder(links.length * 32)
-    for (int i = 0; i < links.length; i++) {
-        stringBuilder.append(links[i])
-        if (i + 1 < links.length)
-            stringBuilder.append("' -link '")
-    }
-    return stringBuilder.toString()
+    doFirst { workingDir.mkdirs() }
 }
 
 tasks.javadoc {
-    options.addStringOption('link', buildOptionsString('https://cdn.rawgit.com/google/guava/036db99cc2d8cee83de0f07ca0664b522fbbeaca/_releases/18.0/api/docs/',
+    def optionsString = { String... links ->
+        StringBuilder stringBuilder = new StringBuilder()
+        (0..links.length).each {
+            stringBuilder.append(links[it])
+            if (it + 1 < links.length)
+                stringBuilder.append("' -link '")
+        }
+        return stringBuilder.toString()
+    }
+    options.addStringOption('link', optionsString(
+            'https://cdn.rawgit.com/google/guava/036db99cc2d8cee83de0f07ca0664b522fbbeaca/_releases/18.0/api/docs/',
             'https://docs.oracle.com/javase/8/docs/api/'))
     options.addStringOption('encoding', 'utf8')
     options.addStringOption('docencoding', 'utf8')
     options.addStringOption('charset', 'utf8')
     options.showFromPrivate()
 }
-//endregion
 
 tasks.withType(Test) {
     workingDir = "$buildDir/test-results/working-dir"
     systemProperty 'file.encoding', 'utf8'
     doFirst { workingDir.mkdirs() }
 }
+//endregion
 
 defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip'
