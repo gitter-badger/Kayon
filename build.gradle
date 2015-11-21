@@ -62,6 +62,13 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
             Process process = builder.start()
             process.waitFor()
         }
+        def cmde = { Map<String, String> env, String... cmds ->
+            ProcessBuilder builder = new ProcessBuilder(cmds)
+            builder.directory(directory) // execute in repo directory
+            builder.environment().putAll(env)
+            Process process = builder.start()
+            process.waitFor()
+        }
 
         cmd('git', 'clone', '-b', 'gh-pages', "https://KayonBot:${System.getenv('KAYONBOT_PASSWORD')}@github.com/RAnders00/KayonDoc.git", '.')
         cmd('git', 'rm', '-r', '.')
@@ -76,13 +83,12 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
 
         def json = new JsonSlurper().parseText(new URL("https://api.github.com/repos/RAnders00/Kayon/git/commits/${System.getenv('CIRCLE_SHA1')}").text)
         def message = "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message\nBuild URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}"
-        cmd('git', 'config', 'user.name', 'KayonBot')
-        cmd('git', 'config', 'user.email', 'rubenanders@hotmail.de')
+        // http://stackoverflow.com/a/23108169/4464702 and http://jasonnoble.org/2009/04/github-set-authorcommitter.html
         file("$buildDir/doc-repo-commitmsg").write(message)
-        cmd('git', 'commit',
+        cmde([GIT_COMMITTER_NAME: 'KayonBot', GIT_COMMITTER_EMAIL: 'rubenanders@hotmail.de', GIT_AUTHOR_NAME: json.author.name, GIT_AUTHOR_EMAIL: json.author.email],
+                'git', 'commit',
                 '-m', "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message",
-                '-m', "Build URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}",
-                '--author', "\"$json.author.name <$json.author.email>\"")
+                '-m', "Build URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}")
 
         cmd('git', 'push', 'origin', 'gh-pages')
     }
