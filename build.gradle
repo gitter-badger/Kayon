@@ -18,6 +18,7 @@
 
 import groovy.json.JsonSlurper
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 
 apply plugin: 'java'
@@ -30,7 +31,7 @@ group 'cf.kayon'
 version = file('src/main/resources/version').getText('utf8').replaceAll("[\n\r]", "") // eliminate newlines
 mainClassName = 'cf.kayon.gui.splash.Splash'
 
-if (System.getenv('CIRCLECI').equals('true')) {
+if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
     file('src/main/resources/build').write(System.getenv('CIRCLE_BUILD_NUM'))
 
     def versionForFiles = project.version + '-b' + System.getenv('CIRCLE_BUILD_NUM')
@@ -43,6 +44,51 @@ if (System.getenv('CIRCLECI').equals('true')) {
     }
     tasks.withType(Tar) {
         version = versionForFiles
+    }
+
+    task copyCIArtifacts << { // because why not, doubleshift and nested copy (intuitive, isn't it?)
+        copy {
+            from(file('build/libs/').listFiles() + file('build/distributions/').listFiles())
+            into System.getenv('CIRCLE_ARTIFACTS')
+        }
+    }
+
+    task deployJavadoc(dependsOn: tasks.javadoc) << { // double shift because closure is what is running the task, not configuring it
+        if (!Objects.equals(System.getenv('CIRCLE_BRANCH'), 'master')) // only do javadoc pushes on commits to `master`
+            return;
+        def directory = file("$buildDir/doc-repo/")
+        def git = null;
+        try {
+//            git = Git.cloneRepository().setBranch('gh-pages').setURI('https://github.com/RAnders00/KayonDoc.git').setDirectory(directory).call()
+            directory.mkdirs()
+            ProcessBuilder builder = new ProcessBuilder('git', 'clone', '-b', 'gh-pages', 'https://github.com/RAnders00/KayonDoc.git', '.')
+            builder.directory(directory)
+            Process process = builder.start()
+            process.waitFor()
+
+            git = new Git(new FileRepositoryBuilder().setGitDir(file(directory.absolutePath + '/.git')).readEnvironment().findGitDir().build())
+            def rm = git.rm()
+            directory.list().each {
+                if (!it.equals('README.md'))
+                    rm.addFilepattern(it) // windows
+            }
+            rm.call()
+
+            copy {
+                from tasks.javadoc.destinationDir
+                into directory
+            }
+            git.add().addFilepattern('.').call()
+            def json = new JsonSlurper().parseText(new URL("https://api.github.com/repos/RAnders00/Kayon/git/commits/${System.getenv('CIRCLE_SHA1')}").text)
+            def message = "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message\nBuild URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}"
+            git.commit().setAuthor(json.author.name, json.author.email).setCommitter('KayonBot', 'rubenanders@hotmail.de').setMessage(message).call()
+            git.push().setPushAll().setCredentialsProvider(new UsernamePasswordCredentialsProvider('KayonBot', System.getenv('KAYONBOT_PASSWORD'))).call()
+        } catch (Throwable thr) {
+            thr.printStackTrace()
+        } finally {
+            if (git != null)
+                git.close()
+        }
     }
 }
 
@@ -108,80 +154,13 @@ tasks.javadoc {
     options.addStringOption('docencoding', 'utf8')
     options.addStringOption('charset', 'utf8')
     options.showFromPrivate()
-//    options.setOutputLevel(JavadocOutputLevel.VERBOSE)
 }
 //endregion
 
 tasks.withType(Test) {
     workingDir = "$buildDir/test-results/working-dir"
     systemProperty 'file.encoding', 'utf8'
-    doFirst {
-        workingDir.mkdirs()
-    }
+    doFirst { workingDir.mkdirs() }
 }
-
-// Reflection hacks
-//def f = Class.forName("java.lang.ProcessEnvironment").getDeclaredField("theCaseInsensitiveEnvironment");
-//f.setAccessible(true)
-//def env = f.get(null) // null -> static field
-//env.put('CIRCLECI', 'true')
-//env.put('CIRCLE_SHA1', 'd307ad741f2cacb20c78f6af215e4b54cad78db2')
-//env.put('CIRCLE_BUILD_NUM', '46')
-
-// Use Objects.equals against null values
-if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
-    task copyCIArtifacts << { // because why not, doubleshift and nested copy (intuitive, isn't it?)
-        copy {
-            from(file('build/libs/').listFiles() + file('build/distributions/').listFiles())
-            into System.getenv('CIRCLE_ARTIFACTS')
-        }
-    }
-
-    task deployJavadoc(dependsOn: tasks.javadoc) << { // double shift because closure is what is running the task, not configuring it
-        if (!Objects.equals(System.getenv('CIRCLE_BRANCH'), 'master')) // only do javadoc pushes on commits to `master`
-            return;
-        def directory = file("$buildDir/doc-repo/")
-        def git = null;
-        try {
-//            printDirContent(directory)
-            git = Git.cloneRepository().setBranch('gh-pages').setURI('https://github.com/RAnders00/KayonDoc.git').setDirectory(directory).call()
-            def rm = git.rm()
-//            printDirContent(directory)
-//            println '>>> REMOVING old files'
-            directory.list().each {
-                if (!it.equals('README.md'))
-//                {
-                    rm.addFilepattern(it.replaceAll('\\\\', '/')) // windows
-//                    println "    Removing $it"
-//                } else {
-//                    println ">>> Will not remove $it"
-//                }
-            }
-            rm.call()
-//            printDirContent(directory)
-
-            copy {
-                from tasks.javadoc.destinationDir
-                into directory
-            }
-//            printDirContent(directory)
-            git.add().addFilepattern('.').call()
-            def json = new JsonSlurper().parseText(new URL("https://api.github.com/repos/RAnders00/Kayon/git/commits/${System.getenv('CIRCLE_SHA1')}").text)
-            def message = "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message\nBuild URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}"
-            git.commit().setAuthor(json.author.name, json.author.email).setCommitter('KayonBot', 'rubenanders@hotmail.de').setMessage(message).call()
-            git.push().setPushAll().setCredentialsProvider(new UsernamePasswordCredentialsProvider('KayonBot', System.getenv('KAYONBOT_PASSWORD'))).call()
-        } finally {
-            git.close()
-        }
-    }
-
-}
-
-//void printDirContent(File file) {
-//    println ">>> SHOWING $file.canonicalPath"
-//    file.listFiles().each {
-//        println "    $it.canonicalPath"
-//    }
-//}
 
 defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip'
