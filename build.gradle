@@ -131,17 +131,18 @@ tasks.run {
     doFirst { workingDir.mkdirs() }
 }
 
-tasks.javadoc {
-    def optionsString = { String... links ->
-        StringBuilder stringBuilder = new StringBuilder()
-        (0..links.length).each {
-            stringBuilder.append(links[it])
-            if (it + 1 < links.length)
-                stringBuilder.append("' -link '")
-        }
-        return stringBuilder.toString()
+String buildOptionsString(String... links) {
+    StringBuilder stringBuilder = new StringBuilder(links.length * 32)
+    for (int i = 0; i < links.length; i++) {
+        stringBuilder.append(links[i])
+        if (i + 1 < links.length)
+            stringBuilder.append("' -link '")
     }
-    options.addStringOption('link', optionsString(
+    return stringBuilder.toString()
+}
+
+tasks.javadoc {
+    options.addStringOption('link', buildOptionsString(
             'https://cdn.rawgit.com/google/guava/036db99cc2d8cee83de0f07ca0664b522fbbeaca/_releases/18.0/api/docs/',
             'https://docs.oracle.com/javase/8/docs/api/'))
     options.addStringOption('encoding', 'utf8')
