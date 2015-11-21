@@ -16,10 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 import groovy.json.JsonSlurper
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 
 apply plugin: 'java'
 apply plugin: 'application'
@@ -57,36 +55,36 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
         if (!Objects.equals(System.getenv('CIRCLE_BRANCH'), 'master')) // only do javadoc pushes on commits to `master`
             return;
         def directory = file("$buildDir/doc-repo/")
-        def git = null;
-        try {
-//            git = Git.cloneRepository().setBranch('gh-pages').setURI('https://github.com/RAnders00/KayonDoc.git').setDirectory(directory).call()
-            directory.mkdirs()
-            ProcessBuilder builder = new ProcessBuilder('git', 'clone', '-b', 'gh-pages', 'https://github.com/RAnders00/KayonDoc.git', '.')
-            builder.directory(directory)
+        directory.mkdirs()
+        def cmd = { String... cmds ->
+            ProcessBuilder builder = new ProcessBuilder(cmds)
+            builder.directory(directory) // execute in repo directory
             Process process = builder.start()
             process.waitFor()
-
-            git = new Git(new FileRepositoryBuilder().setGitDir(file(directory.absolutePath + '/.git')).readEnvironment().findGitDir().build())
-            def rm = git.rm()
-            directory.list().each {
-                if (!it.equals('README.md'))
-                    rm.addFilepattern(it) // windows
-            }
-            rm.call()
-
-            copy {
-                from tasks.javadoc.destinationDir
-                into directory
-            }
-            git.add().addFilepattern('.').call()
-            def json = new JsonSlurper().parseText(new URL("https://api.github.com/repos/RAnders00/Kayon/git/commits/${System.getenv('CIRCLE_SHA1')}").text)
-            def message = "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message\nBuild URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}"
-            git.commit().setAuthor(json.author.name, json.author.email).setCommitter('KayonBot', 'rubenanders@hotmail.de').setMessage(message).call()
-            git.push().setPushAll().setCredentialsProvider(new UsernamePasswordCredentialsProvider('KayonBot', System.getenv('KAYONBOT_PASSWORD'))).call()
-        } finally {
-            if (git != null)
-                git.close()
         }
+
+        cmd('git', 'clone', '-b', 'gh-pages', "https://KayonBot:${System.getenv('KAYONBOT_PASSWORD')}@github.com/RAnders00/KayonDoc.git", '.')
+        cmd('git', 'rm', '-r', '.')
+        cmd('git', 'checkout', 'HEAD', '--', 'README.md')
+
+        copy {
+            from tasks.javadoc.destinationDir
+            into directory
+        }
+
+        cmd('git', 'add', '-A')
+
+        def json = new JsonSlurper().parseText(new URL("https://api.github.com/repos/RAnders00/Kayon/git/commits/${System.getenv('CIRCLE_SHA1')}").text)
+        def message = "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message\nBuild URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}"
+        cmd('git', 'config', 'user.name', 'KayonBot')
+        cmd('git', 'config', 'user.email', 'rubenanders@hotmail.de')
+        file("$buildDir/doc-repo-commitmsg").write(message)
+        cmd('git', 'commit',
+                '-m', "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message",
+                '-m', "Build URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}",
+                '--author', "\"$json.author.name <$json.author.email>\"")
+
+        cmd('git', 'push', 'origin', 'gh-pages')
     }
 }
 
