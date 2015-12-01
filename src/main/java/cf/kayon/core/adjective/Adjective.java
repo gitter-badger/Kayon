@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
-import static cf.kayon.core.util.StringUtil.requireNonEmpty;
+import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -159,16 +159,18 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * <p>
      * The {@code rootWord} argument should be lowercase only (see annotation).
      *
+     * @param context             The {@link KayonContext} for this instance.
      * @param adjectiveDeclension An AdjectiveDeclension or {@code null}.
      * @param rootWord            The root word of the adjective.
-     * @throws NullPointerException     If {@code rootWord} is {@code null}.
+     * @throws NullPointerException     If {@code rootWord} or {@code context} is {@code null}.
      * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public Adjective(@Nullable AdjectiveDeclension adjectiveDeclension, @NotNull String rootWord)
+    public Adjective(@NotNull KayonContext context, @Nullable AdjectiveDeclension adjectiveDeclension, @NotNull String rootWord)
     {
-        requireNonEmpty(rootWord);
+        super(context);
+        checkNotEmpty(rootWord);
         this.adjectiveDeclension = adjectiveDeclension;
         this.rootWord = rootWord;
         _declineIntoBuffer(); // speed improvement
@@ -179,15 +181,16 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * <p>
      * The {@code rootWord} argument should be lowercase only (see annotation).
      *
+     * @param context The {@link KayonContext} for this instance.
      * @param rootWord The root word of the adjective.
-     * @throws NullPointerException     If {@code rootWord} is {@code null}.
+     * @throws NullPointerException     If {@code rootWord} or {@code context} is {@code null}.
      * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public Adjective(@NotNull String rootWord)
+    public Adjective(@NotNull KayonContext context, @NotNull String rootWord)
     {
-        this(null, rootWord);
+        this(context, null, rootWord);
     }
     //endregion
 
@@ -223,7 +226,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     public void setRootWord(@NotNull String rootWord)
     {
-        requireNonEmpty(rootWord);
+        checkNotEmpty(rootWord);
         String oldValue = this.rootWord;
         this.rootWord = rootWord;
         changeSupport.firePropertyChange("rootWord", oldValue, rootWord);
@@ -650,7 +653,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     public Adjective copyDeep()
     {
         // Adjective Declension and root word (both immutable)
-        Adjective adjective = new Adjective(this.adjectiveDeclension, this.rootWord);
+        Adjective adjective = new Adjective(getContext(), this.adjectiveDeclension, this.rootWord);
 
         // Copy defined forms map (AdjectiveForm and String are immutable)
         adjective.definedForms.putAll(this.definedForms);

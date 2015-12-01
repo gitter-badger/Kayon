@@ -111,13 +111,17 @@ public class ONounDeclension extends StandardNounDeclension
         checkNotNull(rootWord);
         /*
          * Sample: Vocative Singular Masculine, root word is <fili>
-         * Return: <fili>
+         * Return: <filī>
          */
         if (nounForm.getCase() == Case.VOCATIVE && nounForm.getCount() == Count.SINGULAR &&
             StringUtil.unSpecialString(rootWord).endsWith("i")) // Most expensive check last (short-circuiting statement)
-            return rootWord;
+        {
+            StringBuilder builder = new StringBuilder(rootWord);
+            builder.setCharAt(builder.length() - 1, 'ī');
+            return builder.toString();
+        }
 
-        return rootWord + this.selectCorrectEnding(nounForm, gender);
+        return super.decline(nounForm, gender, rootWord);
     }
 
     /**
@@ -137,8 +141,12 @@ public class ONounDeclension extends StandardNounDeclension
          */
         if (nounForm.getCase() == Case.VOCATIVE && nounForm.getCount() == Count.SINGULAR &&
             StringUtil.unSpecialString(declinedForm).endsWith("i")) // Most expensive check last (short-circuiting statement)
-            return declinedForm;
-        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(nounForm, gender));
+        {
+            StringBuilder builder = new StringBuilder(declinedForm);
+            builder.setCharAt(builder.length() - 1, 'i');
+            return builder.toString();
+        }
+        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(nounForm, gender), nounForm);
     }
 
     /**

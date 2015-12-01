@@ -18,9 +18,9 @@
 
 package cf.kayon.gui.splash;
 
+import cf.kayon.core.KayonContext;
 import cf.kayon.gui.FxUtil;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ResourceBundle;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -45,6 +46,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class Splash extends Application
 {
+    /**
+     * @throws Exception If an {@link java.sql.SQLException} occurs when closing the connection of the application KayonContext ({@link FxUtil#context})
+     * @since 0.2.0
+     */
+    @Override
+    public void stop() throws Exception
+    {
+        super.stop();
+        @Nullable
+        KayonContext context = FxUtil.context;
+        if (context != null) // If object is present, its contents are also present (null checks are performed on construct)
+        {
+            context.getConnection().close();
+        }
+        @Nullable
+        ThreadPoolExecutor executor = FxUtil.executor;
+        if (executor != null)
+        {
+            executor.shutdown(); // Complete all tasks and terminate pool threads
+        }
+    }
 
     /**
      * The main entry point for the application.
@@ -54,7 +76,8 @@ public class Splash extends Application
      */
     public static void main(@Nullable String[] args)
     {
-        System.setProperty("glass.accessible.force", "false"); // http://stackoverflow.com/a/32597281/4464702
+        System.setProperty("glass.accessible.force", "false"); // http://stackoverflow.com/a/32597281/4464702 (Windows 10 devices with touch)
+        // Fixed in Java 9 only
         launch(args);
     }
 
@@ -66,7 +89,7 @@ public class Splash extends Application
     {
         SplashController controller = createOntoStage(stage);
         stage.show();
-        Platform.runLater(controller::startApplication);
+        controller.startApplication();
     }
 
     /**

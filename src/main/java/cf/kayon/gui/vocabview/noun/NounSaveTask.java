@@ -18,34 +18,58 @@
 
 package cf.kayon.gui.vocabview.noun;
 
+import cf.kayon.core.KayonContext;
 import cf.kayon.core.noun.Noun;
-import cf.kayon.core.sql.NounSQLFactory;
 import javafx.concurrent.Task;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/*
+ * Thread safety notice
+ *
+ * All fields are final
+ */
 public class NounSaveTask extends Task<Void>
 {
-    public NounSaveTask(final Noun noun, final Connection connection)
+
+    @NotNull
+    private static final Logger LOGGER = LoggerFactory.getLogger(NounSaveTask.class);
+
+    public NounSaveTask(final @NotNull KayonContext context, final @NotNull Noun noun)
     {
+        checkNotNull(context);
+        checkNotNull(noun);
+        this.context = context;
         this.noun = noun;
-        this.connection = connection;
     }
 
+    public NounSaveTask(final Noun noun)
+    {
+        this(noun.getContext(), noun);
+    }
+
+    @NotNull
     private final Noun noun;
 
-    private final Connection connection;
+    @NotNull
+    private final KayonContext context;
 
+    @Nullable
     @Override
     protected Void call() throws Exception
     {
         try
         {
-            NounSQLFactory.saveNounToDatabase(connection, noun);
+            context.getNounSQLFactory().saveNounToDatabase(noun);
         } catch (SQLException e)
         {
-            e.printStackTrace();
+            LOGGER.error("SQLException in NounSaveTask!", e);
             throw e;
         }
         return null;

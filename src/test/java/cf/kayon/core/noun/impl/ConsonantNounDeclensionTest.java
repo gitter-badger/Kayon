@@ -19,7 +19,6 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Gender;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
 import static org.junit.Assert.assertSame;
@@ -31,52 +30,21 @@ public class ConsonantNounDeclensionTest
     @Test
     public void testConsonantNounDeclension() throws Exception
     {
-        NounDeclensionTestingUtil.testCorrectDeclining(ConsonantNounDeclension.getInstance(), Gender.FEMININE, "victor",
-                                                       new ImmutablePair<>("victor", false),
-                                                       new ImmutablePair<>("victoris", true),
-                                                       new ImmutablePair<>("victorī", true),
-                                                       new ImmutablePair<>("victorem", true),
-                                                       new ImmutablePair<>("victore", true),
-                                                       new ImmutablePair<>("victor", false),
-
-                                                       new ImmutablePair<>("victorēs", true),
-                                                       new ImmutablePair<>("victorum", true),
-                                                       new ImmutablePair<>("victoribus", true),
-                                                       new ImmutablePair<>("victorēs", true),
-                                                       new ImmutablePair<>("victoribus", true),
-                                                       new ImmutablePair<>("victorēs", true)
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                ConsonantNounDeclension.getInstance(), Gender.FEMININE, "victor",
+                "victor", false, "victoris", "victorī", "victorem", "victore", "victor", false,
+                "victorēs", "victorum", "victoribus", "victorēs", "victoribus", "victorēs"
         );
 
-        NounDeclensionTestingUtil.testCorrectDeclining(ConsonantNounDeclension.getInstance(), Gender.MASCULINE, "milit",
-                                                       new ImmutablePair<>("miles", false),
-                                                       new ImmutablePair<>("militis", true),
-                                                       new ImmutablePair<>("militī", true),
-                                                       new ImmutablePair<>("militem", true),
-                                                       new ImmutablePair<>("milite", true),
-                                                       new ImmutablePair<>("miles", false),
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                ConsonantNounDeclension.getInstance(), Gender.MASCULINE, "milit",
+                "miles", false, "militis", "militī", "militem", "milite", "miles", false,
+                "militēs", "militum", "militibus", "militēs", "militibus", "militēs");
 
-                                                       new ImmutablePair<>("militēs", true),
-                                                       new ImmutablePair<>("militum", true),
-                                                       new ImmutablePair<>("militibus", true),
-                                                       new ImmutablePair<>("militēs", true),
-                                                       new ImmutablePair<>("militibus", true),
-                                                       new ImmutablePair<>("militēs", true)
-        );
-
-        NounDeclensionTestingUtil.testCorrectDeclining(ConsonantNounDeclension.getInstance(), Gender.FEMININE, "laud",
-                                                       new ImmutablePair<>("laus", false),
-                                                       new ImmutablePair<>("laudis", true),
-                                                       new ImmutablePair<>("laudī", true),
-                                                       new ImmutablePair<>("laudem", true),
-                                                       new ImmutablePair<>("laude", true),
-                                                       new ImmutablePair<>("laus", false),
-
-                                                       new ImmutablePair<>("laudēs", true),
-                                                       new ImmutablePair<>("laudum", true),
-                                                       new ImmutablePair<>("laudibus", true),
-                                                       new ImmutablePair<>("laudēs", true),
-                                                       new ImmutablePair<>("laudibus", true),
-                                                       new ImmutablePair<>("laudēs", true)
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                ConsonantNounDeclension.getInstance(), Gender.FEMININE, "laud",
+                "laus", false, "laudis", "laudī", "laudem", "laude", "laus", false,
+                "laudēs", "laudum", "laudibus", "laudēs", "laudibus", "laudēs"
         );
 
         assertTrue(ConsonantNounDeclension.getInstance().allowsGender(Gender.MASCULINE));

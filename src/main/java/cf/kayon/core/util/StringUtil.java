@@ -33,14 +33,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * Provides static utilities around strings.
+ *
+ * @author Ruben Anders
+ * @since 0.0.1
+ */
 public class StringUtil
 {
 
+    /**
+     * A table holding lengthened and shortened characters.
+     * <p>
+     * Row: {@code true} if the character denoted by this cell is lengthened, {@code false} if it shortened.
+     * <p>
+     * Column: The 'normal' character, like {@code a}, {@code e}, etc...
+     * <p>
+     * Value: The lengthened/shortened character.
+     *
+     * @since 0.0.1
+     */
     @NotNull
     public static final Table<Boolean, Character, Character> specialCharsTable;
 
+    /**
+     * A list of patterns to convert shortened/lengthened characters to their normal variants.
+     * <p>
+     * The key of the pair holds the pattern to apply, the value is the string to replace the pattern with.
+     *
+     * @since 0.0.1
+     */
     @NotNull
-    private static final List<ImmutablePair<Pattern, String>> patterns;
+    private static final List<Pair<Pattern, String>> patterns;
 
     static
     {
@@ -83,40 +109,37 @@ public class StringUtil
         patterns.add(new ImmutablePair<>(Pattern.compile("[ŪūŬŭ]"), "u"));
     }
 
-    @NotNull
-    @Contract("null -> fail")
-    public static <T extends CharSequence> T requireNonEmpty(T csqToCheck)
+    @Contract(value = "null -> fail")
+    public static void checkNotEmpty(CharSequence csqToCheck)
     {
-        if (csqToCheck == null)
-            throw new NullPointerException();
+        checkNotNull(csqToCheck);
         if (csqToCheck.length() == 0)
             throw new IllegalArgumentException();
-        return csqToCheck;
     }
 
-    @NotNull
-    public static String removeVeryLast(@NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
-    {
-        if (stringToRemoveFrom.endsWith(stringToRemove))
-            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
-        return stringToRemoveFrom;
-    }
-
-    @Nullable
-    public static String removeVeryLastOrNull(@NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
-    {
-        if (stringToRemoveFrom.endsWith(stringToRemove))
-            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
-        return null;
-    }
-
-    @NotNull
-    public static String removeVeryLast(@NotNull String normalizedString, @NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
-    {
-        if (normalizedString.endsWith(stringToRemove))
-            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
-        return stringToRemoveFrom;
-    }
+    //    @NotNull
+    //    public static String removeVeryLast(@NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
+    //    {
+    //        if (stringToRemoveFrom.endsWith(stringToRemove))
+    //            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
+    //        return stringToRemoveFrom;
+    //    }
+    //
+    //    @Nullable
+    //    public static String removeVeryLastOrNull(@NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
+    //    {
+    //        if (stringToRemoveFrom.endsWith(stringToRemove))
+    //            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
+    //        return null;
+    //    }
+    //
+    //    @NotNull
+    //    public static String removeVeryLast(@NotNull String normalizedString, @NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
+    //    {
+    //        if (normalizedString.endsWith(stringToRemove))
+    //            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
+    //        return stringToRemoveFrom;
+    //    }
 
     @Nullable
     public static String removeVeryLastOrNull(@NotNull String normalizedString, @NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
@@ -126,30 +149,37 @@ public class StringUtil
         return null;
     }
 
-    /**
-     * Applies a {@code Macron} or {@code Breve} to a character.
-     *
-     * @param doLengthen     {@code true} if a {@code Macron} should be applied, {@code false} if a {@code Breve} should be applied.
-     * @param charToLengthen The character to apply the {@code Macron} or {@code Breve} to.
-     * @return The character with applied {@code Macron} or {@code Breve}.
-     * @throws IllegalArgumentException If the char could not be lengthened/shortened. This is thrown if the input {@code char} was not one of {@code A, a, E, e, I, i, O, o, U, u}
-     *                                  (or a lengthened/shortened version of them).
-     */
-    public static char specialChar(boolean doLengthen, char charToLengthen) throws IllegalArgumentException
-    {
-        Character charOrNull = specialCharsTable.get(doLengthen, charToLengthen);
-        if (charOrNull != null)
-            return charOrNull;
-        // "Expensive" part: Un-apply and apply again
-        charOrNull = specialCharsTable.get(doLengthen, unSpecialChar(charToLengthen));
-        if (charOrNull != null)
-            return charOrNull;
-        throw new IllegalArgumentException();
-    }
+    //    /**
+    //     * Applies a {@code Macron} or {@code Breve} to a character.
+    //     *
+    //     * @param doLengthen     {@code true} if a {@code Macron} should be applied, {@code false} if a {@code Breve} should be applied.
+    //     * @param charToLengthen The character to apply the {@code Macron} or {@code Breve} to.
+    //     * @return The character with applied {@code Macron} or {@code Breve}.
+    //     * @throws IllegalArgumentException If the char could not be lengthened/shortened. This is thrown if the input {@code char} was not one of {@code A, a, E, e, I, i, O, o, U, u}
+    //     *                                  (or a lengthened/shortened version of them).
+    //     */
+    //    public static char specialChar(boolean doLengthen, char charToLengthen) throws IllegalArgumentException
+    //    {
+    //        Character charOrNull = specialCharsTable.get(doLengthen, charToLengthen);
+    //        if (charOrNull != null)
+    //            return charOrNull;
+    //        // "Expensive" part: Un-apply and apply again
+    //        charOrNull = specialCharsTable.get(doLengthen, unSpecialChar(charToLengthen));
+    //        if (charOrNull != null)
+    //            return charOrNull;
+    //        throw new IllegalArgumentException();
+    //    }
 
+    /**
+     * Returns the normal variant of a given char.
+     *
+     * @param specialChar The character, which
+     * @return The normal version of the character.
+     * @throws IllegalArgumentException If the character specified is not a special character or any of the possible normal variants of them.
+     */
     public static char unSpecialChar(char specialChar) throws IllegalArgumentException
     {
-        if (specialCharsTable.get(true, specialChar) != null)
+        if (specialCharsTable.get(true, specialChar) != null) // If table has the char as key, it's not special
             return specialChar;
         for (Table.Cell<Boolean, Character, Character> currentCell : specialCharsTable.cellSet())
         {
@@ -159,34 +189,41 @@ public class StringUtil
         throw new IllegalArgumentException();
     }
 
-    public static String specialString(boolean doLengthen, char charToLengthen) throws IllegalArgumentException
-    {
-        return String.valueOf(specialChar(doLengthen, charToLengthen));
-    }
+    //    public static String specialString(boolean doLengthen, char charToLengthen) throws IllegalArgumentException
+    //    {
+    //        return String.valueOf(specialChar(doLengthen, charToLengthen));
+    //    }
 
-    @NotNull
-    public static String specialString(boolean doLengthen, @NotNull String stringToLengthen) throws IllegalArgumentException
-    {
-        StringBuilder stringBuilder = new StringBuilder(stringToLengthen.length());
-        for (int i = 0; i < stringToLengthen.length(); i++)
-        {
-            try
-            {
-                stringBuilder.append(specialChar(doLengthen, stringToLengthen.charAt(i)));
-            } catch (IllegalArgumentException e)
-            {
-                stringBuilder.append(stringToLengthen.charAt(i));
-            }
-        }
-        return stringBuilder.toString();
-    }
+    //    @NotNull
+    //    public static String specialString(boolean doLengthen, @NotNull String stringToLengthen) throws IllegalArgumentException
+    //    {
+    //        StringBuilder stringBuilder = new StringBuilder(stringToLengthen.length());
+    //        for (int i = 0; i < stringToLengthen.length(); i++)
+    //        {
+    //            try
+    //            {
+    //                stringBuilder.append(specialChar(doLengthen, stringToLengthen.charAt(i)));
+    //            } catch (IllegalArgumentException e)
+    //            {
+    //                stringBuilder.append(stringToLengthen.charAt(i));
+    //            }
+    //        }
+    //        return stringBuilder.toString();
+    //    }
 
-    @NotNull
-    public static String unSpecialString(char specialChar)
-    {
-        return String.valueOf(unSpecialChar(specialChar));
-    }
+    //    @NotNull
+    //    public static String unSpecialString(char specialChar)
+    //    {
+    //        return String.valueOf(unSpecialChar(specialChar));
+    //    }
 
+    /**
+     * Replaces all special characters in a string with their normal variants.
+     *
+     * @param specialString The string containing special characters.
+     * @return A new string without special characters.
+     * @since 0.0.1
+     */
     @NotNull
     public static String unSpecialString(@NotNull String specialString)
     {
@@ -204,15 +241,15 @@ public class StringUtil
         return stringBuilder.toString();
     }
 
-    public static boolean normalizedEquals(@NotNull String first, @NotNull String second)
-    {
-        for (Pair<Pattern, String> currentPair : patterns)
-        {
-            first = currentPair.getLeft().matcher(first).replaceAll(currentPair.getRight());
-            second = currentPair.getLeft().matcher(second).replaceAll(currentPair.getRight());
-        }
-        return first.equalsIgnoreCase(second);
-    }
+    //    public static boolean normalizedEquals(@NotNull String first, @NotNull String second)
+    //    {
+    //        for (Pair<Pattern, String> currentPair : patterns)
+    //        {
+    //            first = currentPair.getLeft().matcher(first).replaceAll(currentPair.getRight());
+    //            second = currentPair.getLeft().matcher(second).replaceAll(currentPair.getRight());
+    //        }
+    //        return first.equalsIgnoreCase(second);
+    //    }
 
     /**
      * Applies a all-special-form matching regular expression string. You can {@link Pattern#compile(String) compile} the resulting string into a {@link Pattern} and use it

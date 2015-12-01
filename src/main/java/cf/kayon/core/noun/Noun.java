@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static cf.kayon.core.util.StringUtil.requireNonEmpty;
+import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -142,17 +142,20 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * The general contract of this class is to only contain lowercase forms (see annotation).
      * Code should only apply lowercase forms to this method.
      *
+     * @param context        The {@link KayonContext} for this instance.
      * @param nounDeclension The noun declension of the new noun. {@code null} if there is no NounDeclension.
      * @param gender         The gender.
      * @param rootWord       The root word.
-     * @throws NullPointerException     If {@code gender} or {@code rootWord} is {@code null}.
+     * @throws NullPointerException     If {@code context}, {@code gender} or {@code rootWord} is {@code null}.
      * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
+     * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public Noun(@Nullable NounDeclension nounDeclension, @NotNull Gender gender, @NotNull String rootWord)
+    public Noun(@NotNull KayonContext context, @Nullable NounDeclension nounDeclension, @NotNull Gender gender, @NotNull String rootWord)
     {
+        super(context);
         checkNotNull(gender);
-        requireNonEmpty(rootWord);
+        checkNotEmpty(rootWord);
         this.nounDeclension = nounDeclension;
         this.gender = gender;
         this.rootWord = rootWord;
@@ -161,7 +164,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
 
     /**
      * Constructs a new Noun with no NounDeclension.
-     * This is equal to calling {@link #Noun(NounDeclension, Gender, String)} with {@code null} as its first parameter.
+     * This is equal to calling {@link #Noun(KayonContext, NounDeclension, Gender, String)} with {@code null} as its first parameter.
      * <p>
      * Note: The constructor itself does not use property/vetoable change support. All arguments are validated with the default constraints
      * and afterwards {@link #_declineIntoBuffer()} is called.
@@ -169,15 +172,17 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * The general contract of this class is to only contain lowercase forms (see annotation).
      * Code should only apply lowercase forms to this method.
      *
+     * @param context  The {@link KayonContext} for this instance.
      * @param gender   The gender.
      * @param rootWord The root word.
-     * @throws NullPointerException     If {@code gender} or {@code rootWord} is {@code null}.
+     * @throws NullPointerException     If {@code context}, {@code gender} or {@code rootWord} is {@code null}.
      * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
+     * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public Noun(@NotNull Gender gender, @NotNull String rootWord)
+    public Noun(@NotNull KayonContext context, @NotNull Gender gender, @NotNull String rootWord)
     {
-        this(null, gender, rootWord);
+        this(context, null, gender, rootWord);
     }
     //endregion
 
@@ -445,7 +450,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     public Noun copyDeep()
     {
         // Noun Declension, Gender, root word (all immutable)
-        Noun noun = new Noun(this.nounDeclension, this.gender, this.rootWord);
+        Noun noun = new Noun(getContext(), this.nounDeclension, this.gender, this.rootWord);
 
         // Defined forms (NounForm and String are immutable)
         noun.definedForms.putAll(this.definedForms);

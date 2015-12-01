@@ -18,9 +18,7 @@
 
 package cf.kayon.core.noun;
 
-import cf.kayon.core.Case;
-import cf.kayon.core.Count;
-import cf.kayon.core.Gender;
+import cf.kayon.core.*;
 import cf.kayon.core.noun.impl.ANounDeclension;
 import cf.kayon.core.noun.impl.ENounDeclension;
 import cf.kayon.core.noun.impl.ONounDeclension;
@@ -41,7 +39,9 @@ public class NounDeepCopyTest
     @Test
     public void testDeepCopyNounDeclension()
     {
-        Noun noun = new Noun(ANounDeclension.getInstance(), Gender.FEMININE, "domin");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun = new Noun(context, ANounDeclension.getInstance(), Gender.FEMININE, "domin");
         Noun copy = noun.copyDeep();
 
         assertEquals(noun, copy);
@@ -55,7 +55,9 @@ public class NounDeepCopyTest
     @Test
     public void testDeepCopyRootWord()
     {
-        Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
 
         assertEquals(noun, copy);
@@ -69,7 +71,9 @@ public class NounDeepCopyTest
     @Test
     public void testDeepCopyUuid()
     {
-        Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
 
         assertEquals(noun, copy);
@@ -83,7 +87,9 @@ public class NounDeepCopyTest
     @Test
     public void testDeepCopyTranslations()
     {
-        Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
 
         assertEquals(noun, copy);
@@ -97,7 +103,9 @@ public class NounDeepCopyTest
     @Test
     public void testDeepCopyGender()
     {
-        Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
 
         assertEquals(noun, copy);
@@ -112,7 +120,9 @@ public class NounDeepCopyTest
     @SuppressWarnings("unchecked")
     public void testDeepCopyDeclinedForms() throws Exception
     {
-        Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
 
         assertEquals(noun, copy);
@@ -130,7 +140,9 @@ public class NounDeepCopyTest
     @SuppressWarnings("unchecked")
     public void testDeepCopyDefinedForms() throws Exception
     {
-        Noun noun = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "domin");
         Noun copy = noun.copyDeep();
 
         assertEquals(noun, copy);

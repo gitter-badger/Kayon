@@ -19,12 +19,9 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Gender;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ORNounDeclensionTest
 {
@@ -32,20 +29,8 @@ public class ORNounDeclensionTest
     public void testORNounDeclension() throws Exception
     {
         NounDeclensionTestingUtil.testCorrectDeclining(ORNounDeclension.getInstance(), Gender.MASCULINE, "puer",
-                                                       new ImmutablePair<>("puer", false),
-                                                       new ImmutablePair<>("pueri", true),
-                                                       new ImmutablePair<>("puerō", true),
-                                                       new ImmutablePair<>("puerum", true),
-                                                       new ImmutablePair<>("puerō", true),
-                                                       new ImmutablePair<>("puer", false),
-
-                                                       new ImmutablePair<>("pueri", true),
-                                                       new ImmutablePair<>("puerōrum", true),
-                                                       new ImmutablePair<>("puerīs", true),
-                                                       new ImmutablePair<>("puerōs", true),
-                                                       new ImmutablePair<>("puerīs", true),
-                                                       new ImmutablePair<>("pueri", true)
-        );
+                                                       "puer", false, "puerī", "puerō", "puerum", "puerō", "puer", false,
+                                                       "puerī", "puerōrum", "puerīs", "puerōs", "puerīs", "puerī");
 
         assertTrue(ORNounDeclension.getInstance().allowsGender(Gender.MASCULINE));
         assertTrue(ORNounDeclension.getInstance().allowsGender(Gender.FEMININE));

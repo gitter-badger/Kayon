@@ -46,7 +46,7 @@
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
         </GridPane.margin>
     </TextField>
-    <Button fx:id="searchButton" defaultButton="true" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleButtonPress"
+    <Button fx:id="searchButton" defaultButton="true" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#search"
             text="%MainPane.SearchButton.Text" GridPane.columnIndex="1" GridPane.rowIndex="1">
         <GridPane.margin>
             <Insets bottom="5.0" right="5.0" top="5.0"/>

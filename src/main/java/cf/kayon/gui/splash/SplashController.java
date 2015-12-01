@@ -18,10 +18,12 @@
 
 package cf.kayon.gui.splash;
 
-import cf.kayon.core.sql.ConnectionHolder;
-import cf.kayon.core.sql.NounSQLFactory;
+import cf.kayon.core.KayonContext;
+import cf.kayon.core.util.ConfigurationUtil;
 import cf.kayon.gui.FxUtil;
 import cf.kayon.gui.main.Main;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -33,18 +35,29 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.text.MessageFormat;
+import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import static java.text.MessageFormat.format;
 
 /**
  * Controller for the splash screen.
  */
 public class SplashController
 {
+    @NotNull
+    private static final Logger LOGGER = LoggerFactory.getLogger(SplashController.class);
+
     @FXML
     ResourceBundle resources;
 
@@ -58,19 +71,81 @@ public class SplashController
     Text text;
 
     /**
-     * Makes the application-wide connection to the H2 Database.
+     * Makes the application-wide connection to the database.
+     * <p>
+     * To be called on the Application Startup Task thread.
+     * Depends on {@link #loadConfig()}.
      *
+     * @param config The Config object to use to get the values (url, user, password) for connecting to the database.
+     * @return A Connection.
      * @since 0.0.1
      */
-    private void connectToDatabase()
+    @NotNull
+    private Connection connectToDatabase(@NotNull Config config)
     {
+        LOGGER.info("Connecting to database");
         try
         {
-            Connection connection = DriverManager.getConnection("jdbc:h2:./database");
-            ConnectionHolder.initializeConnection(connection);
+            Properties info = ConfigurationUtil.toProperties(config.getConfig("database.info").entrySet());
+            String url = config.getString("database.url");
+            LOGGER.info(" url: " + url);
+            LOGGER.info(" info: " + ConfigurationUtil
+                    .toStringPasswordAware(info, config.getInt("database.log.mode"), config.getString("database.log.algorithm"),
+                                           config.getString("database.log.charset"), config.getString("database.log.replacement")));
+            return DriverManager.getConnection(url, info);
         } catch (Throwable t)
         {
-            splashException("ConnectionFailure", t, 1);
+            splashException("ConnectionFailure", t, 3);
+            throw new RuntimeException(t);
+        }
+    }
+
+    /**
+     * Loads the configuration file(s).
+     * <p>
+     * To be called on the Application Startup Task thread.
+     *
+     * @return The loaded config.
+     * @since 0.2.0
+     */
+    @NotNull
+    private Config loadConfig()
+    {
+        LOGGER.info("Loading config");
+        try
+        {
+            return ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("Kayon")));
+        } catch (Throwable t)
+        {
+            splashException("ConfigLoadFailure", t, 1);
+            throw t;
+        }
+    }
+
+    /**
+     * Configures the application with the config loaded in {@link #loadConfig()}.
+     * <p>
+     * Depends on {@link #loadConfig()} and {@link #connectToDatabase(Config)}.
+     *
+     * @param config     The configuration to use.
+     * @param connection The connection to use.
+     * @since 0.2.0
+     */
+    private void configureApplication(@NotNull Connection connection, @NotNull Config config)
+    {
+        LOGGER.info("Configuring application");
+        try
+        {
+            FxUtil.context = new KayonContext(connection, config);
+            FxUtil.executor = new ThreadPoolExecutor(config.getInt("gui.executor.poolSize"),
+                                                     config.getInt("gui.executor.poolSize"),
+                                                     config.getDuration("gui.executor.keepAliveTime", TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS,
+                                                     new LinkedBlockingQueue<>());
+            FxUtil.executor.allowCoreThreadTimeOut(true);
+        } catch (Throwable t)
+        {
+            splashException("ApplicationConfigureFailure", t, 2);
+            throw t;
         }
     }
 
@@ -86,23 +161,19 @@ public class SplashController
      */
     private void splashException(String resourceBundlePackage, Throwable t, int exitStatus)
     {
-        t.printStackTrace(); // For advanced debugging, the splash does not show the stack, etc...
+        LOGGER.error("Splash screen exception occurred (resourceBundlePackage: " + resourceBundlePackage + ", exitStatus: " + exitStatus + ")", t);
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
 
-            String throwableClassFullName = t.getClass().getCanonicalName();
+            String className = t.getClass().getCanonicalName();
             String unLocalizedMessage = orNoMessage(t.getMessage());
 
-            alert.setTitle(MessageFormat.format(resources.getString("Error." + resourceBundlePackage + ".Title"),
-                                                throwableClassFullName, unLocalizedMessage));
-            alert.setHeaderText(MessageFormat.format(resources.getString("Error." + resourceBundlePackage + ".HeaderText"),
-                                                     throwableClassFullName, unLocalizedMessage));
-            alert.setContentText(MessageFormat.format(resources.getString("Error." + resourceBundlePackage + ".ContentText"),
-                                                      throwableClassFullName, unLocalizedMessage));
+            alert.setTitle(format(resources.getString("Error." + resourceBundlePackage + ".Title"), className, unLocalizedMessage));
+            alert.setHeaderText(format(resources.getString("Error." + resourceBundlePackage + ".HeaderText"), className, unLocalizedMessage));
+            alert.setContentText(format(resources.getString("Error." + resourceBundlePackage + ".ContentText"), className, unLocalizedMessage));
 
             Stage stage = (Stage) pane.getScene().getWindow();
             stage.setAlwaysOnTop(false);
-            FxUtil.initIcons(stage);
 
             alert.initOwner(pane.getScene().getWindow());
             alert.initModality(Modality.WINDOW_MODAL);
@@ -133,57 +204,77 @@ public class SplashController
 
     /**
      * Initializes the database structure.
+     * <p>
+     * Depends on {@link #configureApplication(Connection, Config)}.
      *
      * @since 0.0.1
      */
     private void initializeDatabaseStructure()
     {
-        Connection connection = ConnectionHolder.getConnection();
+        LOGGER.info("Initializing database structure");
         try
         {
-            NounSQLFactory.setupDatabaseForNouns(connection);
+            FxUtil.context.getNounSQLFactory().setupDatabaseForNouns();
+            FxUtil.context.getNounSQLFactory().compileStatements();
         } catch (Throwable t)
         {
-            splashException("StructureSetupFailure", t, 2);
+            splashException("StructureSetupFailure", t, 4);
+            throw new RuntimeException(t);
         }
     }
 
     /**
      * Starts the application.
      * <p>
-     * This method is to be called on the JavaFX application thread.
+     * This method does not have to be called on the JavaFX application thread, but it can be.
      *
      * @since 0.0.1
      */
     public void startApplication()
     {
+        LOGGER.info("Starting application");
         Task<Void> applicationStartTask = new Task<Void>()
         {
             @Override
             protected Void call() throws Exception
             {
                 Platform.runLater(() -> {
-                    updateProgress(0, 0);
+                    updateProgress(0, 5);
+                    updateMessage(resources.getString("LoadingConfig"));
+                });
+
+                Config config = loadConfig();
+
+                Platform.runLater(() -> {
+                    updateProgress(1, 5);
                     updateMessage(resources.getString("ConnectingToDatabase"));
                 });
 
-                connectToDatabase();
+                Connection connection = connectToDatabase(config);
 
                 Platform.runLater(() -> {
-                    updateProgress(1, 2);
+                    updateProgress(2, 5);
+                    updateMessage(resources.getString("ConfiguringApplication"));
+                });
+
+                configureApplication(connection, config);
+
+                Platform.runLater(() -> {
+                    updateProgress(3, 5);
                     updateMessage(resources.getString("InitializingDatabaseStructure"));
                 });
 
                 initializeDatabaseStructure();
 
                 Platform.runLater(() -> {
-                    updateProgress(2, 2);
+                    updateProgress(4, 5);
                     updateMessage(resources.getString("OpeningMainWindow"));
                 });
 
                 Platform.runLater(SplashController.this::openMainWindow);
 
                 Platform.runLater(pane.getScene().getWindow()::hide);
+                System.gc();
                 return null;
             }
         };
@@ -192,7 +283,7 @@ public class SplashController
         progress.progressProperty().bind(applicationStartTask.progressProperty());
         text.textProperty().bind(applicationStartTask.messageProperty());
 
-        Thread th = new Thread(applicationStartTask, "Application Start Task");
+        Thread th = new Thread(applicationStartTask, "Application Start Task"); // The first and last time of using new Thread() to execute a task
         th.start();
     }
 
@@ -205,6 +296,7 @@ public class SplashController
      */
     private void openMainWindow()
     {
+        LOGGER.info("Opening main window");
         Stage stage = new Stage();
         try
         {

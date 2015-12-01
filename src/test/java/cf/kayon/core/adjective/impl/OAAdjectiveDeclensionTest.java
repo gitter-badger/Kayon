@@ -20,7 +20,6 @@ package cf.kayon.core.adjective.impl;
 
 import cf.kayon.core.Count;
 import cf.kayon.core.adjective.AdjectiveForm;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,137 +37,34 @@ public class OAAdjectiveDeclensionTest
     @Test
     public void testCorrectDeclining() throws Exception
     {
-        AdjectiveDeclensionTestingUtil.testCorrectDeclining(OAAdjectiveDeclension.getInstance(), "bon",
-                                                            // Positive
-                                                            new ImmutablePair<>("bonus", true),
-                                                            new ImmutablePair<>("boni", true),
-                                                            new ImmutablePair<>("bono", true),
-                                                            new ImmutablePair<>("bonum", true),
-                                                            new ImmutablePair<>("bono", true),
-                                                            new ImmutablePair<>("bone", true),
+        AdjectiveDeclensionTestingUtil.testCorrectDeclining(
+                OAAdjectiveDeclension.getInstance(), "alb",
+                // Positive
+                "albus", "albī", "albō", "album", "albō", "albe",
+                "alba", "albae", "albae", "albam", "albā", "alba",
+                "album", "albī", "albō", "album", "albō", "album",
 
-                                                            new ImmutablePair<>("bona", true),
-                                                            new ImmutablePair<>("bonae", true),
-                                                            new ImmutablePair<>("bonae", true),
-                                                            new ImmutablePair<>("bonam", true),
-                                                            new ImmutablePair<>("bona", true),
-                                                            new ImmutablePair<>("bona", true),
+                "albī", "albōrum", "albīs", "albōs", "albīs", "albī",
+                "albae", "albārum", "albīs", "albās", "albīs", "albae",
+                "alba", "albōrum", "albīs", "alba", "albīs", "alba",
 
-                                                            new ImmutablePair<>("bonum", true),
-                                                            new ImmutablePair<>("boni", true),
-                                                            new ImmutablePair<>("bono", true),
-                                                            new ImmutablePair<>("bonum", true),
-                                                            new ImmutablePair<>("bono", true),
-                                                            new ImmutablePair<>("bonum", true),
+                // Comparative
+                "albior", "albioris", "albiorī", "albiorem", "albiore", "albior",
+                "albior", "albioris", "albiorī", "albiorem", "albiore", "albior",
+                "albius", "albioris", "albiorī", "albius", "albiore", "albius",
 
-                                                            new ImmutablePair<>("boni", true),
-                                                            new ImmutablePair<>("bonorum", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("bonos", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("boni", true),
+                "albiorēs", "albiorum", "albioribus", "albiorēs", "albioribus", "albiorēs",
+                "albiorēs", "albiorum", "albioribus", "albiorēs", "albioribus", "albiorēs",
+                "albiora", "albiorum", "albioribus", "albiora", "albioribus", "albiora",
 
-                                                            new ImmutablePair<>("bonae", true),
-                                                            new ImmutablePair<>("bonarum", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("bonas", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("bonae", true),
+                // Superlative
+                "albissimus", "albissimī", "albissimō", "albissimum", "albissimō", "albissime",
+                "albissima", "albissimae", "albissimae", "albissimam", "albissimā", "albissima",
+                "albissimum", "albissimī", "albissimō", "albissimum", "albissimō", "albissimum",
 
-                                                            new ImmutablePair<>("bona", true),
-                                                            new ImmutablePair<>("bonorum", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("bona", true),
-                                                            new ImmutablePair<>("bonis", true),
-                                                            new ImmutablePair<>("bona", true),
-
-                                                            // Comparative
-                                                            new ImmutablePair<>("bonior", true),
-                                                            new ImmutablePair<>("bonioris", true),
-                                                            new ImmutablePair<>("boniori", true),
-                                                            new ImmutablePair<>("boniorem", true),
-                                                            new ImmutablePair<>("boniore", true),
-                                                            new ImmutablePair<>("bonior", true),
-
-                                                            new ImmutablePair<>("bonior", true),
-                                                            new ImmutablePair<>("bonioris", true),
-                                                            new ImmutablePair<>("boniori", true),
-                                                            new ImmutablePair<>("boniorem", true),
-                                                            new ImmutablePair<>("boniore", true),
-                                                            new ImmutablePair<>("bonior", true),
-
-                                                            new ImmutablePair<>("bonius", true),
-                                                            new ImmutablePair<>("bonioris", true),
-                                                            new ImmutablePair<>("boniori", true),
-                                                            new ImmutablePair<>("bonius", true),
-                                                            new ImmutablePair<>("boniore", true),
-                                                            new ImmutablePair<>("bonius", true),
-
-                                                            new ImmutablePair<>("boniores", true),
-                                                            new ImmutablePair<>("boniorum", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniores", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniores", true),
-
-                                                            new ImmutablePair<>("boniores", true),
-                                                            new ImmutablePair<>("boniorum", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniores", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniores", true),
-
-                                                            new ImmutablePair<>("boniora", true),
-                                                            new ImmutablePair<>("boniorum", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniora", true),
-                                                            new ImmutablePair<>("bonioribus", true),
-                                                            new ImmutablePair<>("boniora", true),
-
-                                                            // Superlative
-                                                            new ImmutablePair<>("bonissimus", true),
-                                                            new ImmutablePair<>("bonissimi", true),
-                                                            new ImmutablePair<>("bonissimo", true),
-                                                            new ImmutablePair<>("bonissimum", true),
-                                                            new ImmutablePair<>("bonissimo", true),
-                                                            new ImmutablePair<>("bonissime", true),
-
-                                                            new ImmutablePair<>("bonissima", true),
-                                                            new ImmutablePair<>("bonissimae", true),
-                                                            new ImmutablePair<>("bonissimae", true),
-                                                            new ImmutablePair<>("bonissimam", true),
-                                                            new ImmutablePair<>("bonissima", true),
-                                                            new ImmutablePair<>("bonissima", true),
-
-                                                            new ImmutablePair<>("bonissimum", true),
-                                                            new ImmutablePair<>("bonissimi", true),
-                                                            new ImmutablePair<>("bonissimo", true),
-                                                            new ImmutablePair<>("bonissimum", true),
-                                                            new ImmutablePair<>("bonissimo", true),
-                                                            new ImmutablePair<>("bonissimum", true),
-
-
-                                                            new ImmutablePair<>("bonissimi", true),
-                                                            new ImmutablePair<>("bonissimorum", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissimos", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissimi", true),
-
-
-                                                            new ImmutablePair<>("bonissimae", true),
-                                                            new ImmutablePair<>("bonissimarum", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissimas", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissimae", true),
-
-                                                            new ImmutablePair<>("bonissima", true),
-                                                            new ImmutablePair<>("bonissimorum", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissima", true),
-                                                            new ImmutablePair<>("bonissimis", true),
-                                                            new ImmutablePair<>("bonissima", true));
+                "albissimī", "albissimōrum", "albissimīs", "albissimōs", "albissimīs", "albissimī",
+                "albissimae", "albissimārum", "albissimīs", "albissimās", "albissimīs", "albissimae",
+                "albissima", "albissimōrum", "albissimīs", "albissima", "albissimīs", "albissima");
     }
 
     @Test

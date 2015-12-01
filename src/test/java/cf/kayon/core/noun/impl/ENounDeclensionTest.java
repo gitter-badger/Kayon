@@ -19,49 +19,24 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Gender;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ENounDeclensionTest
 {
     @Test
     public void testENounDeclension() throws Exception
     {
-        NounDeclensionTestingUtil.testCorrectDeclining(ENounDeclension.getInstance(), Gender.FEMININE, "r",
-                                                       new ImmutablePair<>("rēs", true),
-                                                       new ImmutablePair<>("reī", true),
-                                                       new ImmutablePair<>("reī", true),
-                                                       new ImmutablePair<>("rem", true),
-                                                       new ImmutablePair<>("rē", true),
-                                                       new ImmutablePair<>("rēs", true),
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                ENounDeclension.getInstance(), Gender.FEMININE, "r",
+                "rēs", "reī", "reī", "rem", "rē", "rēs",
+                "rēs", "rērum", "rēbus", "rēs", "rēbus", "rēs");
 
-                                                       new ImmutablePair<>("rēs", true),
-                                                       new ImmutablePair<>("rērum", true),
-                                                       new ImmutablePair<>("rēbus", true),
-                                                       new ImmutablePair<>("rēs", true),
-                                                       new ImmutablePair<>("rēbus", true),
-                                                       new ImmutablePair<>("rēs", true)
-        );
-
-        NounDeclensionTestingUtil.testCorrectDeclining(ENounDeclension.getInstance(), Gender.MASCULINE, "di",
-                                                       new ImmutablePair<>("diēs", true),
-                                                       new ImmutablePair<>("diēī", true),
-                                                       new ImmutablePair<>("diēī", true),
-                                                       new ImmutablePair<>("diem", true),
-                                                       new ImmutablePair<>("diē", true),
-                                                       new ImmutablePair<>("diēs", true),
-
-                                                       new ImmutablePair<>("diēs", true),
-                                                       new ImmutablePair<>("diērum", true),
-                                                       new ImmutablePair<>("diēbus", true),
-                                                       new ImmutablePair<>("diēs", true),
-                                                       new ImmutablePair<>("diēbus", true),
-                                                       new ImmutablePair<>("diēs", true)
-        );
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                ENounDeclension.getInstance(), Gender.MASCULINE, "di",
+                "diēs", "diēī", "diēī", "diem", "diē", "diēs",
+                "diēs", "diērum", "diēbus", "diēs", "diēbus", "diēs");
 
         assertTrue(ENounDeclension.getInstance().allowsGender(Gender.MASCULINE));
         assertTrue(ENounDeclension.getInstance().allowsGender(Gender.FEMININE));

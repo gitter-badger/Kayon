@@ -18,9 +18,7 @@
 
 package cf.kayon.core.noun;
 
-import cf.kayon.core.Case;
-import cf.kayon.core.Count;
-import cf.kayon.core.Gender;
+import cf.kayon.core.*;
 import cf.kayon.core.noun.impl.ANounDeclension;
 import cf.kayon.core.noun.impl.ONounDeclension;
 import org.junit.Test;
@@ -52,8 +50,10 @@ public class NounEqualityTest
     @Test
     public void testUUIDEquality()
     {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun1 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 
@@ -65,8 +65,10 @@ public class NounEqualityTest
     @Test
     public void testTranslationEquality()
     {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun1 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 
@@ -78,8 +80,10 @@ public class NounEqualityTest
     @Test
     public void testNounDeclensionEquality()
     {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun1 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 
@@ -91,8 +95,10 @@ public class NounEqualityTest
     @Test
     public void testGenderEquality()
     {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun1 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 
@@ -104,8 +110,10 @@ public class NounEqualityTest
     @Test
     public void testRootWordEquality()
     {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun1 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 
@@ -115,10 +123,24 @@ public class NounEqualityTest
     }
 
     @Test
+    public void testContextEquality()
+    {
+        KayonContext context1 = TestContextUtil.newTestingContext();
+        KayonContext context2 = TestContextUtil.newTestingContext();
+        Noun noun1 = new Noun(context1, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context2, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+
+        assertNotSame(noun1, noun2);
+        assertBidirectionalNotEquals(noun1, noun2);
+    }
+
+    @Test
     public void testDefinedFormsEquality()
     {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun1 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 
@@ -131,8 +153,10 @@ public class NounEqualityTest
     @SuppressWarnings("unchecked")
     public void testDeclinedFormsEquality() throws Exception
     {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun1 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 
@@ -147,8 +171,10 @@ public class NounEqualityTest
     @Test
     public void testPropertyChangeSupportEquality()
     {
-        Noun noun1 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
-        Noun noun2 = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        KayonContext context = TestContextUtil.newTestingContext();
+
+        Noun noun1 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
+        Noun noun2 = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv");
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 

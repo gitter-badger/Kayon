@@ -76,7 +76,7 @@ public abstract class StandardNounDeclension implements NounDeclension
         @Nullable
         String selectedCorrectEndingsOrNull = this.selectCorrectEndingOrNull(nounForm, gender);
         if (selectedCorrectEndingsOrNull == null)
-            throw new FormingException();
+            throw new FormingException("Forming failure for form " + nounForm);
         return selectedCorrectEndingsOrNull;
     }
 
@@ -97,6 +97,6 @@ public abstract class StandardNounDeclension implements NounDeclension
     @Override
     public String determineRootWord(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException
     {
-        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(nounForm, gender));
+        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(nounForm, gender), nounForm);
     }
 }

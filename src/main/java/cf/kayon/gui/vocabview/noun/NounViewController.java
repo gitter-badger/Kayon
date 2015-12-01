@@ -18,14 +18,12 @@
 
 package cf.kayon.gui.vocabview.noun;
 
-import cf.kayon.core.Case;
+import cf.kayon.core.*;
 import cf.kayon.core.Count;
-import cf.kayon.core.Gender;
 import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.noun.impl.*;
-import cf.kayon.core.sql.ConnectionHolder;
 import cf.kayon.gui.FxUtil;
 import com.google.common.collect.*;
 import javafx.concurrent.Task;
@@ -56,27 +54,23 @@ import java.util.UUID;
  * @see NounView
  * @since 0.0.1
  */
-public class NounViewController
+public class NounViewController extends Contexed
 {
     /**
      * A static buffer of all noun declensions.
      *
      * @since 0.0.1
      */
-    private static final List<NounDeclension> nounDeclensions = Lists.newArrayList();
-
-    static
-    {
-        nounDeclensions.add(ANounDeclension.getInstance());
-        nounDeclensions.add(ONounDeclension.getInstance());
-        nounDeclensions.add(ORNounDeclension.getInstance());
-        nounDeclensions.add(ConsonantNounDeclension.getInstance());
-        nounDeclensions.add(INounDeclension.getInstance());
-        nounDeclensions.add(MixedNounDeclension.getInstance());
-        nounDeclensions.add(UNounDeclension.getInstance());
-        nounDeclensions.add(ENounDeclension.getInstance());
-        nounDeclensions.add(DummyNounDeclension.getInstance());
-    }
+    @NotNull
+    private static final List<NounDeclension> nounDeclensions = Lists.newArrayList(ONounDeclension.getInstance(),
+                                                                                   ONounDeclension.getInstance(),
+                                                                                   ORNounDeclension.getInstance(),
+                                                                                   ConsonantNounDeclension.getInstance(),
+                                                                                   INounDeclension.getInstance(),
+                                                                                   MixedNounDeclension.getInstance(),
+                                                                                   UNounDeclension.getInstance(),
+                                                                                   ENounDeclension.getInstance(),
+                                                                                   DummyNounDeclension.getInstance());
 
     @FXML
     ResourceBundle resources;
@@ -118,6 +112,16 @@ public class NounViewController
     @Nullable
     Noun currentBackingNoun;
 
+    protected NounViewController(@NotNull KayonContext context)
+    {
+        super(context);
+    }
+
+    public NounViewController()
+    {
+        this(FxUtil.context);
+    }
+
     /**
      * @see javafx.fxml.Initializable
      * @since 0.0.1
@@ -127,10 +131,9 @@ public class NounViewController
         /*
          * ComboBoxes
          */
-        genderComboBox.getItems().addAll(Gender.values());
         genderComboBox.setConverter(new StringConverter<Gender>()
         {
-            final BiMap<Gender, String> biMap = EnumHashBiMap.create(Gender.class);
+            private final BiMap<Gender, String> biMap = EnumHashBiMap.create(Gender.class);
 
             {
                 for (Gender gender : Gender.values())
@@ -149,10 +152,10 @@ public class NounViewController
                 return biMap.inverse().get(string);
             }
         });
-        declensionComboBox.getItems().setAll(nounDeclensions);
+        genderComboBox.getItems().addAll(Gender.values());
         declensionComboBox.setConverter(new StringConverter<NounDeclension>()
         {
-            final BiMap<NounDeclension, String> biMap = HashBiMap.create();
+            private final BiMap<NounDeclension, String> biMap = HashBiMap.create();
 
             {
                 for (NounDeclension current : NounViewController.nounDeclensions)
@@ -174,6 +177,7 @@ public class NounViewController
                 return biMap.inverse().get(string);
             }
         });
+        declensionComboBox.getItems().setAll(nounDeclensions);
 
         /*
          * Table elements
@@ -202,24 +206,11 @@ public class NounViewController
         this.declensionComboBox.valueProperty().addListener((observable, oldValue, newValue) -> declensionChange(newValue));
     }
 
-    /*
-     * <a href="http://stackoverflow.com/a/32384404/4464702">http://stackoverflow.com/a/32384404/4464702</a>
-     * <a href="https://bugs.openjdk.java.net/browse/JDK-8132897">https://bugs.openjdk.java.net/browse/JDK-8132897</a>
-     * <p>
-     * Not having this here causes an application-wide freeze
-     * on Windows 10 devices with touch (my computer is one of those)
-     */
-    //    @FXML
-    //    protected void requestFocus(MouseEvent event)
-    //    {
-    //        ((Node) event.getSource()).requestFocus();
-    //    }
-
     /**
      * Whether this NounView has already been initialized for the first time.
      * This is required to register the between refreshes persisting listeners.
      * <p>
-     * Difference to {@link #initializedWithNoun}: This also captures whether the stage property listener has been initialized.
+     * Difference to {@link #initializedWithNoun}: This also captures whether the stage property listener has been initialized. (see {@link #initializeWithNoun(Noun)})
      *
      * @since 0.0.1
      */
@@ -244,7 +235,7 @@ public class NounViewController
      * @throws IllegalStateException If this NounView has already been initialized.
      * @since 0.0.1
      */
-    public void initializeWithNoun(Noun noun)
+    public void initializeWithNoun(@Nullable Noun noun)
     {
         if (init)
             throw new IllegalStateException();
@@ -344,7 +335,7 @@ public class NounViewController
                 TextField currentTextField = currentTriple.getMiddle();
                 CheckBox currentCheckBox = currentTriple.getRight();
 
-                if (!initializedWithNoun) // For readability, place this here instead of .initialize() (saves iterations and map-gets)
+                if (!initializedWithNoun) // For performance and readability, place this here instead of .initialize() (saves iterations and map-gets)
                 {
                     FxUtil.bindInverse(currentText.visibleProperty(), currentCheckBox.selectedProperty());
                     currentTextField.visibleProperty().bind(currentCheckBox.selectedProperty());
@@ -411,9 +402,9 @@ public class NounViewController
             {
                 currentBackingNoun.removeDefinedForm(NounForm.of(caze, count));
             }
-            {
-                currentBackingNoun.setDefinedForm(NounForm.of(caze, count), tableElements.get(caze, count).getMiddle().getText());
-            }
+        {
+            currentBackingNoun.setDefinedForm(NounForm.of(caze, count), tableElements.get(caze, count).getMiddle().getText());
+        }
     }
 
     /**
@@ -479,7 +470,10 @@ public class NounViewController
     {
         if (currentBackingNoun == null && !rootWordTextBox.getText().isEmpty() && genderComboBox.getValue() != null)
         {
-            bindNoun(new Noun(declensionComboBox.getValue(), genderComboBox.getValue(), rootWordTextBox.getText()), true, true);
+            NounDeclension declension = declensionComboBox.getValue();
+            if (declension instanceof DummyNounDeclension)
+                declension = null;
+            bindNoun(new Noun(getContext(), declension, genderComboBox.getValue(), rootWordTextBox.getText()), true, true);
         }
     }
 
@@ -493,8 +487,9 @@ public class NounViewController
     private void save(@Nullable ActionEvent event)
     {
         bindNoun(this.currentBackingNoun, false, true);
-        Task<Void> nounSaveTask = new NounSaveTask(currentBackingNoun, ConnectionHolder.getConnection());
+        Task<Void> nounSaveTask = new NounSaveTask(currentBackingNoun); // just uses context of noun
         nounSaveTask.stateProperty().addListener((observable, oldValue, newValue) -> {
+            // Debugging shows that these event listeners get executed in the JavaFX application thread.
             switch (newValue)
             {
                 case FAILED:
@@ -509,7 +504,7 @@ public class NounViewController
                     break;
             }
         });
-        new Thread(nounSaveTask).start();
+        FxUtil.executor.execute(nounSaveTask);
         if (isWindowed)
             rootPane.getScene().getWindow().hide(); // Equivalent to Stage.close(), prevent unnecessary casts
     }

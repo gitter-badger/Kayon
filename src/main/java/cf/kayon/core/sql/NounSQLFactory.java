@@ -19,18 +19,23 @@
 package cf.kayon.core.sql;
 
 import cf.kayon.core.CaseHandling;
+import cf.kayon.core.Contexed;
 import cf.kayon.core.Gender;
+import cf.kayon.core.KayonContext;
 import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounDeclensionUtil;
 import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.util.StringUtil;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.typesafe.config.ConfigException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -38,201 +43,150 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Used to perform database actions with nouns.
+ * <p>
+ * Thread-safe.
  *
  * @author Ruben Anders
  * @since 0.0.1
  */
-public class NounSQLFactory
+public class NounSQLFactory extends Contexed
 {
-    /**
-     * The SQL string for inserting a {@link Noun} into a H2 database.
+    /*
+     * Thread safety notice
      *
-     * @since 0.0.1
+     * All set fields are final, guaranteeing memory visibility.
      */
-    public static final String SQL_INSERT = "MERGE INTO NOUNS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     /**
-     * The SQL string for querying a {@link Noun} by its {@link UUID} from a H2 database.
-     *
-     * @since 0.0.1
-     */
-    public static final String SQL_SINGLE_RECONSTRUCT = "SELECT * FROM NOUNS WHERE UUID = ?;";
-
-    /**
-     * The SQL string for querying {@link Noun}s by a finite form from a H2 database.
-     *
-     * @since 0.0.1
-     */
-    @SuppressWarnings("SqlResolve")
-    public static final String SQL_QUERY = "SELECT * FROM NOUNS WHERE " +
-                                           "CONCAT_WS('|', `NOMSG`, `GENSG`, `DATSG`, `ACCSG`, `ABLSG`, `VOCSG`, `NOMPL`, `GENPL`, `DATPL`, `ACCPL`, `ABLPL`, `VOCPL`, " +
-                                           "`NOMSGDEF`, `GENSGDEF`, `DATSGDEF`, `ACCSGDEF`, `ABLSGDEF`, `VOCSGDEF`, `NOMPLDEF`, `GENPLDEF`, `DATPLDEF`, `ACCPLDEF`, `ABLPLDEF`, `VOCPLDEF`) " +
-                                           "REGEXP ?;"; // Thanks http://stackoverflow.com/a/20834505/4464702
-
-    /**
-     * The SQL string for setting up a H2 database for noun operations.
-     *
-     * @since 0.0.1
-     */
-    public static final String SQL_SETUP = "CREATE TABLE IF NOT EXISTS NOUNS (" +
-                                           "ROOTWORD VARCHAR NOT NULL, " +
-                                           "UUID UUID PRIMARY KEY, " +
-                                           "GENDER TINYINT NOT NULL, " +
-                                           "NOUNDECLENSION VARCHAR, " +
-                                           "TRANSLATIONS OTHER NOT NULL, " +
-                                           "NOMSG VARCHAR, GENSG VARCHAR, DATSG VARCHAR, ACCSG VARCHAR, ABLSG VARCHAR, VOCSG VARCHAR, " +
-                                           "NOMPL VARCHAR, GENPL VARCHAR, DATPL VARCHAR, ACCPL VARCHAR, ABLPL VARCHAR, VOCPL VARCHAR, " +
-                                           "NOMSGDEF VARCHAR, GENSGDEF VARCHAR, DATSGDEF VARCHAR, ACCSGDEF VARCHAR, ABLSGDEF VARCHAR, VOCSGDEF VARCHAR, " +
-                                           "NOMPLDEF VARCHAR, GENPLDEF VARCHAR, DATPLDEF VARCHAR, ACCPLDEF VARCHAR, ABLPLDEF VARCHAR, VOCPLDEF VARCHAR);";
-
-    /**
-     * The buffer map. See {@link #doBuffer(Connection, SQLQueryType)} for more context.
-     *
-     * @see #doBuffer(Connection, SQLQueryType)
-     * @since 0.0.1
-     */
-    @NotNull
-    private static final Map<Connection, SQLBuffer> map = Maps.newHashMap(); // Prevents recompiling of PreparedStatements every time
-
-    /**
-     * This method is responsible for buffering {@link PreparedStatement}s for all {@code Connection}s this class had ever to deal with.
-     * This exists to prevent recompilation of SQL syntax every time a method is executed.
+     * Constructs a new instance.
      * <p>
-     * All {@link PreparedStatement}s are {@link #closeAll() being closed} on VM shutdown {@link Runtime#addShutdownHook(Thread) automatically}.
-     * <p>
-     * One may always clear the buffer (all {@link PreparedStatement}s are being closed in the same process) by invoking {@link #clearBuffer()}.
+     * All statements are retrieved from the config of the context at construct time. The statements are also compiled at construct time.
      *
-     * @param connection The connection to which to retreieve a buffered {@link PreparedStatement}.
-     * @param type       The type of SQL query.
-     * @return A {@link PreparedStatement}. Never {@code null}.
-     * @throws SQLException If there was an error when preparing the statements for the buffer.
-     * @see cf.kayon.core.sql.NounSQLFactory.SQLQueryType
-     * @see cf.kayon.core.sql.NounSQLFactory.SQLBuffer
-     * @since 0.0.1
+     * @param context The {@link KayonContext} for this instance.
+     * @since 0.2.0
      */
-    @NotNull
-    private static PreparedStatement doBuffer(Connection connection, SQLQueryType type) throws SQLException
+    public NounSQLFactory(@NotNull KayonContext context)
     {
-        checkNotNull(connection);
-        SQLBuffer buf = map.get(connection);
-        if (buf == null)
+        super(context);
+        insertSql = context.getConfig().getString("database.statements.insert");
+        querySql = context.getConfig().getString("database.statements.query");
+        setupSql = context.getConfig().getString("database.statements.setup");
+    }
+
+    /**
+     * Compiles the SQL statements into PreparedStatement objects. Required for later calls to {@link #queryNouns(String)} or {@link #saveNounToDatabase(Noun)}.
+     * <p>
+     * <strong>This method depends on {@link #setupDatabaseForNouns()}.</strong>
+     *
+     * @since 0.2.0
+     */
+    public void compileStatements()
+    {
+        String currentPath = null;
+        try
         {
-            buf = new SQLBuffer(connection.prepareStatement(SQL_INSERT),
-                                connection.prepareStatement(SQL_SINGLE_RECONSTRUCT),
-                                connection.prepareStatement(SQL_QUERY));
-            map.put(connection, buf);
+            currentPath = "database.statements.insert";
+            insertStatement = getContext().getConnection().prepareStatement(insertSql);
+            currentPath = "database.statements.query";
+            queryStatement = getContext().getConnection().prepareStatement(querySql);
+        } catch (SQLException e)
+        {
+            throw new ConfigException.BadValue(getContext().getConfig().origin(), currentPath, "See cause below!", e);
         }
-        return buf.getFor(type);
     }
+
 
     /**
-     * Clears the buffer created by {@link #doBuffer(Connection, SQLQueryType)}.
-     * <p>
-     * All buffered {@link PreparedStatement}s are being closed and afterwards removed from the buffer.
+     * The SQL string for inserting a {@link Noun} into a database.
      *
-     * @see #doBuffer(Connection, SQLQueryType)
      * @since 0.0.1
      */
-    public static void clearBuffer()
-    {
-        closeAll();
-        map.clear();
-    }
+    private final String insertSql;
 
     /**
-     * Closes all {@link PreparedStatement}s in the buffer.
+     * The SQL statement for inserting a {@link Noun} into a database.
      *
-     * @see #doBuffer(Connection, SQLQueryType)
+     * @since 0.2.0
+     */
+    private volatile PreparedStatement insertStatement;
+
+    /**
+     * The SQL string for querying {@link Noun}s by a finite form from a database.
+     *
      * @since 0.0.1
      */
-    private static void closeAll()
-    {
-        map.forEach((connection, sqlBuffer) -> {
-            for (SQLQueryType sqlQueryType : SQLQueryType.values())
-            {
-                PreparedStatement statement = sqlBuffer.getFor(sqlQueryType);
-                try
-                {
-                    statement.close();
-                } catch (SQLException ignored) {}
-            }
-        });
-    }
+    private final String querySql;
 
-    static
-    {
-        Runtime.getRuntime().addShutdownHook(new Thread(NounSQLFactory::closeAll, "NounSQLFactory-closer"));
-    }
+    /**
+     * The SQL statement for querying {@link Noun}s by a finite form from a database.
+     *
+     * @since 0.2.0
+     */
+    private volatile PreparedStatement queryStatement;
+
+    /**
+     * The SQL string for setting up a database for noun operations.
+     *
+     * @since 0.0.1
+     */
+    private final String setupSql;
+
+    /*
+     * Thread safety notice
+     *
+     * Method is synchronized on the connection object.
+     */
 
     /**
      * Saves a noun to the database.
      * <p>
      * If the specified noun did not have a UUID before, it gets a random UUID assigned.
-     * <p>
-     * Note: This method is {@link #doBuffer(Connection, SQLQueryType) buffered}.
      *
-     * @param connection The database connection to save to.
-     * @param noun       The noun to save.
+     * @param noun The noun to save.
      * @throws SQLException If there are any issues when executing the SQL update against the database connection.
      * @since 0.0.1
      */
-    public static void saveNounToDatabase(Connection connection, Noun noun) throws SQLException
+    public void saveNounToDatabase(Noun noun) throws SQLException
     {
-        PreparedStatement insertStatement = doBuffer(connection, SQLQueryType.SQL_INSERT);
-        insertStatement.setString(1, noun.getRootWord());
-        UUID uuid = noun.getUuid();
-        if (uuid == null)
+        synchronized (getContext().getConnection())
         {
-            uuid = UUID.randomUUID();
-            noun.initializeUuid(uuid);
-        }
-        insertStatement.setObject(2, uuid.toString());
-        insertStatement.setByte(3, SQLUtil.idForGender(noun.getGender()));
-        if (noun.getNounDeclension() != null)
-            insertStatement.setString(4, noun.getNounDeclension().getClass().getName()); // Full class name
-        else
-            insertStatement.setString(4, null);
-        insertStatement.setObject(5, noun.getTranslations());
-        int counter = 6;
-        for (NounForm nounForm : NounForm.values())
-        {
-            @Nullable
-            String formOrNull = noun.getForm(nounForm);
-            @Nullable
-            String definedForm = noun.getDefinedForm(nounForm);
+            insertStatement.setString(1, noun.getRootWord());
+            UUID uuid = noun.getUuid();
+            if (uuid == null)
+            {
+                uuid = UUID.randomUUID();
+                noun.initializeUuid(uuid);
+            }
+            insertStatement.setObject(2, uuid.toString());
+            insertStatement.setByte(3, SQLUtil.idForGender(noun.getGender()));
+            if (noun.getNounDeclension() != null)
+                insertStatement.setString(4, noun.getNounDeclension().getClass().getName()); // Full class name
+            else
+                insertStatement.setString(4, null);
+            insertStatement.setObject(5, noun.getTranslations());
+            int counter = 6;
+            for (NounForm nounForm : NounForm.values())
+            {
+                @Nullable
+                String formOrNull = noun.getForm(nounForm);
+                @Nullable
+                String definedForm = noun.getDefinedForm(nounForm);
 
-            insertStatement.setString(counter + 12, definedForm);
-            insertStatement.setString(counter++, formOrNull);
+                insertStatement.setString(counter + 12, definedForm);
+                insertStatement.setString(counter++, formOrNull);
+            }
+            insertStatement.executeUpdate();
         }
-        insertStatement.executeUpdate();
     }
 
-    /**
-     * Reconstructs a noun with the given {@link UUID} from the database.
-     * <p>
-     * Note: This method is {@link #doBuffer(Connection, SQLQueryType) buffered}.
+    /*
+     * Thread safety notice
      *
-     * @param connection   The connection to the database.
-     * @param uuidToSelect The UUID of the noun to reconstruct.
-     * @return A {@link Noun} (as specified by {@link #constructNounFromResultSet(ResultSet)}. {@code null} if no such noun could be found.
-     * @throws SQLException         If there were any errors executing the SQL query against the connection.
-     * @throws NullPointerException If any of the arguments is {@code null}.
-     * @since 0.0.1
+     * Method is synchronized on the connection object.
+     *
+     * Because ResultSets are still backed by the connection and are not just collections that hold everything in memory,
+     * locking is required.
      */
-    @Nullable
-    public static Noun constructNounFromDatabase(@NotNull Connection connection, @NotNull UUID uuidToSelect) throws SQLException
-    {
-        checkNotNull(uuidToSelect);
-        PreparedStatement singleReconstructStatement = doBuffer(connection, SQLQueryType.SQL_SINGLE_RECONSTRUCT); // delegates @NotNull for connection
-        singleReconstructStatement.setObject(1, uuidToSelect);
-        try (ResultSet results = singleReconstructStatement.executeQuery())
-        {
-            if (!results.next())
-                return null;
-
-            return constructNounFromResultSet(results);
-        }
-    }
 
     /**
      * Constructs a {@link Noun} out of the currently selected row of a {@link ResultSet}.
@@ -248,36 +202,42 @@ public class NounSQLFactory
     @NotNull
     @SuppressWarnings("unchecked")
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public static Noun constructNounFromResultSet(@NotNull ResultSet resultSet) throws SQLException
+    public Noun constructNounFromResultSet(@NotNull ResultSet resultSet) throws SQLException
     {
-        @NotNull
-        String rootWord = resultSet.getString(1);
-        @NotNull
-        UUID uuid = (UUID) resultSet.getObject(2);
-        @NotNull
-        Gender gender = SQLUtil.genderForId(resultSet.getByte(3));
-        NounDeclension nounDeclension = NounDeclensionUtil.forName(resultSet.getString(4));
-        Map<Locale, String> translations = (Map<Locale, String>) resultSet.getObject(5);
-        Noun noun = new Noun(nounDeclension, gender, rootWord);
-        noun.setTranslations(translations);
-        noun.initializeUuid(uuid);
-        int counter = 18;
-        for (NounForm nounForm : NounForm.values())
+        synchronized (getContext().getConnection())
         {
-            @Nullable
-            String formOrNull = resultSet.getString(counter++);
-            noun.setDefinedForm(nounForm, formOrNull);
+            @NotNull
+            String rootWord = resultSet.getString(1);
+            @NotNull
+            UUID uuid = (UUID) resultSet.getObject(2);
+            @NotNull
+            Gender gender = SQLUtil.genderForId(resultSet.getByte(3));
+            NounDeclension nounDeclension = NounDeclensionUtil.forName(resultSet.getString(4));
+            Map<Locale, String> translations = (Map<Locale, String>) resultSet.getObject(5);
+            Noun noun = new Noun(getContext(), nounDeclension, gender, rootWord);
+            noun.setTranslations(translations);
+            noun.initializeUuid(uuid);
+            int counter = 18;
+            for (NounForm nounForm : NounForm.values())
+            {
+                @Nullable
+                String formOrNull = resultSet.getString(counter++);
+                noun.setDefinedForm(nounForm, formOrNull);
+            }
+            return noun;
         }
-        return noun;
     }
+
+    /*
+     * Thread safety notice
+     *
+     * Method is synchronized on the connection object.
+     */
 
     /**
      * Gets a {@link Set} of {@link Noun}s out of a database connection by the specified form.
      * Searches in the table {@code NOUNS}.
-     * <p>
-     * Note: This method is {@link #doBuffer(Connection, SQLQueryType) buffered}.
      *
-     * @param connection   The connection to use.
      * @param formToSearch The form to search. May be any kind of special form. Should not contain uppercase characters.
      * @return A {@link Set} of {@link Noun}s. May be empty if no nouns have been found.
      * @throws SQLException         If a error in executing the query against the database connection occurs.
@@ -286,19 +246,25 @@ public class NounSQLFactory
      */
     @NotNull
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public static List<Noun> queryNouns(@NotNull Connection connection, @NotNull String formToSearch) throws SQLException
+    public List<Noun> queryNouns(@NotNull String formToSearch) throws SQLException
     {
-        return queryNounsFromRegex(connection, StringUtil.anySpecialRegex(formToSearch));
+        synchronized (getContext().getConnection())
+        {
+            return queryNounsFromRegex(StringUtil.anySpecialRegex(formToSearch));
+        }
     }
+
+    /*
+     * Thread safety notice
+     *
+     * Method is synchronized on the connection object. (only for the time of database operations)
+     */
 
     /**
      * Gets a {@link Set} of {@link Noun}s out of a database connection by the specified form.
      * Searches in the table {@code NOUNS}.
-     * <p>
-     * Note: This method is {@link #doBuffer(Connection, SQLQueryType) buffered}.
      *
-     * @param connection The connection to use.
-     * @param regex      The form's regular expression as returned by {@link StringUtil#anySpecialRegex(String)}.
+     * @param regex The form's regular expression as returned by {@link StringUtil#anySpecialRegex(String)}.
      * @return A {@link Set} of {@link Noun}s. May be empty if no nouns have been found.
      * @throws SQLException         If a error in executing the query occurs.
      * @throws NullPointerException If {@code connection} or {@code regex} is {@code null}.
@@ -306,164 +272,58 @@ public class NounSQLFactory
      */
     @NotNull
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    private static List<Noun> queryNounsFromRegex(@NotNull Connection connection, @NotNull String regex) throws SQLException
+    private List<Noun> queryNounsFromRegex(@NotNull String regex) throws SQLException
     {
-        checkNotNull(regex);
-        PreparedStatement queryStatement = doBuffer(connection, SQLQueryType.SQL_QUERY);
-        ArrayList<Noun> list = Lists.newArrayList();
-        queryStatement.setString(1, regex);
-        Pattern pattern = Pattern.compile(regex);
-        try (ResultSet results = queryStatement.executeQuery())
-        {
-            while (results.next())
-            {
-                Noun currentResult = constructNounFromResultSet(results);
-                for (NounForm nounForm : NounForm.values())
-                {
-                    String form = currentResult.getForm(nounForm);
-                    if (form != null && pattern.matcher(form).matches()) // If a matching form has been found, short-circuit
-                    {
-                        list.add(currentResult);
-                        break; // break out of nested loop
-                    }
-                }
 
+        checkNotNull(regex);
+        ArrayList<Noun> list = Lists.newArrayList();
+        synchronized (getContext().getConnection())
+        {
+            queryStatement.setString(1, regex);
+            Pattern pattern = Pattern.compile(regex);
+            try (ResultSet results = queryStatement.executeQuery())
+            {
+                while (results.next())
+                {
+                    Noun currentResult = constructNounFromResultSet(results);
+                    for (NounForm nounForm : NounForm.values())
+                    {
+                        String form = currentResult.getForm(nounForm);
+                        if (form != null && pattern.matcher(form).matches()) // If a matching form has been found, short-circuit
+                        {
+                            list.add(currentResult);
+                            break; // break out of nested loop
+                        }
+                    }
+
+                }
             }
+            return list;
         }
-        return list;
     }
 
+    /*
+     * Thread safety notice
+     *
+     * Method is synchronized on the connection object.
+     */
 
     /**
      * Makes sure that the {@code NOUNS} table exists in the specified connection to a database.
      * <p>
      * If the {@code NOUNS} table already exists, nothing is changed.
-     * <p>
-     * Note: No {@link #doBuffer(Connection, SQLQueryType) buffering} is performed, since a) this method does not use a {@link PreparedStatement} and
-     * b) this method is expected to be executed against a connection only once.
      *
-     * @param connection The connection to the database.
      * @throws SQLException         If there were any errors when executing the SQL statements.
      * @throws NullPointerException If the {@code connection} is null.
      * @since 0.0.1
      */
-    public static void setupDatabaseForNouns(@NotNull Connection connection) throws SQLException
+    public void setupDatabaseForNouns() throws SQLException
     {
-        try (Statement statement = connection.createStatement())
+        synchronized (getContext().getConnection())
         {
-            statement.execute(SQL_SETUP);
-        }
-    }
-
-    /**
-     * Defines one of the possible SQL actions to be performed.
-     *
-     * @author Ruben Anders
-     * @see NounSQLFactory#doBuffer(Connection, SQLQueryType)
-     * @see cf.kayon.core.sql.NounSQLFactory.SQLBuffer
-     * @since 0.0.1
-     */
-    private enum SQLQueryType
-    {
-        /**
-         * Represents the SQL statement for inserting a new noun or replacing a existing noun with the same {@link UUID}.
-         *
-         * @since 0.0.1
-         */
-        SQL_INSERT,
-        /**
-         * Represents the SQL statement for retrieving a noun by its {@link UUID}.
-         *
-         * @since 0.0.1
-         */
-        SQL_SINGLE_RECONSTRUCT,
-        /**
-         * Represents the SQL statement for querying nouns by a specified regular expression (to match any special forms of the noun).
-         *
-         * @see StringUtil#anySpecialRegex(String)
-         * @see NounSQLFactory#queryNouns(Connection, String)
-         * @see NounSQLFactory#queryNounsFromRegex(Connection, String)
-         * @since 0.0.1
-         */
-        SQL_QUERY
-    }
-
-    /**
-     * Buffers all SQL queries for a single connection.
-     *
-     * @author Ruben Anders
-     * @see NounSQLFactory#doBuffer(Connection, SQLQueryType)
-     * @see cf.kayon.core.sql.NounSQLFactory.SQLQueryType
-     * @since 0.0.1
-     */
-    private static class SQLBuffer
-    {
-        /**
-         * The {@link cf.kayon.core.sql.NounSQLFactory.SQLQueryType#SQL_INSERT SQL_INSERT} statement.
-         *
-         * @since 0.0.1
-         */
-        @NotNull
-        private final PreparedStatement SQL_INSERT;
-
-        /**
-         * The {@link cf.kayon.core.sql.NounSQLFactory.SQLQueryType#SQL_SINGLE_RECONSTRUCT SQL_SINGLE_RECONSTRUCT} statement.
-         *
-         * @since 0.0.1
-         */
-        @NotNull
-        private final PreparedStatement SQL_SINGLE_RECONSTRUCT;
-
-        /**
-         * The {@link cf.kayon.core.sql.NounSQLFactory.SQLQueryType#SQL_QUERY SQL_QUERY} statement.
-         *
-         * @since 0.0.1
-         */
-        @NotNull
-        private final PreparedStatement SQL_QUERY;
-
-        /**
-         * Constructs a new SQLBuffer;
-         *
-         * @param SQL_INSERT             The {@link cf.kayon.core.sql.NounSQLFactory.SQLQueryType#SQL_INSERT SQL_INSERT} {@link PreparedStatement}.
-         * @param SQL_SINGLE_RECONSTRUCT The {@link cf.kayon.core.sql.NounSQLFactory.SQLQueryType#SQL_SINGLE_RECONSTRUCT SQL_SINGLE_RECONSTRUCT} {@link PreparedStatement}.
-         * @param SQL_QUERY              The {@link cf.kayon.core.sql.NounSQLFactory.SQLQueryType#SQL_QUERY SQL_QUERY} {@link PreparedStatement}.
-         * @throws NullPointerException If any of the arguments is {@code null}.
-         * @since 0.0.1
-         */
-        public SQLBuffer(@NotNull PreparedStatement SQL_INSERT, @NotNull PreparedStatement SQL_SINGLE_RECONSTRUCT, @NotNull PreparedStatement SQL_QUERY)
-        {
-            checkNotNull(SQL_INSERT);
-            checkNotNull(SQL_SINGLE_RECONSTRUCT);
-            checkNotNull(SQL_QUERY);
-            this.SQL_INSERT = SQL_INSERT;
-            this.SQL_SINGLE_RECONSTRUCT = SQL_SINGLE_RECONSTRUCT;
-            this.SQL_QUERY = SQL_QUERY;
-        }
-
-        /**
-         * Returns a {@link PreparedStatement} for a {@link cf.kayon.core.sql.NounSQLFactory.SQLQueryType}.
-         *
-         * @param queryType The query type.
-         * @return A {@link PreparedStatement}. Never {@code null}.
-         * @throws NullPointerException If {@code queryType} is {@code null}.
-         * @throws Error                If the specified enum value is unknown (Possible if class versions mismatch).
-         * @since 0.0.1
-         */
-        @NotNull
-        public PreparedStatement getFor(@NotNull SQLQueryType queryType)
-        {
-            checkNotNull(queryType);
-            switch (queryType)
+            try (Statement statement = getContext().getConnection().createStatement())
             {
-                case SQL_INSERT:
-                    return SQL_INSERT;
-                case SQL_SINGLE_RECONSTRUCT:
-                    return SQL_SINGLE_RECONSTRUCT;
-                case SQL_QUERY:
-                    return SQL_QUERY;
-                default:
-                    throw new Error("Invalid enum value");
+                statement.execute(setupSql);
             }
         }
     }

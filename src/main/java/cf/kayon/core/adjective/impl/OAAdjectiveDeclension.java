@@ -57,9 +57,14 @@ public class OAAdjectiveDeclension extends StandardAdjectiveDeclension
      */
     @NotNull
     private final Table<Gender, Count, Map<Case, String>> positiveEndingsTable =
-            AdjectiveDeclensionUtil.endingsTable("us", "ī", "ō", "um", "ō", "e", "ī", "ōrum", "īs", "ōs", "īs", "ī",
-                                                 "a", "ae", "ae", "am", "ā", "a", "ae", "ārum", "īs", "ās", "īs", "ae",
-                                                 "um", "ī", "ō", "um", "ō", "um", "a", "ōrum", "īs", "a", "īs", "a");
+            AdjectiveDeclensionUtil.endingsTable("us", "ī", "ō", "um", "ō", "e",
+                                                 "ī", "ōrum", "īs", "ōs", "īs", "ī",
+
+                                                 "a", "ae", "ae", "am", "ā", "a",
+                                                 "ae", "ārum", "īs", "ās", "īs", "ae",
+
+                                                 "um", "ī", "ō", "um", "ō", "um",
+                                                 "a", "ōrum", "īs", "a", "īs", "a");
 
     /**
      * The private constructor to never let anybody construct this class.

@@ -80,8 +80,8 @@ public class ENounDeclension extends StandardNounDeclension
     {
         checkNotNull(nounForm);
         checkNotNull(gender);
-        if (nounForm.getCount() == Count.SINGULAR && (nounForm.getCase() == Case.GENITIVE || nounForm.getCase() == Case.DATIVE))
-            return "ēī";
+        //        if (nounForm.getCount() == Count.SINGULAR && (nounForm.getCase() == Case.GENITIVE || nounForm.getCase() == Case.DATIVE))
+        //            return "ēī";
         return endings.get(nounForm);
     }
 

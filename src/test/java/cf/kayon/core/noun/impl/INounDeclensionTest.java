@@ -19,7 +19,6 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Gender;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
 import static org.junit.Assert.assertSame;
@@ -30,37 +29,15 @@ public class INounDeclensionTest
     @Test
     public void testINounDeclension() throws Exception
     {
-        NounDeclensionTestingUtil.testCorrectDeclining(INounDeclension.getInstance(), Gender.FEMININE, "dent",
-                                                       new ImmutablePair<>("dēns", false),
-                                                       new ImmutablePair<>("dentis", true),
-                                                       new ImmutablePair<>("dentī", true),
-                                                       new ImmutablePair<>("dentem", true),
-                                                       new ImmutablePair<>("dente", true),
-                                                       new ImmutablePair<>("dēns", false),
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                INounDeclension.getInstance(), Gender.FEMININE, "dent",
+                "dēns", false, "dentis", "dentī", "dentem", "dente", "dēns", false,
+                "dentēs", "dentium", "dentibus", "dentēs", "dentibus", "dentēs");
 
-                                                       new ImmutablePair<>("dentēs", true),
-                                                       new ImmutablePair<>("dentium", true),
-                                                       new ImmutablePair<>("dentibus", true),
-                                                       new ImmutablePair<>("dentēs", true),
-                                                       new ImmutablePair<>("dentibus", true),
-                                                       new ImmutablePair<>("dentēs", true)
-        );
-
-        NounDeclensionTestingUtil.testCorrectDeclining(INounDeclension.getInstance(), Gender.NEUTER, "mar",
-                                                       new ImmutablePair<>("mare", false),
-                                                       new ImmutablePair<>("maris", true),
-                                                       new ImmutablePair<>("marī", true),
-                                                       new ImmutablePair<>("mare", false),
-                                                       new ImmutablePair<>("marī", true),
-                                                       new ImmutablePair<>("mare", false),
-
-                                                       new ImmutablePair<>("maria", true),
-                                                       new ImmutablePair<>("marium", true),
-                                                       new ImmutablePair<>("maribus", true),
-                                                       new ImmutablePair<>("maria", true),
-                                                       new ImmutablePair<>("maribus", true),
-                                                       new ImmutablePair<>("maria", true)
-        );
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                INounDeclension.getInstance(), Gender.NEUTER, "mar",
+                "mare", false, "maris", "marī", "mare", false, "marī", "mare", false,
+                "maria", "marium", "maribus", "maria", "maribus", "maria");
 
         assertTrue(INounDeclension.getInstance().allowsGender(Gender.MASCULINE));
         assertTrue(INounDeclension.getInstance().allowsGender(Gender.FEMININE));

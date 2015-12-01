@@ -19,7 +19,6 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Gender;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
 import static org.junit.Assert.assertSame;
@@ -32,52 +31,16 @@ public class UNounDeclensionTest
     public void testUNounDeclension() throws Exception
     {
         NounDeclensionTestingUtil.testCorrectDeclining(UNounDeclension.getInstance(), Gender.MASCULINE, "port",
-                                                       new ImmutablePair<>("portus", true),
-                                                       new ImmutablePair<>("portūs", true),
-                                                       new ImmutablePair<>("portuī", true),
-                                                       new ImmutablePair<>("portum", true),
-                                                       new ImmutablePair<>("portū", true),
-                                                       new ImmutablePair<>("portus", true),
-
-                                                       new ImmutablePair<>("portūs", true),
-                                                       new ImmutablePair<>("portuum", true),
-                                                       new ImmutablePair<>("portibus", true),
-                                                       new ImmutablePair<>("portūs", true),
-                                                       new ImmutablePair<>("portibus", true),
-                                                       new ImmutablePair<>("portūs", true)
-        );
+                                                       "portus", "portūs", "portuī", "portum", "portū", "portus",
+                                                       "portūs", "portuum", "portibus", "portūs", "portibus", "portūs");
 
         NounDeclensionTestingUtil.testCorrectDeclining(UNounDeclension.getInstance(), Gender.FEMININE, "man",
-                                                       new ImmutablePair<>("manus", true),
-                                                       new ImmutablePair<>("manūs", true),
-                                                       new ImmutablePair<>("manuī", true),
-                                                       new ImmutablePair<>("manum", true),
-                                                       new ImmutablePair<>("manū", true),
-                                                       new ImmutablePair<>("manus", true),
-
-                                                       new ImmutablePair<>("manūs", true),
-                                                       new ImmutablePair<>("manuum", true),
-                                                       new ImmutablePair<>("manibus", true),
-                                                       new ImmutablePair<>("manūs", true),
-                                                       new ImmutablePair<>("manibus", true),
-                                                       new ImmutablePair<>("manūs", true)
-        );
+                                                       "manus", "manūs", "manuī", "manum", "manū", "manus",
+                                                       "manūs", "manuum", "manibus", "manūs", "manibus", "manūs");
 
         NounDeclensionTestingUtil.testCorrectDeclining(UNounDeclension.getInstance(), Gender.NEUTER, "corn",
-                                                       new ImmutablePair<>("cornū", true),
-                                                       new ImmutablePair<>("cornūs", true),
-                                                       new ImmutablePair<>("cornū", true),
-                                                       new ImmutablePair<>("cornū", true),
-                                                       new ImmutablePair<>("cornū", true),
-                                                       new ImmutablePair<>("cornū", true),
-
-                                                       new ImmutablePair<>("cornua", true),
-                                                       new ImmutablePair<>("cornuum", true),
-                                                       new ImmutablePair<>("cornibus", true),
-                                                       new ImmutablePair<>("cornua", true),
-                                                       new ImmutablePair<>("cornibus", true),
-                                                       new ImmutablePair<>("cornua", true)
-        );
+                                                       "cornū", "cornūs", "cornū", "cornū", "cornū", "cornū",
+                                                       "cornua", "cornuum", "cornibus", "cornua", "cornibus", "cornua");
 
         assertTrue(UNounDeclension.getInstance().allowsGender(Gender.MASCULINE));
         assertTrue(UNounDeclension.getInstance().allowsGender(Gender.FEMININE));

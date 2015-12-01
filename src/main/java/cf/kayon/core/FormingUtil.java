@@ -26,8 +26,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class FormingUtil
 {
+    // Object is AdjectiveForm or NounForm (for exception message)
     @NotNull
-    public static String determineRootWord(@NotNull String declinedForm, @NotNull String ending) throws FormingException
+    public static String determineRootWord(@NotNull String declinedForm, @NotNull String ending, @NotNull Object form) throws FormingException
     {
         checkNotNull(declinedForm);
         checkNotNull(ending);
@@ -37,7 +38,7 @@ public class FormingUtil
         @Nullable
         String rootWordOrNull = StringUtil.removeVeryLastOrNull(StringUtil.unSpecialString(declinedForm), declinedForm, StringUtil.unSpecialString(ending));
         if (rootWordOrNull == null)
-            throw new FormingException();
+            throw new FormingException("Forming failure for form " + form);
 
         return rootWordOrNull;
     }

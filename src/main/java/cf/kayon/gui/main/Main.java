@@ -18,7 +18,6 @@
 
 package cf.kayon.gui.main;
 
-import cf.kayon.core.util.KayonReference;
 import cf.kayon.gui.FxUtil;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -104,7 +103,7 @@ public class Main
         checkNotNull(stage);
         FxUtil.initIcons(stage);
         Pair<Scene, MainController> pair = createNewScene();
-        stage.setTitle("Kayon " + KayonReference.getVersion() + " (b" + KayonReference.getBuild() + ")");
+        stage.setTitle("Kayon " + FxUtil.context.getVersion() + " (b" + FxUtil.context.getBuild() + ")");
         stage.setScene(pair.getLeft());
         return pair.getRight();
     }

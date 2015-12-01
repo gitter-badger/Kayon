@@ -20,7 +20,7 @@ package cf.kayon.gui.main;
 
 import cf.kayon.core.CaseHandling;
 import cf.kayon.core.Vocab;
-import cf.kayon.core.sql.ConnectionHolder;
+import cf.kayon.gui.FxUtil;
 import cf.kayon.gui.vocabview.noun.NounView;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -33,13 +33,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Controls the main view.
@@ -50,6 +51,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class MainController
 {
+    @NotNull
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainController.class);
 
     /**
      * The main grid pane.
@@ -98,8 +101,9 @@ public class MainController
      * @since 0.0.1
      */
     @FXML
-    private void handleButtonPress(ActionEvent e)
+    private void search(ActionEvent e)
     {
+        LOGGER.info("Search request received");
         progressIndicator.setVisible(true);
         searchButton.setVisible(false);
         searchField.setDisable(true);
@@ -118,7 +122,7 @@ public class MainController
     }
 
     /**
-     * Queries vocab from the database. Triggered by a enter press or a button click.
+     * Queries vocab from the database. Triggered by an enter press or a button click.
      * <p>
      * Handles both uppercase and lowercase characters.
      *
@@ -128,7 +132,8 @@ public class MainController
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
     private void queryVocab(@NotNull String searchString)
     {
-        VocabTask vocabTask = new VocabTask(searchString, ConnectionHolder.getConnection());
+        LOGGER.info("Querying for " + searchString);
+        VocabTask vocabTask = new VocabTask(FxUtil.context, searchString);
         vocabTask.stateProperty().addListener((observable, oldValue, newValue) -> {
             switch (newValue)
             {
@@ -146,7 +151,7 @@ public class MainController
                     break;
             }
         });
-        new Thread(vocabTask).start();
+        FxUtil.executor.execute(vocabTask);
     }
 
     /**
@@ -157,21 +162,26 @@ public class MainController
      */
     private void constructNodes(List<Vocab> serviceResult)
     {
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(4, 16, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        LOGGER.info("Done Querying vocab, constructing JavaFX nodes");
+
         CountDownLatch latch = new CountDownLatch(serviceResult.size());
-        for (Vocab vocab : serviceResult)
+        try
         {
-            NodeTask task = new NodeTask(vocab, vBox, latch);
-            threadPoolExecutor.execute(task);
+            FxUtil.executor.invokeAll(serviceResult.stream()
+                                                   .map(v -> (Callable<Void>) () -> new NodeTask(v, vBox, latch).call())
+                                                   .collect(Collectors.toList())); // Convert vocab to callables
+        } catch (InterruptedException e)
+        {
+            LOGGER.warn("Reconstruction of nodes was interrupted?!", e);
         }
-        threadPoolExecutor.shutdown();
-        new Thread(() -> {
+
+        FxUtil.executor.execute(() -> {
             try
             {
                 latch.await();
             } catch (InterruptedException ignored) {}
             resetUI();
-        }).start();
+        });
     }
 
     /**
@@ -182,6 +192,7 @@ public class MainController
     private void resetUI()
     {
         Platform.runLater(() -> {
+            LOGGER.info("Resetting UI back to normal");
             progressIndicator.setVisible(false);
             searchButton.setVisible(true);
             searchField.setDisable(false);
@@ -200,6 +211,7 @@ public class MainController
     @FXML
     private void newNoun(ActionEvent event)
     {
+        LOGGER.info("Launching dialog for new noun");
         Stage newStage = new Stage();
         try
         {

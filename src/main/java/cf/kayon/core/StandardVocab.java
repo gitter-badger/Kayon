@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.2.0
  */
-public class StandardVocab implements Vocab
+public class StandardVocab extends Contexed implements Vocab
 {
     /**
      * The UUID of this StandardVocab.
@@ -42,6 +42,35 @@ public class StandardVocab implements Vocab
      * @since 0.2.0
      */
     private UUID uuid;
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!(o instanceof StandardVocab)) return false;
+        if (!super.equals(o)) return false;
+        StandardVocab vocab = (StandardVocab) o;
+        return Objects.equal(uuid, vocab.uuid) &&
+               Objects.equal(translations, vocab.translations);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(super.hashCode(), uuid, translations);
+    }
+
+    /**
+     * Instantiates a new StandardVocab.
+     *
+     * @param context The {@link KayonContext} for this instance.
+     * @since 0.2.0
+     */
+    protected StandardVocab(@NotNull KayonContext context)
+    {
+
+        super(context);
+    }
 
     /**
      * @since 0.2.0
@@ -66,27 +95,10 @@ public class StandardVocab implements Vocab
         changeSupport.firePropertyChange("uuid", null, uuid);
     }
 
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (!(o instanceof StandardVocab)) return false;
-        StandardVocab vocab = (StandardVocab) o;
-        return Objects.equal(uuid, vocab.uuid) &&
-               Objects.equal(translations, vocab.translations);
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hashCode(uuid, translations);
-    }
-
     /**
      * The translation storage of this StandardVocab.
      *
      * @since 0.2.0
-
      */
     private Map<Locale, String> translations = new HashMap<>();
 

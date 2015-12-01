@@ -22,51 +22,58 @@ import cf.kayon.core.FormingException;
 import cf.kayon.core.Gender;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounForm;
-import cf.kayon.core.util.StringUtil;
-import org.apache.commons.collections4.iterators.ObjectArrayIterator;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-
-import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.github.stefanbirkner.fishbowl.Fishbowl.exceptionThrownBy;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class NounDeclensionTestingUtil
 {
-    public static void assertSpecialEquals(String expected, String actual)
-    {
-        Assert.assertEquals(StringUtil.unSpecialString(expected), StringUtil.unSpecialString(actual));
-    }
+    @NotNull
+    private static final Logger LOGGER = LoggerFactory.getLogger(NounDeclensionTestingUtil.class);
 
-    @SafeVarargs
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public static void testCorrectDeclining(
-            @NotNull NounDeclension nounDeclension, @NotNull Gender genderOfNoun, @NotNull String expectedRootWord, Pair<String, Boolean>... formsToTest)
+            @NotNull NounDeclension nounDeclension, @NotNull Gender genderOfNoun, @NotNull String expectedRootWord, Object... testTargets)
             throws FormingException
     {
-        Iterator<Pair<String, Boolean>> iterator = new ObjectArrayIterator<>(formsToTest);
-        for (NounForm nounForm : NounForm.values())
+        int formCounter = 0;
+        for (int targetCounter = 0; targetCounter < testTargets.length; targetCounter++)
         {
-            Pair<String, Boolean> currentPair = iterator.next();
-            if (currentPair.getRight()) // If declining should be expected to be successful
-            {
-                String declinedForm = nounDeclension.decline(nounForm, genderOfNoun, expectedRootWord);
-                String determinedRootWord = nounDeclension.determineRootWord(nounForm, genderOfNoun, currentPair.getLeft());
-                assertSpecialEquals(currentPair.getLeft(), declinedForm);
-                assertSpecialEquals(expectedRootWord, determinedRootWord);
-            } else
-            {
-                FormingException fe1 = exceptionThrownBy(() -> nounDeclension.decline(nounForm, genderOfNoun, expectedRootWord), FormingException.class);
-                assertNull(fe1.getMessage());
-                assertNull(fe1.getLocalizedMessage());
-                assertNull(fe1.getCause());
+            String currentExpectedForm = (String) testTargets[targetCounter];
+            NounForm currentNounForm = NounForm.values().get(formCounter++);
+            Object next = targetCounter + 1 < testTargets.length ? testTargets[targetCounter + 1] : null;
 
-                FormingException fe2 = exceptionThrownBy(() -> nounDeclension.determineRootWord(nounForm, genderOfNoun, currentPair.getLeft()), FormingException.class);
-                assertNull(fe2.getMessage());
-                assertNull(fe2.getLocalizedMessage());
-                assertNull(fe2.getCause());
+            try
+            {
+                if (next instanceof Boolean && !((boolean) next))
+                {
+                    targetCounter++;
+                    FormingException fe1 = exceptionThrownBy(() -> nounDeclension.decline(currentNounForm, genderOfNoun, expectedRootWord), FormingException.class);
+                    assertNotNull(fe1);
+                    assertEquals("Forming failure for form " + currentNounForm, fe1.getMessage());
+                    assertEquals("Forming failure for form " + currentNounForm, fe1.getLocalizedMessage());
+                    assertNull(fe1.getCause());
+
+                    FormingException fe2 =
+                            exceptionThrownBy(() -> nounDeclension.determineRootWord(currentNounForm, genderOfNoun, currentExpectedForm), FormingException.class);
+                    assertNotNull(fe2);
+                    assertEquals("Forming failure for form " + currentNounForm, fe2.getMessage());
+                    assertEquals("Forming failure for form " + currentNounForm, fe2.getLocalizedMessage());
+                    assertNull(fe2.getCause());
+                } else
+                {
+                    String declinedForm = nounDeclension.decline(currentNounForm, genderOfNoun, expectedRootWord);
+                    String determinedRootWord = nounDeclension.determineRootWord(currentNounForm, genderOfNoun, currentExpectedForm);
+                    assertEquals(currentExpectedForm, declinedForm);
+                    assertEquals(expectedRootWord, determinedRootWord);
+                }
+            } catch (Throwable t)
+            {
+                LOGGER.error(String.format("%s when at:%n    targetCounter=%d%n    formCounter=%d%n    currentExpectedForm=%s%n    currentNounForm=%s%n    next=%s",
+                                           t.getClass().getSimpleName(), targetCounter, formCounter, currentExpectedForm, currentNounForm, next));
+                throw t;
             }
         }
     }

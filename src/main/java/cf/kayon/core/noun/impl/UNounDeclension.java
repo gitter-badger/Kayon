@@ -60,7 +60,7 @@ public class UNounDeclension extends StandardNounDeclension
      * @since 0.0.1
      */
     @NotNull
-    private final Map<NounForm, String> endingsNeuter = NounDeclensionUtil.endingsMap("ū", "ūs", "u", "ū", "ū", "ū",
+    private final Map<NounForm, String> endingsNeuter = NounDeclensionUtil.endingsMap("ū", "ūs", "ū", "ū", "ū", "ū",
                                                                                       "ua", "uum", "ibus", "ua", "ibus", "ua");
 
     /**

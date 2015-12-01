@@ -19,13 +19,15 @@
 package cf.kayon.gui.main;
 
 import cf.kayon.core.CaseHandling;
+import cf.kayon.core.KayonContext;
 import cf.kayon.core.Vocab;
-import cf.kayon.core.sql.NounSQLFactory;
-import com.google.common.collect.Lists;
 import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,6 +40,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class VocabTask extends Task<List<Vocab>>
 {
+    @NotNull
+    private static final Logger LOGGER = LoggerFactory.getLogger(VocabTask.class);
+
+    /**
+     * The context of this class.
+     *
+     * @since 0.2.0
+     */
+    @NotNull
+    private final KayonContext context;
+
     /**
      * The search string of this VocabTask.
      *
@@ -47,46 +60,48 @@ public class VocabTask extends Task<List<Vocab>>
     private final String searchString;
 
     /**
-     * The connection of this VocabTask.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final Connection connection;
-
-    /**
      * Constructs a new VocabTask.
      *
+     * @param context      The {@link KayonContext} for this instance.
      * @param searchString The search string. May be the raw user input - both lowercase and uppercase characters are handled appropriately.
-     * @param connection   The connection.
      * @throws NullPointerException If any of the arguments is {@code null}.
-     * @since 0.0.1
+     * @since 0.2.0
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
-    public VocabTask(@NotNull final String searchString, @NotNull final Connection connection)
+    public VocabTask(@NotNull final KayonContext context, @NotNull final String searchString)
     {
+        checkNotNull(context);
         checkNotNull(searchString);
-        checkNotNull(connection);
+        this.context = context;
         this.searchString = searchString.toLowerCase();
-        this.connection = connection;
     }
 
     /**
      * {@inheritDoc}
      * <p>
-     * Even though this method is annotated as {@link cf.kayon.core.CaseHandling.CaseType#LOWERCASE_ONLY}, the {@link VocabTask#VocabTask(String, Connection) constructor
-     * of this class} handles both upercase and lowercase characters by converting the string it was constructed with to lowercase.
+     * Even though this method is annotated as {@link cf.kayon.core.CaseHandling.CaseType#LOWERCASE_ONLY}, the {@link VocabTask#VocabTask(KayonContext, String) constructor
+     * of this class} handles both uppercase and lowercase characters by converting the string it was constructed with to lowercase.
      *
      * @since 0.0.1
      */
     @Override
     @NotNull
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    protected synchronized List<Vocab> call() throws Exception
+    protected List<Vocab> call() throws Exception
     {
-        List<Vocab> collectedResults = Lists.newArrayList();
-        collectedResults.addAll(NounSQLFactory.queryNouns(connection, searchString));
-        // Add more types here
+        final List<Vocab> collectedResults = new ArrayList<>();
+        try
+        {
+            synchronized (this) // for visibility, construct nouns under lock
+            {
+                collectedResults.addAll(context.getNounSQLFactory().queryNouns(searchString));
+                // Add more types here
+            }
+        } catch (SQLException e)
+        {
+            LOGGER.error("SQLException in VocabTask!", e);
+            throw e;
+        }
         return collectedResults;
     }
 }

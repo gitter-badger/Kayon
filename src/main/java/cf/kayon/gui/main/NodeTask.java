@@ -26,11 +26,17 @@ import javafx.concurrent.Task;
 import javafx.scene.Node;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 
 public class NodeTask extends Task<Void>
 {
+    @NotNull
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeTask.class);
+
     private final Vocab vocab;
 
     private final VBox vBox;
@@ -39,22 +45,25 @@ public class NodeTask extends Task<Void>
 
     public NodeTask(final Vocab vocab, final VBox vBox, final CountDownLatch latch)
     {
+        // final fields guarantee visibility
         this.vocab = vocab;
         this.vBox = vBox;
         this.latch = latch;
     }
 
-    // snychronized for visibility to other threads
+    // synchronized for visibility to other threads
     @Override
     protected synchronized Void call() throws Exception
     {
+        LOGGER.info("Making node for vocab " + vocab);
         Node node;
 
-        if (vocab.getClass() == Noun.class)
+        if (vocab instanceof Noun)
             node = NounView.createNewParent((Noun) vocab).getLeft();
         else
-            throw new IllegalArgumentException();
-        synchronized (latch) // Race condition, thread visibility
+            throw new IllegalArgumentException("Unknown vocab class!");
+
+        synchronized (latch) // race condition
         {
             if (latch.getCount() == 1)
                 Platform.runLater(() -> vBox.getChildren().add(node));

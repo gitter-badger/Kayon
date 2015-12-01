@@ -35,8 +35,9 @@ public class StandardVocabTest
     @Test
     public void testUuid() throws Exception
     {
+        KayonContext context = TestContextUtil.newTestingContext();
         UUID uuid = UUID.randomUUID();
-        StandardVocab vocab = new StandardVocab();
+        StandardVocab vocab = new StandardVocab(context);
 
         vocab.initializeUuid(uuid);
 
@@ -56,7 +57,8 @@ public class StandardVocabTest
     @Test
     public void testTranslationSetterAndGetter() throws Exception
     {
-        StandardVocab vocab = new StandardVocab();
+        KayonContext context = TestContextUtil.newTestingContext();
+        StandardVocab vocab = new StandardVocab(context);
 
         assertEquals(new HashMap<Locale, String>(), vocab.getTranslations());
 
@@ -70,7 +72,8 @@ public class StandardVocabTest
     @Test
     public void testGetTranslation() throws Exception
     {
-        StandardVocab vocab = new StandardVocab();
+        KayonContext context = TestContextUtil.newTestingContext();
+        StandardVocab vocab = new StandardVocab(context);
         Map<Locale, String> map = getSampleMap();
         vocab.setTranslations(map);
 

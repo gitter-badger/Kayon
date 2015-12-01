@@ -18,6 +18,7 @@
 
 package cf.kayon.gui;
 
+import cf.kayon.core.KayonContext;
 import com.google.common.collect.Sets;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.beans.PropertyChangeListener;
 import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -56,6 +58,10 @@ public class FxUtil
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException ignored) {}
     }
+
+    public static volatile KayonContext context;
+
+    public static volatile ThreadPoolExecutor executor;
 
     public static ChangeListener<Boolean> bindInverse(WritableBooleanValue writeTo, ReadOnlyBooleanProperty readFrom)
     {

@@ -20,12 +20,9 @@ package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.FormingException;
 import cf.kayon.core.Gender;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ANounDeclensionTest
 {
@@ -33,36 +30,16 @@ public class ANounDeclensionTest
     @Test
     public void testANounDeclension() throws FormingException
     {
-        NounDeclensionTestingUtil.testCorrectDeclining(ANounDeclension.getInstance(), Gender.FEMININE, "ancill",
-                                                       new ImmutablePair<>("ancilla", true),
-                                                       new ImmutablePair<>("ancillae", true),
-                                                       new ImmutablePair<>("ancillae", true),
-                                                       new ImmutablePair<>("ancillam", true),
-                                                       new ImmutablePair<>("ancilla", true),
-                                                       new ImmutablePair<>("ancillā", true),
-
-                                                       new ImmutablePair<>("ancillae", true),
-                                                       new ImmutablePair<>("ancillārum", true),
-                                                       new ImmutablePair<>("ancillīs", true),
-                                                       new ImmutablePair<>("ancillās", true),
-                                                       new ImmutablePair<>("ancillīs", true),
-                                                       new ImmutablePair<>("ancillae", true)
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                ANounDeclension.getInstance(), Gender.FEMININE, "ancill",
+                "ancilla", "ancillae", "ancillae", "ancillam", "ancillā", "ancilla",
+                "ancillae", "ancillārum", "ancillīs", "ancillās", "ancillīs", "ancillae"
         );
 
-        NounDeclensionTestingUtil.testCorrectDeclining(ANounDeclension.getInstance(), Gender.MASCULINE, "conviv",
-                                                       new ImmutablePair<>("conviva", true),
-                                                       new ImmutablePair<>("convivae", true),
-                                                       new ImmutablePair<>("convivae", true),
-                                                       new ImmutablePair<>("convivam", true),
-                                                       new ImmutablePair<>("convivā", true),
-                                                       new ImmutablePair<>("conviva", true),
-
-                                                       new ImmutablePair<>("convivae", true),
-                                                       new ImmutablePair<>("convivārum", true),
-                                                       new ImmutablePair<>("convivīs", true),
-                                                       new ImmutablePair<>("convivās", true),
-                                                       new ImmutablePair<>("convivīs", true),
-                                                       new ImmutablePair<>("convivae", true)
+        NounDeclensionTestingUtil.testCorrectDeclining(
+                ANounDeclension.getInstance(), Gender.MASCULINE, "conviv",
+                "conviva", "convivae", "convivae", "convivam", "convivā", "conviva",
+                "convivae", "convivārum", "convivīs", "convivās", "convivīs", "convivae"
         );
 
         assertTrue(ANounDeclension.getInstance().allowsGender(Gender.MASCULINE));

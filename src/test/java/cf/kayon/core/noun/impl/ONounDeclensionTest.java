@@ -19,7 +19,6 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Gender;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
 import static org.junit.Assert.assertSame;
@@ -32,52 +31,16 @@ public class ONounDeclensionTest
     public void testONounDeclension() throws Exception
     {
         NounDeclensionTestingUtil.testCorrectDeclining(ONounDeclension.getInstance(), Gender.MASCULINE, "domin",
-                                                       new ImmutablePair<>("dominus", true),
-                                                       new ImmutablePair<>("domini", true),
-                                                       new ImmutablePair<>("dominō", true),
-                                                       new ImmutablePair<>("dominum", true),
-                                                       new ImmutablePair<>("dominō", true),
-                                                       new ImmutablePair<>("domine", true),
-
-                                                       new ImmutablePair<>("domini", true),
-                                                       new ImmutablePair<>("dominōrum", true),
-                                                       new ImmutablePair<>("dominīs", true),
-                                                       new ImmutablePair<>("dominōs", true),
-                                                       new ImmutablePair<>("dominīs", true),
-                                                       new ImmutablePair<>("domini", true)
-        );
+                                                       "dominus", "dominī", "dominō", "dominum", "dominō", "domine",
+                                                       "dominī", "dominōrum", "dominīs", "dominōs", "dominīs", "dominī");
 
         NounDeclensionTestingUtil.testCorrectDeclining(ONounDeclension.getInstance(), Gender.MASCULINE, "fili",
-                                                       new ImmutablePair<>("filius", true),
-                                                       new ImmutablePair<>("filiī", true),
-                                                       new ImmutablePair<>("filiō", true),
-                                                       new ImmutablePair<>("filium", true),
-                                                       new ImmutablePair<>("filiō", true),
-                                                       new ImmutablePair<>("filī", true), // this is the difference
-
-                                                       new ImmutablePair<>("filiī", true),
-                                                       new ImmutablePair<>("filiōrum", true),
-                                                       new ImmutablePair<>("filiīs", true),
-                                                       new ImmutablePair<>("filiōs", true),
-                                                       new ImmutablePair<>("filiīs", true),
-                                                       new ImmutablePair<>("filii", true)
-        );
+                                                       "filius", "filiī", "filiō", "filium", "filiō", "filī", // notice: filī is different
+                                                       "filiī", "filiōrum", "filiīs", "filiōs", "filiīs", "filiī");
 
         NounDeclensionTestingUtil.testCorrectDeclining(ONounDeclension.getInstance(), Gender.NEUTER, "templ",
-                                                       new ImmutablePair<>("templum", true),
-                                                       new ImmutablePair<>("templi", true),
-                                                       new ImmutablePair<>("templō", true),
-                                                       new ImmutablePair<>("templum", true),
-                                                       new ImmutablePair<>("templō", true),
-                                                       new ImmutablePair<>("templum", true),
-
-                                                       new ImmutablePair<>("templa", true),
-                                                       new ImmutablePair<>("templōrum", true),
-                                                       new ImmutablePair<>("templīs", true),
-                                                       new ImmutablePair<>("templa", true),
-                                                       new ImmutablePair<>("templīs", true),
-                                                       new ImmutablePair<>("templa", true)
-        );
+                                                       "templum", "templī", "templō", "templum", "templō", "templum",
+                                                       "templa", "templōrum", "templīs", "templa", "templīs", "templa");
 
         assertTrue(ONounDeclension.getInstance().allowsGender(Gender.MASCULINE));
         assertTrue(ONounDeclension.getInstance().allowsGender(Gender.FEMININE));

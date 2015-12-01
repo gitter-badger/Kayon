@@ -19,12 +19,9 @@
 package cf.kayon.core.noun.impl;
 
 import cf.kayon.core.Gender;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class MixedNounDeclensionTest
 {
@@ -33,36 +30,12 @@ public class MixedNounDeclensionTest
     public void testMixedNounDeclension() throws Exception
     {
         NounDeclensionTestingUtil.testCorrectDeclining(MixedNounDeclension.getInstance(), Gender.FEMININE, "urb",
-                                                       new ImmutablePair<>("urbs", false),
-                                                       new ImmutablePair<>("urbis", true),
-                                                       new ImmutablePair<>("urbi", true),
-                                                       new ImmutablePair<>("urbem", true),
-                                                       new ImmutablePair<>("urbe", true),
-                                                       new ImmutablePair<>("urbs", false),
+                                                       "urbs", false, "urbis", "urbī", "urbem", "urbe", "urbs", false,
+                                                       "urbēs", "urbium", "urbibus", "urbēs", "urbibus", "urbēs");
 
-                                                       new ImmutablePair<>("urbēs", true),
-                                                       new ImmutablePair<>("urbium", true),
-                                                       new ImmutablePair<>("urbibus", true),
-                                                       new ImmutablePair<>("urbēs", true),
-                                                       new ImmutablePair<>("urbibus", true),
-                                                       new ImmutablePair<>("urbēs", true)
-        );
-        
         NounDeclensionTestingUtil.testCorrectDeclining(MixedNounDeclension.getInstance(), Gender.FEMININE, "noct",
-                                                       new ImmutablePair<>("nox", false),
-                                                       new ImmutablePair<>("noctis", true),
-                                                       new ImmutablePair<>("noctī", true),
-                                                       new ImmutablePair<>("noctem", true),
-                                                       new ImmutablePair<>("nocte", true),
-                                                       new ImmutablePair<>("nox", false),
-
-                                                       new ImmutablePair<>("noctēs", true),
-                                                       new ImmutablePair<>("noctium", true),
-                                                       new ImmutablePair<>("noctibus", true),
-                                                       new ImmutablePair<>("noctēs", true),
-                                                       new ImmutablePair<>("noctibus", true),
-                                                       new ImmutablePair<>("noctēs", true)
-        );
+                                                       "nox", false, "noctis", "noctī", "noctem", "nocte", "nox", false,
+                                                       "noctēs", "noctium", "noctibus", "noctēs", "noctibus", "noctēs");
 
         assertTrue(MixedNounDeclension.getInstance().allowsGender(Gender.MASCULINE));
         assertTrue(MixedNounDeclension.getInstance().allowsGender(Gender.FEMININE));

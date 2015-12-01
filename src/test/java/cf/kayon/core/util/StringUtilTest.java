@@ -29,9 +29,9 @@ public class StringUtilTest
     @Test
     public void testRequireNonEmpty()
     {
-        exceptionThrownBy(() -> StringUtil.requireNonEmpty(null), NullPointerException.class);
-        exceptionThrownBy(() -> StringUtil.requireNonEmpty(""), IllegalArgumentException.class);
-        StringUtil.requireNonEmpty("Valid");
+        exceptionThrownBy(() -> StringUtil.checkNotEmpty(null), NullPointerException.class);
+        exceptionThrownBy(() -> StringUtil.checkNotEmpty(""), IllegalArgumentException.class);
+        StringUtil.checkNotEmpty("Valid");
     }
 
     @Test
@@ -40,5 +40,16 @@ public class StringUtilTest
         assertEquals("d[oōŏ]m[iīĭ]n[uūŭ]s", StringUtil.anySpecialRegex("dominus"));
         assertEquals("d[oōŏ]m[iīĭ]n[oōŏ]", StringUtil.anySpecialRegex("dominō"));
         assertEquals("[aāă]nc[iīĭ]ll[aāă]", StringUtil.anySpecialRegex("ancilla"));
+    }
+
+    @Test
+    public void testUnSpecialChar()
+    {
+        assertEquals('A', StringUtil.unSpecialChar('Ā'));
+        assertEquals('a', StringUtil.unSpecialChar('ā'));
+        assertEquals('A', StringUtil.unSpecialChar('Ă'));
+        assertEquals('a', StringUtil.unSpecialChar('ă'));
+        //noinspection ThrowableResultOfMethodCallIgnored
+        exceptionThrownBy(() -> StringUtil.unSpecialChar('b'), IllegalArgumentException.class);
     }
 }

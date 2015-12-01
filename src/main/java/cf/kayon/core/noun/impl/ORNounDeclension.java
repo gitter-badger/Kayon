@@ -100,7 +100,7 @@ public class ORNounDeclension extends StandardNounDeclension
             StringUtil.unSpecialString(rootWord).endsWith("i")) // Most expensive check last (short-circuiting statement)
             return rootWord;
 
-        return rootWord + this.selectCorrectEnding(nounForm, gender);
+        return super.decline(nounForm, gender, rootWord);
     }
 
     /**
@@ -118,7 +118,7 @@ public class ORNounDeclension extends StandardNounDeclension
         if (nounForm.getCase() == Case.VOCATIVE && nounForm.getCount() == Count.SINGULAR &&
             StringUtil.unSpecialString(declinedForm).endsWith("i")) // Most expensive check last (short-circuiting statement)
             return declinedForm;
-        return FormingUtil.determineRootWord(declinedForm, this.selectCorrectEnding(nounForm, gender));
+        return super.determineRootWord(nounForm, gender, declinedForm);
     }
 
     /**

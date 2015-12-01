@@ -18,9 +18,7 @@
 
 package cf.kayon.core.sql;
 
-import cf.kayon.core.Case;
-import cf.kayon.core.Count;
-import cf.kayon.core.Gender;
+import cf.kayon.core.*;
 import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.noun.impl.ANounDeclension;
@@ -32,42 +30,41 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class BaseDatabaseTest
 {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-    final List<Noun> examples = Lists.newArrayList();
-    private Connection connection;
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseDatabaseTest.class);
+    private final List<Noun> examples = Lists.newArrayList();
+    private KayonContext context;
 
     @Before
     public void setUp() throws SQLException
     {
-        examples.add(new Noun(ANounDeclension.getInstance(), Gender.FEMININE, "ancill"));  // ancilla
-        examples.add(new Noun(ANounDeclension.getInstance(), Gender.FEMININE, "silv"));    // serva
-        examples.add(new Noun(ANounDeclension.getInstance(), Gender.MASCULINE, "conviv")); // conviva
+        context = TestContextUtil.newTestingContext();
 
-        Noun defExample = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "serv"); // servus
+        examples.add(new Noun(context, ANounDeclension.getInstance(), Gender.FEMININE, "ancill"));  // ancilla
+        examples.add(new Noun(context, ANounDeclension.getInstance(), Gender.FEMININE, "silv"));    // serva
+        examples.add(new Noun(context, ANounDeclension.getInstance(), Gender.MASCULINE, "conviv")); // conviva
+
+        Noun defExample = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "serv"); // servus
         defExample.setDefinedForm(NounForm.of(Case.DATIVE, Count.SINGULAR), "DatSgDef");
         defExample.setDefinedForm(NounForm.of(Case.GENITIVE, Count.PLURAL), "banana");
         defExample.setDefinedForm(NounForm.of(Case.ACCUSATIVE, Count.SINGULAR), "jetbrains");
         examples.add(defExample);
 
-        Noun translationExample = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "domin"); // dominus
+        Noun translationExample = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "domin"); // dominus
         translationExample.getTranslations().put(new Locale("de"), "(Haus-) Herr");
         translationExample.getTranslations().put(new Locale("en"), "owner of a residence, a lord");
         examples.add(translationExample);
 
-        Noun defAndTranslationExample = new Noun(ONounDeclension.getInstance(), Gender.MASCULINE, "mur"); // murus
+        Noun defAndTranslationExample = new Noun(context, ONounDeclension.getInstance(), Gender.MASCULINE, "mur"); // murus
         defAndTranslationExample.setDefinedForm(NounForm.of(Case.ACCUSATIVE, Count.PLURAL), "awudhaowudhaowd");
         defAndTranslationExample.setDefinedForm(NounForm.of(Case.GENITIVE, Count.PLURAL), "aiwjdw");
         defAndTranslationExample.getTranslations().put(new Locale("de"), "Mauer");
@@ -75,31 +72,37 @@ public class BaseDatabaseTest
         defAndTranslationExample.getTranslations().put(new Locale("fr"), "mur");
         examples.add(defAndTranslationExample);
 
-        Noun noDeclensionExample = new Noun(Gender.MASCULINE, "abc123def");
+        Noun noDeclensionExample = new Noun(context, Gender.MASCULINE, "abc123def");
         for (NounForm nounForm : NounForm.values())
             noDeclensionExample.setDefinedForm(nounForm, nounForm.getCount() + "-āēīōū-" + nounForm.getCase()); // Unicode test
         examples.add(noDeclensionExample);
-
-        connection = DriverManager.getConnection("jdbc:h2:./database-nouns-small");
-        NounSQLFactory.setupDatabaseForNouns(connection);
+        LOGGER.info("Examples are:");
+        examples.forEach(e -> LOGGER.info(e.toString()));
     }
 
     @Test
     public void testFactory() throws SQLException
     {
+        LOGGER.info("Saving nouns to database");
         for (Noun current : examples)
-            NounSQLFactory.saveNounToDatabase(connection, current);
+        {
+            LOGGER.info("Saving " + current);
+            context.getNounSQLFactory().saveNounToDatabase(current);
+        }
 
         int iterations;
-        try (ResultSet results = connection.createStatement().executeQuery("SELECT * FROM NOUNS;"))
+        try (ResultSet results = context.getConnection().createStatement().executeQuery("SELECT * FROM NOUNS;"))
         {
+            LOGGER.info("Reconstructing nouns.");
             iterations = 0;
             while (results.next())
             {
                 Noun exampleTemplate = examples.get(iterations++);
-                Noun reconstructed = NounSQLFactory.constructNounFromResultSet(results);
+                Noun reconstructed = context.getNounSQLFactory().constructNounFromResultSet(results);
+                LOGGER.info("Reconstructed " + reconstructed);
                 assertNotNull(reconstructed);
                 assertEquals(exampleTemplate, reconstructed);
+                assertNotSame(exampleTemplate, reconstructed);
             }
         }
         assertEquals(examples.size(), iterations);
@@ -108,6 +111,6 @@ public class BaseDatabaseTest
     @After
     public void closeDatabase() throws SQLException
     {
-        connection.close();
+        TestContextUtil.closeContext(context);
     }
 }

@@ -90,7 +90,7 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
                 break;
         }
         if (endingOrNull == null)
-            throw new FormingException();
+            throw new FormingException("Forming failure for form " + adjectiveForm);
         return endingOrNull;
     }
 
@@ -132,9 +132,9 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
             if (attempt != null)
                 return attempt;
 
-            return FormingUtil.determineRootWord(declinedForm, "im" + chosenEnding);
+            return FormingUtil.determineRootWord(declinedForm, "im" + chosenEnding, adjectiveForm);
         }
-        return FormingUtil.determineRootWord(declinedForm, selectCorrectEnding(adjectiveForm));
+        return FormingUtil.determineRootWord(declinedForm, selectCorrectEnding(adjectiveForm), adjectiveForm);
     }
 
     /**
