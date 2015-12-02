@@ -81,7 +81,7 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
 
         cmd('git', 'add', '-A')
 
-        def json = new JsonSlurper().parseText(new URL("https://api.github.com/repos/RAnders00/Kayon/git/commits/${System.getenv('CIRCLE_SHA1')}").text)
+        def json = new JsonSlurper().parseText(new URL("https://api.github.com/repos/RAnders00/Kayon/git/commits/${System.getenv('CIRCLE_SHA1')}?access_token=${System.getenv("KAYONBOT_ACCESS_TOKEN")}").text)
         def message = "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message\nBuild URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}"
         // http://stackoverflow.com/a/23108169/4464702 and http://jasonnoble.org/2009/04/github-set-authorcommitter.html
         file("$buildDir/doc-repo-commitmsg").write(message)
