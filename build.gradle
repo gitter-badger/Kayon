@@ -147,7 +147,8 @@ tasks.javadoc {
     options.addStringOption('link', buildOptionsString(
             'https://cdn.rawgit.com/google/guava/036db99cc2d8cee83de0f07ca0664b522fbbeaca/_releases/18.0/api/docs/',
             'https://docs.oracle.com/javase/8/docs/api/',
-            'https://docs.oracle.com/javase/8/javafx/api/'))
+            'https://docs.oracle.com/javase/8/javafx/api/',
+            'https://typesafehub.github.io/config/latest/api/'))
     options.addStringOption('encoding', 'utf8')
     options.addStringOption('docencoding', 'utf8')
     options.addStringOption('charset', 'utf8')
