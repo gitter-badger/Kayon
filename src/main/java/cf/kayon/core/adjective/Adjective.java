@@ -39,9 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <tr>
  * <td>Property name</td>
  * <td>Fired by</td>
- * <td>Vetoable?</td>
- * <td>Triggers</td>
- * <td>Default checks</td>
+ * <td>Methods called on this event</td>
  * </tr>
  * </thead>
  * <tbody>
@@ -49,43 +47,31 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <td>{@code $COMPARISONDEGREE_allowed}</td>
  * <td>{@link #setAllows(ComparisonDegree, boolean)}, {@link #setAllowsPositive(boolean)},
  * {@link #setAllowsComparative(boolean)}, {@link #setAllowsSuperlative(boolean)}</td>
- * <td>Yes</td>
- * <td></td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>{@code $COMPARISONDEGREE_$CASE_$COUNT_$GENDER_defined}</td>
  * <td>{@link #setDefinedForm(AdjectiveForm, String)}</td>
- * <td>Yes</td>
  * <td>{@link #_declineIntoBuffer()}</td>
- * <td></td>
  * </tr>
  * <tr>
  * <td>{@code $COMPARISONDEGREE_$CASE_$COUNT_$GENDER_declined}</td>
  * <td>{@link #_declineIntoBuffer()}</td>
- * <td>No</td>
- * <td></td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>{@code adjectiveDeclension}</td>
  * <td>{@link #setAdjectiveDeclension(AdjectiveDeclension)}</td>
- * <td>Yes</td>
- * <td></td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>{@code rootWord}</td>
  * <td>{@link #setRootWord(String)}</td>
- * <td>Yes</td>
  * <td></td>
- * <td>Not {@code null}, not {@link String#isEmpty() empty}.</td>
  * </tr>
  * <tr>
  * <td>{@code uuid}</td>
  * <td>{@link #initializeUuid(UUID)}</td>
- * <td>No (as specified by {@link Vocab#initializeUuid(UUID)})</td>
- * <td></td>
  * <td></td>
  * </tr>
  * </tbody>
@@ -565,7 +551,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     private void _declineIntoBuffer()
     {
         if (this.adjectiveDeclension == null)
-        { // Properly invoke all change/veto listeners
+        { // Properly invoke all change listeners
             for (AdjectiveForm adjectiveForm : AdjectiveForm.values())
             {
                 putDeclinedForm(adjectiveForm, null); // Fire PropertyChangeEvent, override old value
@@ -643,7 +629,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     /**
      * This will also copy the UUID over, if it exists (the resulting object will have the same UUID as this one).
      * <p>
-     * PropertyChangeListeners and VetoableChangeListeners will <strong>not</strong> be copied.
+     * PropertyChangeListeners will <strong>not</strong> be copied.
      * {@inheritDoc}
      *
      * @since 0.2.0
