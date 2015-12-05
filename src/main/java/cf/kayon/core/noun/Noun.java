@@ -34,52 +34,40 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Describes a Noun.
  * <p>
- * Information about property / veto change listeners:
+ * Information about property change listeners:
  * <table summary="">
  * <thead>
  * <tr>
  * <td>Property Name</td>
  * <td>Fired by</td>
- * <td>Vetoable?</td>
  * <td>Triggers</td>
- * <td>Default checks</td>
  * </tr>
  * </thead>
  * <tbody>
  * <tr>
  * <td>{@code $CASE_$COUNT_defined}</td>
  * <td>{@link #setDefinedForm(NounForm, String)}</td>
- * <td>Yes</td>
- * <td></td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>{@code $CASE_$COUNT_declined}</td>
  * <td>{@link #_declineIntoBuffer()}</td>
- * <td>No</td>
- * <td></td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>{@code rootWord}</td>
  * <td>{@link #setRootWord(String)}</td>
- * <td>Yes</td>
  * <td>{@link #_declineIntoBuffer()}</td>
- * <td>Not {@code null}, not {@link String#isEmpty() empty}</td>
  * </tr>
  * <tr>
  * <td>{@code nounDeclension}</td>
  * <td>{@link #setNounDeclension(NounDeclension)}</td>
- * <td>Yes</td>
  * <td>{@link #_declineIntoBuffer()}</td>
- * <td></td>
  * </tr>
  * <tr>
  * <td>{@code gender}</td>
  * <td>{@link #setGender(Gender)}</td>
- * <td>Yes</td>
  * <td>{@link #_declineIntoBuffer()}</td>
- * <td>Not {@code null}</td>
  * </tr>
  * </tbody>
  * </table>
@@ -133,10 +121,19 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
 
     //region Constructors
 
+    //region Bean support
+    {
+        addPropertyChangeListener(evt -> {
+            String propertyName = evt.getPropertyName();
+            if (propertyName.equals("gender") || propertyName.equals("rootWord") || propertyName.equals("nounDeclension") || propertyName.endsWith("_defined"))
+                _declineIntoBuffer();
+        });
+    }
+
     /**
      * Constructs a new Noun.
      * <p>
-     * Note: The constructor itself does not use property/vetoable change support. All arguments are validated with the default constraints
+     * Implementation note: The constructor itself does not use property change support. All arguments are validated with the default constraints
      * and afterwards {@link #_declineIntoBuffer()} is called.
      * <p>
      * The general contract of this class is to only contain lowercase forms (see annotation).
@@ -161,12 +158,15 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         this.rootWord = rootWord;
         _declineIntoBuffer();
     }
+    //endregion
+
+    //region Defining forms
 
     /**
      * Constructs a new Noun with no NounDeclension.
      * This is equal to calling {@link #Noun(KayonContext, NounDeclension, Gender, String)} with {@code null} as its first parameter.
      * <p>
-     * Note: The constructor itself does not use property/vetoable change support. All arguments are validated with the default constraints
+     * Implementation note: The constructor itself does not use property change support. All arguments are validated with the default constraints
      * and afterwards {@link #_declineIntoBuffer()} is called.
      * <p>
      * The general contract of this class is to only contain lowercase forms (see annotation).
@@ -184,9 +184,6 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     {
         this(context, null, gender, rootWord);
     }
-    //endregion
-
-    //region Defining forms
 
     /**
      * Defines a form.
@@ -196,7 +193,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      *
      * @param nounForm The noun form.
      * @param form     The form. If the form is {@code null} or is {@link String#isEmpty() empty}, the defined forms is instead removed.
-     *                 A note about change/veto listeners: empty strings get converted to nulls before they are passed to listeners.
+     *                 A note about property change listeners: empty strings get converted to nulls before they are passed to listeners.
      *                 A removal of a form is represented by a new value of {@code null}.
      * @throws NullPointerException If {@code nounForm} is {@code null}.
      * @since 0.0.1
@@ -204,14 +201,11 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     public void setDefinedForm(@NotNull NounForm nounForm, @Nullable String form)
     {
-        String oldForm = getDefinedForm(nounForm);
-
+        checkNotNull(nounForm);
         if (form == null || form.isEmpty())
-            definedForms.remove(nounForm);
+            changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_defined", definedForms.remove(nounForm), form);
         else
-            definedForms.put(nounForm, form);
-
-        changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_defined", oldForm, form);
+            changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_defined", definedForms.put(nounForm, form), form);
     }
 
     /**
@@ -232,13 +226,16 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         checkNotNull(nounForm);
         return definedForms.get(nounForm);
     }
+    //endregion
+
+    //region Declining forms
 
     /**
      * Removes a defined form.
      * <p>
      * This is exactly equal to calling {@link #setDefinedForm(NounForm, String)} with {@code null} as its third argument.
      * <p>
-     * See {@link #setDefinedForm(NounForm, String)} for more information on property change/veto listeners.
+     * See {@link #setDefinedForm(NounForm, String)} for more information on property change listeners.
      *
      * @param nounForm The noun form.
      * @throws NullPointerException If any of the arguments is {@code null}.
@@ -248,9 +245,6 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     {
         setDefinedForm(nounForm, null);
     }
-    //endregion
-
-    //region Declining forms
 
     /**
      * Gets a form, as it has been declined by the underlying {@link NounDeclension}.
@@ -270,6 +264,9 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         checkNotNull(nounForm);
         return this.declinedForms.get(nounForm);
     }
+    //endregion
+
+    //region Setters and Getters
 
     /**
      * Called if changes to declined form changing properties occur.
@@ -301,9 +298,6 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
             }
         }
     }
-    //endregion
-
-    //region Setters and Getters
 
     /**
      * Gets the gender of this noun.
@@ -387,6 +381,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         this.nounDeclension = nounDeclension;
         changeSupport.firePropertyChange("nounDeclension", oldNounDeclension, nounDeclension);
     }
+    //endregion
 
     /**
      * Gets a form - defined or declined (defined takes precedence).
@@ -404,16 +399,6 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         if (definedFormOrNull != null)
             return definedFormOrNull;
         return getDeclinedForm(nounForm);
-    }
-    //endregion
-
-    //region Bean support
-    {
-        addPropertyChangeListener(evt -> {
-            String propertyName = evt.getPropertyName();
-            if (propertyName.equals("gender") || propertyName.equals("rootWord") || propertyName.equals("nounDeclension") || propertyName.endsWith("_defined"))
-                _declineIntoBuffer();
-        });
     }
     //endregion
 
@@ -440,7 +425,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     /**
      * This will also copy the UUID over, if it exists (the resulting object will have the same UUID as this one).
      * <p>
-     * PropertyChangeListeners and VetoableChangeListeners will <strong>not</strong> be copied.
+     * PropertyChangeListeners will <strong>not</strong> be copied.
      * {@inheritDoc}
      *
      * @since 0.2.0
