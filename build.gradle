@@ -52,8 +52,6 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
     }
 
     task deployJavadoc(dependsOn: tasks.javadoc) << { // double shift because closure is what is running the task, not configuring it
-        if (!Objects.equals(System.getenv('CIRCLE_BRANCH'), 'master')) // only do javadoc pushes on commits to `master`
-            return;
         def directory = file("$buildDir/doc-repo/")
         directory.mkdirs()
         def cmd = { String... cmds ->
