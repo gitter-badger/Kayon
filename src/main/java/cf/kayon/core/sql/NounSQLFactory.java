@@ -27,6 +27,8 @@ import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounDeclensionUtil;
 import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.util.StringUtil;
+import com.google.common.base.*;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.typesafe.config.ConfigException;
 import org.jetbrains.annotations.NotNull;
@@ -326,5 +328,38 @@ public class NounSQLFactory extends Contexed
                 statement.execute(setupSql);
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!(o instanceof NounSQLFactory)) return false;
+        if (!super.equals(o)) return false;
+        NounSQLFactory that = (NounSQLFactory) o;
+        return com.google.common.base.Objects.equal(insertSql, that.insertSql) &&
+               Objects.equal(insertStatement, that.insertStatement) &&
+               Objects.equal(querySql, that.querySql) &&
+               Objects.equal(queryStatement, that.queryStatement) &&
+               Objects.equal(setupSql, that.setupSql);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(super.hashCode(), insertSql, insertStatement, querySql, queryStatement, setupSql);
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper(this)
+                          .add("insertSql", insertSql)
+                          .add("insertStatement", insertStatement)
+                          .add("querySql", querySql)
+                          .add("queryStatement", queryStatement)
+                          .add("setupSql", setupSql)
+                          .toString();
+
     }
 }
