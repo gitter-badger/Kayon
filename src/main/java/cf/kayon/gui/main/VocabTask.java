@@ -92,11 +92,8 @@ public class VocabTask extends Task<List<Vocab>>
         final List<Vocab> collectedResults = new ArrayList<>();
         try
         {
-            synchronized (this) // for visibility, construct nouns under lock
-            {
-                collectedResults.addAll(context.getNounSQLFactory().queryNouns(searchString));
-                // Add more types here
-            }
+            collectedResults.addAll(context.getNounSQLFactory().queryNouns(searchString));
+            // Add more types here
         } catch (SQLException e)
         {
             LOGGER.error("SQLException in VocabTask!", e);

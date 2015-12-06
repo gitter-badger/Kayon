@@ -26,8 +26,6 @@ import java.util.Map;
 
 /**
  * Describes something translatable with dynamic translations that can be modified at runtime.
- * <p>
- * Major incompatible changes as of 0.2.0.
  *
  * @author Ruben Anders
  * @see Locale
