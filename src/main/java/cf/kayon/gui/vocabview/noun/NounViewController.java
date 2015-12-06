@@ -71,7 +71,7 @@ public class NounViewController extends Contexed
      * @since 0.0.1
      */
     @NotNull
-    private static final List<NounDeclension> nounDeclensions = Lists.newArrayList(ONounDeclension.getInstance(),
+    private static final List<NounDeclension> nounDeclensions = Lists.newArrayList(ANounDeclension.getInstance(),
                                                                                    ONounDeclension.getInstance(),
                                                                                    ORNounDeclension.getInstance(),
                                                                                    ConsonantNounDeclension.getInstance(),
