@@ -138,6 +138,9 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * <p>
      * The general contract of this class is to only contain lowercase forms (see annotation).
      * Code should only apply lowercase forms to this constructor.
+     * <p>
+     * <strong>Implementation note:</strong> The constructor itself does not use property change support. All arguments are validated with the default constraints
+     * and afterwards {@link #_declineIntoBuffer()} is called.
      *
      * @param context        The {@link KayonContext} for this instance.
      * @param nounDeclension The noun declension of the new noun. {@code null} if there is no NounDeclension.
@@ -145,8 +148,6 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @param rootWord       The root word.
      * @throws NullPointerException     If {@code context}, {@code gender} or {@code rootWord} is {@code null}.
      * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
-     * @implNote The constructor itself does not use property change support. All arguments are validated with the default constraints
-     * and afterwards {@link #_declineIntoBuffer()} is called.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
@@ -168,11 +169,11 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * Constructs a new Noun with no NounDeclension.
      * This is equal to calling {@link #Noun(KayonContext, NounDeclension, Gender, String)} with {@code null} as its first parameter.
      * <p>
-     * Implementation note: The constructor itself does not use property change support. All arguments are validated with the default constraints
-     * and afterwards {@link #_declineIntoBuffer()} is called.
-     * <p>
      * The general contract of this class is to only contain lowercase forms (see annotation).
      * Code should only apply lowercase forms to this method.
+     * <p>
+     * <strong>Implementation note:</strong> The constructor itself does not use property change support. All arguments are validated with the default constraints
+     * and afterwards {@link #_declineIntoBuffer()} is called.
      *
      * @param context  The {@link KayonContext} for this instance.
      * @param gender   The gender.
@@ -395,7 +396,11 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     }
 
     /**
-     * @implNote The PropertyChangeListeners of the two classes do not need to equal to consider the two objects equal.
+     * {@inheritDoc}
+     * <p>
+     * <strong>Implementation note:</strong> The PropertyChangeListeners of the two classes do not need to equal to consider the two objects equal.
+     *
+     * @since 0.2.0
      */
     @Override
     public synchronized boolean equals(Object o)
@@ -412,6 +417,9 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
 
     }
 
+    /**
+     * @since 0.2.0
+     */
     @Override
     public synchronized int hashCode()
     {
@@ -419,8 +427,11 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     }
 
     /**
-     * @implNote This will also copy the UUID over, if it exists (the resulting object will have the same UUID as this one).
+     * {@inheritDoc}
+     * <p>
+     * <strong>Implementation note:</strong> This will also copy the UUID over, if it exists (the resulting object will have the same UUID as this one).
      * PropertyChangeListeners will <strong>not</strong> be copied.
+     *
      * @since 0.2.0
      */
     @NotNull
@@ -447,6 +458,9 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         return noun;
     }
 
+    /**
+     * @since 0.2.0
+     */
     @Override
     public synchronized String toString()
     {

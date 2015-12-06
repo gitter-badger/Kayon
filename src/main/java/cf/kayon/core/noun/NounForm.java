@@ -176,13 +176,18 @@ public class NounForm
     }
 
     /**
-     * @implNote The constraints of this class define that any two NounForms being equal as returned by this function
-     * must also be identity-equal. More formally, the following expression will never throw an AssertionError (provided that assertions are enabled):
+     * {@inheritDoc}
      * <p>
+     * <strong>Implementation note:</strong> The constraints of this class define that any two NounForms being equal as returned by this function
+     * must also be identity-equal. More formally, the following expression will never throw an {@link Exception}:
+     * <pre>{@code
      * NounForm a = ...;
      * NounForm b = ...;
      * if (a.equals(b))
-     * assert a == b;
+     *   if (a != b)
+     *     throw new Exception();
+     * }</pre>
+     *
      * @since 0.0.1
      */
     @Override

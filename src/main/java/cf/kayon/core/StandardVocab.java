@@ -189,7 +189,10 @@ public class StandardVocab extends Contexed implements Vocab
     }
 
     /**
-     * @implNote The map instance will not be set in this StandardVocab, instead the map's contents will copied into the own map after the own map has been cleared.
+     * {@inheritDoc}
+     * <p>
+     * <strong>Implementation note:</strong> The map instance will not be set in this StandardVocab, instead the map's contents will copied into the own map after the own map has been cleared.
+     *
      * @since 0.2.0
      */
     @Override
