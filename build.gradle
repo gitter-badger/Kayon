@@ -21,6 +21,7 @@ import groovy.json.JsonSlurper
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'edu.sc.seis.launch4j'
 
 apply from: 'javadocAndSourcesJar.gradle'
 
@@ -46,7 +47,7 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
 
     task copyCIArtifacts << { // because why not, doubleshift and nested copy (intuitive, isn't it?)
         copy {
-            from(file('build/libs/').listFiles() + file('build/distributions/').listFiles())
+            from(file("$buildDir/libs/").listFiles() + file("$buildDir/distributions/").listFiles() + file("$buildDir/launch4j").listFiles({String filename -> filename.endsWith '.exe'}))
             into System.getenv('CIRCLE_ARTIFACTS')
         }
     }
@@ -95,8 +96,14 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
 
 //region Dependency Management
 buildscript {
-    repositories { jcenter() }
-    dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2' }
+    repositories {
+        jcenter()
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+        classpath 'gradle.plugin.edu.sc.seis.gradle:launch4j:1.6.1'
+    }
 }
 
 repositories { jcenter() }
@@ -160,6 +167,19 @@ tasks.withType(Test) {
 shadowJar {
     exclude 'META-INF/LICENSE.txt'
 }
+
+launch4j {
+    if (Objects.equals(System.getenv('CIRCLECI'), 'true'))
+        outfile = "$project.name-$project.version-${System.getenv('CIRCLE_BUILD_NUM')}.exe"
+    else
+        outfile = "$project.name-${project.version}.exe"
+    mainClassName = project.mainClassName
+    icon = file('logo.ico')
+    copyConfigurable = project.tasks.shadowJar.outputs.files
+    jar = "lib/${project.tasks.shadowJar.archiveName}"
+}
+tasks.copyL4jLib.dependsOn tasks.shadowJar
+
 //endregion
 
 defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip'
