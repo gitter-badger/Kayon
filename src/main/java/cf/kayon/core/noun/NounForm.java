@@ -22,6 +22,7 @@ import cf.kayon.core.Case;
 import cf.kayon.core.Count;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import net.jcip.annotations.Immutable;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,40 +44,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.0.1
  */
+@Immutable
 public class NounForm
 {
-
-    /**
-     * The case.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final Case caze;
-
-    /**
-     * The count.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final Count count;
-
-    /**
-     * Constructs a new NounForm.
-     *
-     * @param caze  The case.
-     * @param count The count.
-     * @throws NullPointerException If any of the arguments is {@code null}.
-     * @since 0.0.1
-     */
-    private NounForm(@NotNull final Case caze, @NotNull final Count count)
-    {
-        checkNotNull(caze);
-        checkNotNull(count);
-        this.caze = caze;
-        this.count = count;
-    }
 
     /**
      * The cache pool.
@@ -85,7 +55,6 @@ public class NounForm
      */
     @NotNull
     private static final EnumMap<Count, EnumMap<Case, NounForm>> pool = new EnumMap<>(Count.class);
-
     /**
      * An unmodifiable list of all values.
      *
@@ -109,6 +78,45 @@ public class NounForm
             }
         }
         allValues = Collections.unmodifiableList(temporaryList);
+    }
+
+    /**
+     * The case.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final Case caze;
+    /**
+     * The count.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final Count count;
+    /**
+     * The prefix of the property name as used by the {@link java.beans.PropertyChangeSupport} of {@link Noun}.
+     *
+     * @since 0.2.0
+     */
+    @NotNull
+    private final String propertyName;
+
+    /**
+     * Constructs a new NounForm.
+     *
+     * @param caze  The case.
+     * @param count The count.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
+    private NounForm(@NotNull final Case caze, @NotNull final Count count)
+    {
+        checkNotNull(caze);
+        checkNotNull(count);
+        this.caze = caze;
+        this.count = count;
+        this.propertyName = caze + "_" + count + "_";
     }
 
     /**
@@ -136,12 +144,13 @@ public class NounForm
      * All counts -&gt; All cases
      * <p>
      * For example:
-     * <ol>
+     * <ul>
      * <li>Singular Nominative</li>
      * <li>Singular Genitive</li>
      * <li>Singular Dative</li>
      * <li>Singular ...</li>
-     * </ol>
+     * <li>Plural ...</li>
+     * </ul>
      *
      * @return A List of values. The list is {@link Collections#unmodifiableList(List) unmodifiable}.
      * @since 0.2.0
@@ -153,17 +162,27 @@ public class NounForm
         return allValues;
     }
 
-    /*
-     * The constraints of this class define that any two NounForms being equal as returned by this function
-     * must also be identity-equal. More formally, the following expression will never throw an AssertionError (provided that assertions are enabled):
-     *
-     *     NounForm a = ...;
-     *     NounForm b = ...;
-     *     if (a.equals(b))
-     *         assert a == b;
+    /**
+     * @since 0.0.1
      */
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper(this)
+                          .add("caze", caze)
+                          .add("count", count)
+                          .add("propertyName", propertyName)
+                          .toString();
+    }
 
     /**
+     * @implNote The constraints of this class define that any two NounForms being equal as returned by this function
+     * must also be identity-equal. More formally, the following expression will never throw an AssertionError (provided that assertions are enabled):
+     * <p>
+     * NounForm a = ...;
+     * NounForm b = ...;
+     * if (a.equals(b))
+     * assert a == b;
      * @since 0.0.1
      */
     @Override
@@ -174,19 +193,6 @@ public class NounForm
         NounForm nounForm = (NounForm) o;
         return Objects.equal(caze, nounForm.caze) &&
                Objects.equal(count, nounForm.count);
-    }
-
-    /**
-     * @since 0.0.1
-     */
-    @Override
-    @NotNull
-    public String toString()
-    {
-        return MoreObjects.toStringHelper(this)
-                          .add("case", caze)
-                          .add("count", count)
-                          .toString();
     }
 
     /**
@@ -220,5 +226,19 @@ public class NounForm
     public Count getCount()
     {
         return count;
+    }
+
+    /**
+     * Returns the property name for usage with a {@link java.beans.PropertyChangeSupport}.
+     * <p>
+     * The string is in the format {@code $ComparisonDegree_$Case_$Count_$Gender_$Suffix}.
+     *
+     * @param suffix The suffix to append.
+     * @return A property name.
+     * @since 0.2.0
+     */
+    public String getPropertyName(String suffix)
+    {
+        return propertyName + suffix;
     }
 }

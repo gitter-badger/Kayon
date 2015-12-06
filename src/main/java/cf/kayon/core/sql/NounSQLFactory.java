@@ -27,7 +27,7 @@ import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounDeclensionUtil;
 import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.util.StringUtil;
-import com.google.common.base.*;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.typesafe.config.ConfigException;
@@ -53,11 +53,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class NounSQLFactory extends Contexed
 {
-    /*
-     * Thread safety notice
-     *
-     * All set fields are final, guaranteeing memory visibility.
-     */
 
     /**
      * Constructs a new instance.

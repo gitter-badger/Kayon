@@ -19,11 +19,15 @@
 package cf.kayon.core.adjective;
 
 import cf.kayon.core.*;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -80,6 +84,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.0.1
  */
+@ThreadSafe
 public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
 {
 
@@ -90,7 +95,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @since 0.0.1
      */
     @NotNull
-    private final HashMap<AdjectiveForm, String> declinedForms = new HashMap<>(106);
+    private final Map<AdjectiveForm, String> declinedForms = new HashMap<>(106);
 
     /**
      * The defined forms of this adjective.
@@ -98,13 +103,14 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @since 0.0.1
      */
     @NotNull
-    private final HashMap<AdjectiveForm, String> definedForms = new HashMap<>(106);
+    private final Map<AdjectiveForm, String> definedForms = new HashMap<>(106);
 
     /**
      * The root word of this adjective.
      *
      * @since 0.0.1
      */
+    @GuardedBy("this")
     @NotNull
     private String rootWord;
 
@@ -113,6 +119,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      *
      * @since 0.0.1
      */
+    @GuardedBy("this")
     @Nullable
     private AdjectiveDeclension adjectiveDeclension;
 
@@ -121,21 +128,24 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      *
      * @since 0.0.1
      */
-    private boolean allowsPositive = true;
+    @GuardedBy("this")
+    private volatile boolean allowsPositive = true;
 
     /**
      * Whether this adjective allows comparative forms.
      *
      * @since 0.0.1
      */
-    private boolean allowsComparative = true;
+    @GuardedBy("this")
+    private volatile boolean allowsComparative = true;
 
     /**
      * Whether this adjective allows superlative forms.
      *
      * @since 0.0.1
      */
-    private boolean allowsSuperlative = true;
+    @GuardedBy("this")
+    private volatile boolean allowsSuperlative = true;
     //endregion
 
     //region Constructors
@@ -157,9 +167,12 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     {
         super(context);
         checkNotEmpty(rootWord);
-        this.adjectiveDeclension = adjectiveDeclension;
-        this.rootWord = rootWord;
-        _declineIntoBuffer(); // speed improvement
+        synchronized (this)
+        {
+            this.adjectiveDeclension = adjectiveDeclension;
+            this.rootWord = rootWord;
+            _declineIntoBuffer(); // speed improvement
+        }
     }
 
     /**
@@ -167,7 +180,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * <p>
      * The {@code rootWord} argument should be lowercase only (see annotation).
      *
-     * @param context The {@link KayonContext} for this instance.
+     * @param context  The {@link KayonContext} for this instance.
      * @param rootWord The root word of the adjective.
      * @throws NullPointerException     If {@code rootWord} or {@code context} is {@code null}.
      * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
@@ -193,7 +206,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
-    public String getRootWord()
+    public synchronized String getRootWord()
     {
         return rootWord;
     }
@@ -210,12 +223,12 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public void setRootWord(@NotNull String rootWord)
+    public synchronized void setRootWord(@NotNull String rootWord)
     {
         checkNotEmpty(rootWord);
         String oldValue = this.rootWord;
         this.rootWord = rootWord;
-        changeSupport.firePropertyChange("rootWord", oldValue, rootWord);
+        getPropertyChangeSupport().firePropertyChange("rootWord", oldValue, rootWord);
     }
 
     /**
@@ -225,7 +238,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @since 0.0.1
      */
     @Nullable
-    public AdjectiveDeclension getAdjectiveDeclension()
+    public synchronized AdjectiveDeclension getAdjectiveDeclension()
     {
         return adjectiveDeclension;
     }
@@ -236,11 +249,11 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @param adjectiveDeclension The new declension. May be null to set this adjective into no-declension-mode.
      * @since 0.0.1
      */
-    public void setAdjectiveDeclension(@Nullable AdjectiveDeclension adjectiveDeclension)
+    public synchronized void setAdjectiveDeclension(@Nullable AdjectiveDeclension adjectiveDeclension)
     {
         AdjectiveDeclension oldValue = this.adjectiveDeclension;
         this.adjectiveDeclension = adjectiveDeclension;
-        changeSupport.firePropertyChange("adjectiveDeclension", oldValue, adjectiveDeclension);
+        getPropertyChangeSupport().firePropertyChange("adjectiveDeclension", oldValue, adjectiveDeclension);
     }
 
     /**
@@ -262,11 +275,12 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @see #setAllows(ComparisonDegree, boolean)
      * @since 0.0.1
      */
-    public void setAllowsPositive(boolean allowsPositive)
+    // Synchronization required: race condition, no data modifications whilst in _declineIntoBuffer()
+    public synchronized void setAllowsPositive(boolean allowsPositive)
     {
         boolean oldValue = this.allowsPositive;
         this.allowsPositive = allowsPositive;
-        changeSupport.firePropertyChange("POSTIVE_allowed", oldValue, allowsPositive);
+        getPropertyChangeSupport().firePropertyChange("POSTIVE_allowed", oldValue, allowsPositive);
     }
 
     /**
@@ -288,11 +302,12 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @see #setAllows(ComparisonDegree, boolean)
      * @since 0.0.1
      */
-    public void setAllowsComparative(boolean allowsComparative)
+    // Synchronization required: race condition, no data modifications whilst in _declineIntoBuffer()
+    public synchronized void setAllowsComparative(boolean allowsComparative)
     {
         boolean oldValue = this.allowsComparative;
         this.allowsComparative = allowsComparative;
-        changeSupport.firePropertyChange("COMPARATIVE_allowed", oldValue, allowsComparative);
+        getPropertyChangeSupport().firePropertyChange("COMPARATIVE_allowed", oldValue, allowsComparative);
     }
 
     /**
@@ -314,11 +329,12 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @see #setAllows(ComparisonDegree, boolean)
      * @since 0.0.1
      */
-    public void setAllowsSuperlative(boolean allowsSuperlative)
+    // Synchronization required: race condition, no data modifications whilst in _declineIntoBuffer()
+    public synchronized void setAllowsSuperlative(boolean allowsSuperlative)
     {
         boolean oldValue = this.allowsSuperlative;
         this.allowsSuperlative = allowsSuperlative;
-        changeSupport.firePropertyChange("SUPERLATIVE_allowed", oldValue, allowsSuperlative);
+        getPropertyChangeSupport().firePropertyChange("SUPERLATIVE_allowed", oldValue, allowsSuperlative);
     }
 
     /**
@@ -408,7 +424,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
         String propertyName = adjectiveForm.getPropertyName("defined");
 
         definedForms.put(adjectiveForm, form);
-        changeSupport.firePropertyChange(propertyName, oldForm, form);
+        getPropertyChangeSupport().firePropertyChange(propertyName, oldForm, form);
     }
 
     /**
@@ -426,7 +442,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     }
 
     @Override
-    public boolean equals(Object o)
+    public synchronized boolean equals(Object o)
     {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -441,7 +457,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     }
 
     @Override
-    public int hashCode()
+    public synchronized int hashCode()
     {
         return Objects.hashCode(declinedForms, definedForms, rootWord, adjectiveDeclension, allowsPositive, allowsComparative, allowsSuperlative);
     }
@@ -473,18 +489,13 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @throws NullPointerException If {@code adjectiveForm} is {@code null}.
      * @since 0.0.1
      */
-    public void removeDefinedForm(@NotNull AdjectiveForm adjectiveForm)
+    // Synchronization required: No data modifications whilst in _declineIntoBuffer()!
+    public synchronized void removeDefinedForm(@NotNull AdjectiveForm adjectiveForm)
     {
         requireAllowedComparisonDegree(adjectiveForm);
         checkNotNull(adjectiveForm);
 
-        String propertyName =
-                adjectiveForm.getComparisonDegree() + "_" + adjectiveForm.getCase() + "_" + adjectiveForm.getCount() + "_" + adjectiveForm.getGender() + "_defined";
-        String oldForm = definedForms.get(adjectiveForm);
-
-        definedForms.remove(adjectiveForm);
-
-        changeSupport.firePropertyChange(propertyName, oldForm, null);
+        getPropertyChangeSupport().firePropertyChange(adjectiveForm.getPropertyName("defined"), definedForms.remove(adjectiveForm), null);
     }
     //endregion
 
@@ -502,9 +513,10 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @throws IllegalArgumentException If the {@code comparisonDegree} is {@link #allows(ComparisonDegree) disallowed}.
      * @since 0.0.1
      */
+    // Synchronization required: access to adjectiveDeclension
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
-    public String getDeclinedForm(@NotNull AdjectiveForm adjectiveForm)
+    public synchronized String getDeclinedForm(@NotNull AdjectiveForm adjectiveForm)
     {
         requireAllowedComparisonDegree(adjectiveForm);
         if (this.adjectiveDeclension == null)
@@ -523,7 +535,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    private void putDeclinedForm(@NotNull AdjectiveForm adjectiveForm, @Nullable String form)
+    private synchronized void putDeclinedForm(@NotNull AdjectiveForm adjectiveForm, @Nullable String form)
     {
         requireAllowedComparisonDegree(adjectiveForm);
 
@@ -532,11 +544,11 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
         if (form == null || form.isEmpty())
         {
             declinedForms.remove(adjectiveForm);
-            changeSupport.firePropertyChange(propertyName, oldForm, null);
+            getPropertyChangeSupport().firePropertyChange(propertyName, oldForm, null);
         } else
         {
             declinedForms.put(adjectiveForm, form);
-            changeSupport.firePropertyChange(propertyName, oldForm, form);
+            getPropertyChangeSupport().firePropertyChange(propertyName, oldForm, form);
         }
     }
 
@@ -548,7 +560,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    private void _declineIntoBuffer()
+    private synchronized void _declineIntoBuffer()
     {
         if (this.adjectiveDeclension == null)
         { // Properly invoke all change listeners
@@ -636,7 +648,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
      */
     @NotNull
     @Override
-    public Adjective copyDeep()
+    public synchronized Adjective copyDeep()
     {
         // Adjective Declension and root word (both immutable)
         Adjective adjective = new Adjective(getContext(), this.adjectiveDeclension, this.rootWord);
@@ -659,5 +671,19 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
         adjective._declineIntoBuffer();
 
         return adjective;
+    }
+
+    @Override
+    public synchronized String toString()
+    {
+        return MoreObjects.toStringHelper(this)
+                          .add("declinedForms", declinedForms)
+                          .add("definedForms", definedForms)
+                          .add("rootWord", rootWord)
+                          .add("adjectiveDeclension", adjectiveDeclension)
+                          .add("allowsPositive", allowsPositive)
+                          .add("allowsComparative", allowsComparative)
+                          .add("allowsSuperlative", allowsSuperlative)
+                          .toString();
     }
 }

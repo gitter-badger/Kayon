@@ -18,6 +18,7 @@
 
 package cf.kayon.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
  * @author Ruben Anders
  * @since 0.2.0
  */
+@ThreadSafe
 public interface DeepCopyable<T extends DeepCopyable<T>>
 {
 

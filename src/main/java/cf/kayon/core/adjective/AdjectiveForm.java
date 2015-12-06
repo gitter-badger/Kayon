@@ -172,6 +172,39 @@ public class AdjectiveForm
     @NotNull
     private final String propertyName;
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!(o instanceof AdjectiveForm)) return false;
+        AdjectiveForm that = (AdjectiveForm) o;
+        return comparisonDegree == that.comparisonDegree &&
+               caze == that.caze &&
+               count == that.count &&
+               gender == that.gender;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(comparisonDegree, caze, count, gender);
+    }
+
+    /**
+     * @since 0.0.1
+     */
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper(this)
+                          .add("comparisonDegree", comparisonDegree)
+                          .add("caze", caze)
+                          .add("count", count)
+                          .add("gender", gender)
+                          .add("propertyName", propertyName)
+                          .toString();
+    }
+
     /**
      * Constructs a new AdjectiveForm.
      *
@@ -238,50 +271,15 @@ public class AdjectiveForm
     /**
      * Returns the property name for usage with a {@link java.beans.PropertyChangeSupport}.
      *
+     * The string is in the format {@code $ComparisonDegree_$Case_$Count_$Gender_$Suffix}.
+     *
      * @param suffix The suffix to append.
      * @return A property name.
      * @since 0.2.0
      */
     public String getPropertyName(String suffix)
     {
-        return propertyName + suffix;
+        return propertyName + suffix; // propertyName ends with an underscore character
     }
 
-    /**
-     * @since 0.0.1
-     */
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper(this)
-                          .add("comparisonDegree", comparisonDegree)
-                          .add("case", caze)
-                          .add("count", count)
-                          .add("gender", gender)
-                          .toString();
-    }
-
-    /**
-     * @since 0.0.1
-     */
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AdjectiveForm that = (AdjectiveForm) o;
-        return Objects.equal(comparisonDegree, that.comparisonDegree) &&
-               Objects.equal(caze, that.caze) &&
-               Objects.equal(count, that.count) &&
-               Objects.equal(gender, that.gender);
-    }
-
-    /**
-     * @since 0.0.1
-     */
-    @Override
-    public int hashCode()
-    {
-        return Objects.hashCode(comparisonDegree, caze, count, gender);
-    }
 }

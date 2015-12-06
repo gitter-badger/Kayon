@@ -86,7 +86,7 @@ public class NounView
         loader.setLocation(NounView.class.getResource("/cf/kayon/gui/vocabview/noun/noun.fxml"));
         Parent parent = loader.load(new ByteArrayInputStream(FXML));
         NounViewController controller = loader.getController();
-        controller.initializeWithNoun(noun);
+        controller.bindNoun(noun, true, true);
         return new ImmutablePair<>(parent, controller);
     }
 

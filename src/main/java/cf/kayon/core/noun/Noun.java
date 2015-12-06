@@ -21,12 +21,15 @@ package cf.kayon.core.noun;
 import cf.kayon.core.*;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -75,6 +78,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.0.1
  */
+@ThreadSafe
 public class Noun extends StandardVocab implements DeepCopyable<Noun>
 {
     //region Fields
@@ -84,7 +88,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.2.0
      */
     @NotNull
-    private final Map<NounForm, String> declinedForms = new HashMap<>(12);
+    private final ConcurrentMap<NounForm, String> declinedForms = new ConcurrentHashMap<>(12);
 
     /**
      * The defined forms of this noun.
@@ -92,13 +96,14 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @NotNull
-    private final Map<NounForm, String> definedForms = new HashMap<>(12);
+    private final ConcurrentMap<NounForm, String> definedForms = new ConcurrentHashMap<>(12);
 
     /**
      * The gender of this noun.
      *
      * @since 0.0.1
      */
+    @GuardedBy("this")
     @NotNull
     private Gender gender;
 
@@ -107,6 +112,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      *
      * @since 0.0.1
      */
+    @GuardedBy("this")
     @NotNull
     private String rootWord;
 
@@ -115,13 +121,10 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      *
      * @since 0.0.1
      */
+    @GuardedBy("this")
     @Nullable
     private NounDeclension nounDeclension;
-    //endregion
 
-    //region Constructors
-
-    //region Bean support
     {
         addPropertyChangeListener(evt -> {
             String propertyName = evt.getPropertyName();
@@ -133,11 +136,8 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     /**
      * Constructs a new Noun.
      * <p>
-     * Implementation note: The constructor itself does not use property change support. All arguments are validated with the default constraints
-     * and afterwards {@link #_declineIntoBuffer()} is called.
-     * <p>
      * The general contract of this class is to only contain lowercase forms (see annotation).
-     * Code should only apply lowercase forms to this method.
+     * Code should only apply lowercase forms to this constructor.
      *
      * @param context        The {@link KayonContext} for this instance.
      * @param nounDeclension The noun declension of the new noun. {@code null} if there is no NounDeclension.
@@ -145,6 +145,8 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @param rootWord       The root word.
      * @throws NullPointerException     If {@code context}, {@code gender} or {@code rootWord} is {@code null}.
      * @throws IllegalArgumentException If {@code rootWord} is {@link String#isEmpty() empty}.
+     * @implNote The constructor itself does not use property change support. All arguments are validated with the default constraints
+     * and afterwards {@link #_declineIntoBuffer()} is called.
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
@@ -153,14 +155,14 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         super(context);
         checkNotNull(gender);
         checkNotEmpty(rootWord);
-        this.nounDeclension = nounDeclension;
-        this.gender = gender;
-        this.rootWord = rootWord;
-        _declineIntoBuffer();
+        synchronized (this)
+        {
+            this.nounDeclension = nounDeclension;
+            this.gender = gender;
+            this.rootWord = rootWord;
+            _declineIntoBuffer();
+        }
     }
-    //endregion
-
-    //region Defining forms
 
     /**
      * Constructs a new Noun with no NounDeclension.
@@ -203,9 +205,9 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     {
         checkNotNull(nounForm);
         if (form == null || form.isEmpty())
-            changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_defined", definedForms.remove(nounForm), form);
+            getPropertyChangeSupport().firePropertyChange(nounForm.getPropertyName("defined"), definedForms.remove(nounForm), form);
         else
-            changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_defined", definedForms.put(nounForm, form), form);
+            getPropertyChangeSupport().firePropertyChange(nounForm.getPropertyName("defined"), definedForms.put(nounForm, form), form);
     }
 
     /**
@@ -226,9 +228,6 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         checkNotNull(nounForm);
         return definedForms.get(nounForm);
     }
-    //endregion
-
-    //region Declining forms
 
     /**
      * Removes a defined form.
@@ -264,9 +263,24 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
         checkNotNull(nounForm);
         return this.declinedForms.get(nounForm);
     }
-    //endregion
 
-    //region Setters and Getters
+    /**
+     * Gets a form - defined or declined (defined takes precedence).
+     *
+     * @param nounForm The noun form.
+     * @return The form. {@code null} if there is both no defined or declined form.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
+    @Nullable
+    public synchronized String getForm(@NotNull NounForm nounForm)
+    {
+        @Nullable
+        String definedFormOrNull = getDefinedForm(nounForm); // Delegates NotNull
+        if (definedFormOrNull != null)
+            return definedFormOrNull;
+        return getDeclinedForm(nounForm);
+    }
 
     /**
      * Called if changes to declined form changing properties occur.
@@ -276,27 +290,24 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    private void _declineIntoBuffer()
+    private synchronized void _declineIntoBuffer()
     {
         for (NounForm nounForm : NounForm.values())
-        {
-            String oldValue = this.declinedForms.get(nounForm);
             if (this.nounDeclension != null)
             {
+                String newValue;
                 try
                 {
-                    String newValue = nounDeclension.decline(nounForm, this.gender, this.rootWord);
-                    this.declinedForms.put(nounForm, newValue);
-                    changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_declined", oldValue, newValue);
-                } catch (FormingException ignored)
+                    newValue = nounDeclension.decline(nounForm, this.gender, this.rootWord);
+                } catch (FormingException e)
                 {
-                    changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_declined", oldValue, null);
+                    newValue = null;
                 }
+                getPropertyChangeSupport().firePropertyChange(nounForm.getPropertyName("declined"),
+                                                              newValue != null ? this.declinedForms.put(nounForm, newValue) : this.declinedForms.remove(nounForm),
+                                                              newValue);
             } else
-            {
-                changeSupport.firePropertyChange(nounForm.getCase() + "_" + nounForm.getCount() + "_declined", oldValue, null);
-            }
-        }
+                getPropertyChangeSupport().firePropertyChange(nounForm.getPropertyName("declined"), this.declinedForms.remove(nounForm), null);
     }
 
     /**
@@ -306,7 +317,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @NotNull
-    public Gender getGender()
+    public synchronized Gender getGender()
     {
         return gender;
     }
@@ -317,11 +328,11 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @param gender The new gender.
      * @since 0.0.1
      */
-    public void setGender(@NotNull Gender gender)
+    public synchronized void setGender(@NotNull Gender gender)
     {
         Gender oldGender = this.gender;
         this.gender = gender;
-        changeSupport.firePropertyChange("gender", oldGender, gender);
+        getPropertyChangeSupport().firePropertyChange("gender", oldGender, gender);
     }
 
     /**
@@ -335,7 +346,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
-    public String getRootWord()
+    public synchronized String getRootWord()
     {
         return rootWord;
     }
@@ -350,11 +361,12 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public void setRootWord(@NotNull String rootWord)
+    public synchronized void setRootWord(@NotNull String rootWord)
     {
+        checkNotEmpty(rootWord);
         String oldRootWord = this.rootWord;
         this.rootWord = rootWord;
-        changeSupport.firePropertyChange("rootWord", oldRootWord, rootWord);
+        getPropertyChangeSupport().firePropertyChange("rootWord", oldRootWord, rootWord);
     }
 
     /**
@@ -364,7 +376,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @Nullable
-    public NounDeclension getNounDeclension()
+    public synchronized NounDeclension getNounDeclension()
     {
         return this.nounDeclension;
     }
@@ -375,35 +387,18 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @param nounDeclension The new NounDeclension. {@code null} if the noun should not have a noun declension.
      * @since 0.0.1
      */
-    public void setNounDeclension(@Nullable NounDeclension nounDeclension)
+    public synchronized void setNounDeclension(@Nullable NounDeclension nounDeclension)
     {
         NounDeclension oldNounDeclension = this.nounDeclension;
         this.nounDeclension = nounDeclension;
-        changeSupport.firePropertyChange("nounDeclension", oldNounDeclension, nounDeclension);
+        getPropertyChangeSupport().firePropertyChange("nounDeclension", oldNounDeclension, nounDeclension);
     }
-    //endregion
 
     /**
-     * Gets a form - defined or declined (defined takes precedence).
-     *
-     * @param nounForm The noun form.
-     * @return The form. {@code null} if there is both no defined or declined form.
-     * @throws NullPointerException If any of the arguments is {@code null}.
-     * @since 0.0.1
+     * @implNote The PropertyChangeListeners of the two classes do not need to equal to consider the two objects equal.
      */
-    @Nullable
-    public String getForm(@NotNull NounForm nounForm)
-    {
-        @Nullable
-        String definedFormOrNull = getDefinedForm(nounForm); // Delegates NotNull
-        if (definedFormOrNull != null)
-            return definedFormOrNull;
-        return getDeclinedForm(nounForm);
-    }
-    //endregion
-
     @Override
-    public boolean equals(Object o)
+    public synchronized boolean equals(Object o)
     {
         if (this == o) return true;
         if (!(o instanceof Noun)) return false;
@@ -414,25 +409,23 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
                gender == noun.gender &&
                Objects.equal(rootWord, noun.rootWord) &&
                Objects.equal(nounDeclension, noun.nounDeclension);
+
     }
 
     @Override
-    public int hashCode()
+    public synchronized int hashCode()
     {
         return Objects.hashCode(super.hashCode(), declinedForms, definedForms, gender, rootWord, nounDeclension);
     }
 
     /**
-     * This will also copy the UUID over, if it exists (the resulting object will have the same UUID as this one).
-     * <p>
+     * @implNote This will also copy the UUID over, if it exists (the resulting object will have the same UUID as this one).
      * PropertyChangeListeners will <strong>not</strong> be copied.
-     * {@inheritDoc}
-     *
      * @since 0.2.0
      */
     @NotNull
     @Override
-    public Noun copyDeep()
+    public synchronized Noun copyDeep()
     {
         // Noun Declension, Gender, root word (all immutable)
         Noun noun = new Noun(getContext(), this.nounDeclension, this.gender, this.rootWord);
@@ -455,7 +448,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
     }
 
     @Override
-    public String toString()
+    public synchronized String toString()
     {
         return MoreObjects.toStringHelper(this)
                           .add("declinedForms", declinedForms)

@@ -114,7 +114,7 @@ public class StringUtil
     {
         checkNotNull(csqToCheck);
         if (csqToCheck.length() == 0)
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Empty string parameter!");
     }
 
     //    @NotNull

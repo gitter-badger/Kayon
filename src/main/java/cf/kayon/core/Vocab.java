@@ -18,6 +18,7 @@
 
 package cf.kayon.core;
 
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +30,7 @@ import java.util.UUID;
  * @author Ruben Anders
  * @since 0.0.1
  */
+@ThreadSafe
 public interface Vocab extends Translatable
 {
     /**
@@ -37,14 +39,14 @@ public interface Vocab extends Translatable
      * @return The UUID. {@code null} if no UUID has been {@link #initializeUuid(UUID) initialized} yet.
      * @since 0.0.1
      */
-    @Nullable
-    UUID getUuid();
+    @Nullable UUID getUuid();
 
     /**
      * Initializes the Vocab with a UUID.
      *
      * @param uuid The UUID to set.
      * @throws IllegalStateException If the UUID has already been initialized.
+     * @throws NullPointerException  If {@code uuid} is {@code null}.
      * @since 0.0.1
      */
     void initializeUuid(@NotNull UUID uuid);

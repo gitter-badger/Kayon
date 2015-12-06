@@ -19,13 +19,16 @@
 package cf.kayon.gui.vocabview.noun;
 
 import cf.kayon.core.*;
-import cf.kayon.core.Count;
 import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.noun.impl.*;
+import cf.kayon.core.util.Holder;
 import cf.kayon.gui.FxUtil;
-import com.google.common.collect.*;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.EnumHashBiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -38,14 +41,17 @@ import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeListener;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
+import static cf.kayon.core.util.StringUtil.checkNotEmpty;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Controls the noun view.
@@ -56,6 +62,9 @@ import java.util.UUID;
  */
 public class NounViewController extends Contexed
 {
+    @NotNull
+    private static final Logger LOGGER = LoggerFactory.getLogger(NounViewController.class);
+
     /**
      * A static buffer of all noun declensions.
      *
@@ -75,7 +84,7 @@ public class NounViewController extends Contexed
     @FXML
     ResourceBundle resources;
 
-    Table<Case, Count, Triple<Text, TextField, CheckBox>> tableElements;
+    Map<NounForm, Triple<Text, TextField, CheckBox>> tableElements;
 
     @FXML
     CheckBox nomSgCheckBox, genSgCheckBox, datSgCheckBox, accSgCheckBox, ablSgCheckBox, vocSgCheckBox, nomPlCheckBox, genPlCheckBox, datPlCheckBox, accPlCheckBox,
@@ -123,11 +132,15 @@ public class NounViewController extends Contexed
     }
 
     /**
+     * To be called on the JavaFX Application Thread.
+     *
      * @see javafx.fxml.Initializable
      * @since 0.0.1
      */
     public void initialize()
     {
+        LOGGER.info("Initializing NounViewController");
+
         /*
          * ComboBoxes
          */
@@ -177,26 +190,25 @@ public class NounViewController extends Contexed
                 return biMap.inverse().get(string);
             }
         });
-        declensionComboBox.getItems().setAll(nounDeclensions);
+        declensionComboBox.getItems().addAll(nounDeclensions);
 
         /*
          * Table elements
          */
-        Table<Case, Count, Triple<Text, TextField, CheckBox>> temporaryTable = HashBasedTable.create(6, 2);
-        temporaryTable.put(Case.NOMINATIVE, Count.SINGULAR, new ImmutableTriple<>(nomSgText, nomSgTextField, nomSgCheckBox));
-        temporaryTable.put(Case.GENITIVE, Count.SINGULAR, new ImmutableTriple<>(genSgText, genSgTextField, genSgCheckBox));
-        temporaryTable.put(Case.DATIVE, Count.SINGULAR, new ImmutableTriple<>(datSgText, datSgTextField, datSgCheckBox));
-        temporaryTable.put(Case.ACCUSATIVE, Count.SINGULAR, new ImmutableTriple<>(accSgText, accSgTextField, accSgCheckBox));
-        temporaryTable.put(Case.ABLATIVE, Count.SINGULAR, new ImmutableTriple<>(ablSgText, ablSgTextField, ablSgCheckBox));
-        temporaryTable.put(Case.VOCATIVE, Count.SINGULAR, new ImmutableTriple<>(vocSgText, vocSgTextField, vocSgCheckBox));
-
-        temporaryTable.put(Case.NOMINATIVE, Count.PLURAL, new ImmutableTriple<>(nomPlText, nomPlTextField, nomPlCheckBox));
-        temporaryTable.put(Case.GENITIVE, Count.PLURAL, new ImmutableTriple<>(genPlText, genPlTextField, genPlCheckBox));
-        temporaryTable.put(Case.DATIVE, Count.PLURAL, new ImmutableTriple<>(datPlText, datPlTextField, datPlCheckBox));
-        temporaryTable.put(Case.ACCUSATIVE, Count.PLURAL, new ImmutableTriple<>(accPlText, accPlTextField, accPlCheckBox));
-        temporaryTable.put(Case.ABLATIVE, Count.PLURAL, new ImmutableTriple<>(ablPlText, ablPlTextField, ablPlCheckBox));
-        temporaryTable.put(Case.VOCATIVE, Count.PLURAL, new ImmutableTriple<>(vocPlText, vocPlTextField, vocPlCheckBox));
-        this.tableElements = Tables.unmodifiableTable(temporaryTable); // Unmodifiable view
+        Map<NounForm, Triple<Text, TextField, CheckBox>> temporaryMap = new HashMap<>(12);
+        temporaryMap.put(NounForm.of(Case.NOMINATIVE, Count.SINGULAR), new ImmutableTriple<>(nomSgText, nomSgTextField, nomSgCheckBox));
+        temporaryMap.put(NounForm.of(Case.GENITIVE, Count.SINGULAR), new ImmutableTriple<>(genSgText, genSgTextField, genSgCheckBox));
+        temporaryMap.put(NounForm.of(Case.DATIVE, Count.SINGULAR), new ImmutableTriple<>(datSgText, datSgTextField, datSgCheckBox));
+        temporaryMap.put(NounForm.of(Case.ACCUSATIVE, Count.SINGULAR), new ImmutableTriple<>(accSgText, accSgTextField, accSgCheckBox));
+        temporaryMap.put(NounForm.of(Case.ABLATIVE, Count.SINGULAR), new ImmutableTriple<>(ablSgText, ablSgTextField, ablSgCheckBox));
+        temporaryMap.put(NounForm.of(Case.VOCATIVE, Count.SINGULAR), new ImmutableTriple<>(vocSgText, vocSgTextField, vocSgCheckBox));
+        temporaryMap.put(NounForm.of(Case.NOMINATIVE, Count.PLURAL), new ImmutableTriple<>(nomPlText, nomPlTextField, nomPlCheckBox));
+        temporaryMap.put(NounForm.of(Case.GENITIVE, Count.PLURAL), new ImmutableTriple<>(genPlText, genPlTextField, genPlCheckBox));
+        temporaryMap.put(NounForm.of(Case.DATIVE, Count.PLURAL), new ImmutableTriple<>(datPlText, datPlTextField, datPlCheckBox));
+        temporaryMap.put(NounForm.of(Case.ACCUSATIVE, Count.PLURAL), new ImmutableTriple<>(accPlText, accPlTextField, accPlCheckBox));
+        temporaryMap.put(NounForm.of(Case.ABLATIVE, Count.PLURAL), new ImmutableTriple<>(ablPlText, ablPlTextField, ablPlCheckBox));
+        temporaryMap.put(NounForm.of(Case.VOCATIVE, Count.PLURAL), new ImmutableTriple<>(vocPlText, vocPlTextField, vocPlCheckBox));
+        this.tableElements = Collections.unmodifiableMap(temporaryMap);
 
         /*
          * Listeners
@@ -204,43 +216,7 @@ public class NounViewController extends Contexed
         this.rootWordTextBox.textProperty().addListener((observable, oldValue, newValue) -> rootWordChange(newValue));
         this.genderComboBox.valueProperty().addListener((observable, oldValue, newValue) -> genderChange(newValue));
         this.declensionComboBox.valueProperty().addListener((observable, oldValue, newValue) -> declensionChange(newValue));
-    }
 
-    /**
-     * Whether this NounView has already been initialized for the first time.
-     * This is required to register the between refreshes persisting listeners.
-     * <p>
-     * Difference to {@link #initializedWithNoun}: This also captures whether the stage property listener has been initialized. (see {@link #initializeWithNoun(Noun)})
-     *
-     * @since 0.0.1
-     */
-    private boolean init = false;
-
-    /**
-     * Whether this NounView is being displayed on its own window ( {@code true} ) or
-     * if it is just displayed in a pane ( {@code false} ).
-     *
-     * @since 0.0.1
-     */
-    private boolean isWindowed = false;
-
-    /**
-     * To be called to initialize the NounView initially.
-     * <p>
-     * Only call this method ever once. If the noun reference is to be changed, call {@link #bindNoun(Noun, boolean, boolean)}.
-     * <p>
-     * This method is to be called on the JavaFX application thread.
-     *
-     * @param noun The noun to initialize.
-     * @throws IllegalStateException If this NounView has already been initialized.
-     * @since 0.0.1
-     */
-    public void initializeWithNoun(@Nullable Noun noun)
-    {
-        if (init)
-            throw new IllegalStateException();
-        init = true;
-        bindNoun(noun, true, true);
         // Because the scene property of this node will be set later in the initialization chain
         rootPane.sceneProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null)
@@ -252,25 +228,50 @@ public class NounViewController extends Contexed
                     }
                 });
         });
+
+        for (NounForm current : NounForm.values())
+        {
+            Triple<Text, TextField, CheckBox> currentTriple = tableElements.get(current);
+            Text currentText = currentTriple.getLeft();
+            TextField currentTextField = currentTriple.getMiddle();
+            CheckBox currentCheckBox = currentTriple.getRight();
+
+            FxUtil.bindInverse(currentText.visibleProperty(), currentCheckBox.selectedProperty());
+            currentTextField.visibleProperty().bind(currentCheckBox.selectedProperty());
+            currentCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> checkBoxChanged(current, newValue));
+            currentTextField.textProperty().addListener((observable, oldValue, newValue) -> definedFormChange(current, newValue));
+        }
     }
+
+    /**
+     * Whether this NounView is being displayed on its own window ( {@code true} ) or
+     * if it is just displayed in a pane ( {@code false} ).
+     *
+     * @since 0.0.1
+     */
+    private boolean isWindowed = false;
 
     /**
      * The listeners bound to the current backing noun by this class, for later unregistering purposes.
      *
      * @since 0.0.1
      */
-    final Set<PropertyChangeListener> listeners = Sets.newHashSet();
+    private final Map<String, PropertyChangeListener> listeners = new HashMap<>();
 
     /**
      * Registers a listener into the listeners set for later unbinding.
      *
-     * @param listener The listener to register.
+     * @param propertyName The property name the listener is bound to.
+     * @param listener     The listener to register.
      * @return The listener itself. Useful for inlining.
      * @since 0.0.1
      */
-    private PropertyChangeListener register(PropertyChangeListener listener)
+    @NotNull
+    private PropertyChangeListener register(@NotNull @NonNls String propertyName, @NotNull PropertyChangeListener listener)
     {
-        listeners.add(listener);
+        checkNotEmpty(propertyName);
+        checkNotNull(listener);
+        listeners.put(propertyName, listener);
         return listener;
     }
 
@@ -282,107 +283,137 @@ public class NounViewController extends Contexed
      * @param noun The noun to unregister from.
      * @since 0.0.1
      */
-    private void unregisterAll(Noun noun)
+    private void unregisterAll(@NotNull Noun noun)
     {
         listeners.forEach(noun::removePropertyChangeListener);
         listeners.clear();
     }
 
     /**
-     * Whether this NounView has already been initialized with a noun.
-     *
-     * @since 0.0.1
-     */
-    boolean initializedWithNoun = false;
-
-
-    /**
      * To be called on the JavaFX application thread.
      *
-     * @param noun    The noun to bind.
+     * @param newNoun The noun to bind.
      * @param isReset Whether this is a reset: Setting this to true will override all checkbox settings.
-     * @param doInit  Whether this is a initialization: This is to be called e.g. on a save operation. Setting this parameter to true will make
+     * @param isInit  Whether this is a initialization: This is to be called e.g. on a save operation. Setting this parameter to true will make
      *                this method set the {@link #initialBackingNoun} field.
      * @since 0.0.1
      */
-    public void bindNoun(@Nullable Noun noun, boolean isReset, boolean doInit)
+    public void bindNoun(@Nullable Noun newNoun, boolean isReset, boolean isInit)
     {
-        boolean reRegisterListeners = noun != this.currentBackingNoun && noun != null; // Reference check
-        if (reRegisterListeners) // If the whole instance changed
-            unregisterAll(noun);
+        LOGGER.info(String.format("Binding noun:%nnewNoun: %s%nisReset: %b%nisInit: %b%ncurrentBackingNoun: %s%ninitialBackingNoun: %s", newNoun, isReset, isInit,
+                                  currentBackingNoun,
+                                  initialBackingNoun));
 
-        this.currentBackingNoun = noun;
-        if (doInit) this.initialBackingNoun = noun;
+        @Nullable Noun oldBackingNoun = currentBackingNoun;
+        @Nullable Noun oldInitialBackingNoun = initialBackingNoun;
+        currentBackingNoun = newNoun;
+        if (isInit) initialBackingNoun = newNoun != null ? newNoun.copyDeep() : null;
 
-        if (reRegisterListeners)
+        if (currentBackingNoun != oldBackingNoun)
         {
-            rootWordTextBox.setText(noun.getRootWord());
-            genderComboBox.setValue(noun.getGender());
-            declensionComboBox.setValue(noun.getNounDeclension());
-            uuidValueText.setText(noun.getUuid() != null ? noun.getUuid().toString() : resources.getString("Text.UUID.NoneSet"));
-            noun.addPropertyChangeListener(register(FxUtil.bind(rootWordTextBox.textProperty(), "rootWord")));
-            noun.addPropertyChangeListener(register(FxUtil.bind(genderComboBox.valueProperty(), "gender")));
-            noun.addPropertyChangeListener(register(FxUtil.bind(declensionComboBox.valueProperty(), "nounDeclension")));
-            noun.addPropertyChangeListener(register(
-                    FxUtil.bind(uuidValueText.textProperty(), "uuid", (UUID uuid) -> uuid != null ? uuid.toString() : resources.getString("Text.UUID.NoneSet"))));
+            // Unregister listeners from noun
+            // Yes: Noun@123abc -> Noun@345def
+            // Yes: Noun@123abc -> null
+            // No:  null -> Noun@123abc
+            if (oldBackingNoun != null)
+                unregisterAll(oldBackingNoun);
+
+            // Register new listeners
+            // Yes: Noun@123abc -> Noun@345def
+            // No: Noun@123abc -> null
+            // Yes:  null -> Noun@123abc
+            if (currentBackingNoun != null)
+            {
+                rootWordTextBox.setText(currentBackingNoun.getRootWord());
+                genderComboBox.setValue(currentBackingNoun.getGender());
+                declensionComboBox.setValue(currentBackingNoun.getNounDeclension());
+                uuidValueText.setText(currentBackingNoun.getUuid() != null ? currentBackingNoun.getUuid().toString() : resources.getString("Text.UUID.NoneSet"));
+                register("rootWord", FxUtil.bindTo(currentBackingNoun, rootWordTextBox.textProperty(), "rootWord", null, null));
+                register("gender", FxUtil.bindTo(currentBackingNoun, genderComboBox.valueProperty(), "gender", null, null));
+                register("nounDeclension", FxUtil.bindTo(currentBackingNoun, declensionComboBox.valueProperty(), "nounDeclension",
+                                                         (NounDeclension n) -> new Holder<>(n == null ? DummyNounDeclension.getInstance() : n)));
+                register("uuid", FxUtil.bindTo(currentBackingNoun, uuidValueText.textProperty(), "uuid", uuid -> {
+                    if (uuid == null)
+                        return new Holder<>(resources.getString("Text.UUID.NoneSet"));
+                    return new Holder<>(uuid.toString());
+                }));
+            }
         }
 
-        for (Count count : Count.values())
-            for (Case caze : Case.values())
+        if (currentBackingNoun == null && isReset)
+        {
+            rootWordTextBox.clear();
+            genderComboBox.setValue(null);
+            declensionComboBox.setValue(null);
+            uuidValueText.setText(resources.getString("Text.UUID.NoneSet"));
+        }
+
+
+        for (NounForm current : NounForm.values())
+        {
+            @NotNull Triple<Text, TextField, CheckBox> currentTriple = tableElements.get(current);
+            @NotNull Text currentText = currentTriple.getLeft();
+            @NotNull TextField currentTextField = currentTriple.getMiddle();
+            @NotNull CheckBox currentCheckBox = currentTriple.getRight();
+
+            if (currentBackingNoun == null)
             {
-                Triple<Text, TextField, CheckBox> currentTriple = tableElements.get(caze, count);
-                Text currentText = currentTriple.getLeft();
-                TextField currentTextField = currentTriple.getMiddle();
-                CheckBox currentCheckBox = currentTriple.getRight();
-
-                if (!initializedWithNoun) // For performance and readability, place this here instead of .initialize() (saves iterations and map-gets)
+                currentText.setText(resources.getString("Text.DeclinedForm.NoDeclinedForm"));
+                if (isReset)
                 {
-                    FxUtil.bindInverse(currentText.visibleProperty(), currentCheckBox.selectedProperty());
-                    currentTextField.visibleProperty().bind(currentCheckBox.selectedProperty());
-                    currentCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> checkBoxChanged(caze, count, newValue));
-                    currentTextField.textProperty().addListener((observable, oldValue, newValue) -> definedFormChange(caze, count, newValue));
+                    currentTextField.setText(resources.getString("Text.NoSuchForm"));
+                    currentCheckBox.setSelected(false);
                 }
-
+            } else // currentBackingNoun != null
+            {
                 // Text
-                String declinedForm = noun != null ? noun.getDeclinedForm(NounForm.of(caze, count)) : null;
+                String declinedForm = currentBackingNoun.getDeclinedForm(current);
                 currentText.setText(declinedForm != null ? declinedForm : resources.getString("Text.DeclinedForm.NoDeclinedForm"));
-                // TextField
-                String definedForm = noun != null ? noun.getDefinedForm(NounForm.of(caze, count)) : null;
-                currentTextField.setText(definedForm != null ? definedForm : resources.getString("Text.NoSuchForm"));
-                // CheckBox
-                if (isReset && noun != null)
-                    currentCheckBox.setSelected(noun.getDefinedForm(NounForm.of(caze, count)) != null);
 
-                if (reRegisterListeners)
+                // TextField
+                String definedForm = currentBackingNoun.getDefinedForm(current);
+                currentTextField.setText(definedForm != null ? definedForm : resources.getString("Text.NoSuchForm"));
+
+                // CheckBox
+                if (isReset)
+                    currentCheckBox.setSelected(currentBackingNoun.getDefinedForm(current) != null);
+
+                // Yes: Noun@123abc -> Noun@345def
+                // No: Noun@123abc -> null
+                // Yes:  null -> Noun@123abc
+                if (currentBackingNoun != oldBackingNoun)
                 {
-                    noun.addPropertyChangeListener(register(FxUtil.bind(currentText.textProperty(), caze + "_" + count + "_declined")));
-                    noun.addPropertyChangeListener(register(FxUtil.bind(currentTextField.textProperty(), caze + "_" + count + "_defined")));
+                    register(current.getPropertyName("declined"),
+                             FxUtil.bindTo(currentBackingNoun, currentText.textProperty(), current.getPropertyName("declined"), resources,
+                                           "Text.DeclinedForm.NoDeclinedForm"));
+                    register(current.getPropertyName("defined"),
+                             FxUtil.bindTo(currentBackingNoun, currentTextField.textProperty(), current.getPropertyName("defined"), resources,
+                                           "Text.NoSuchForm"));
                 }
             }
-        initializedWithNoun = true;
+        }
     }
 
     /**
      * Called when the user changes a defined form.
      *
-     * @param caze     The case of the changed form.
-     * @param count    The count of the changed form.
+     * @param nounForm The form that was changed.
      * @param newValue The new value.
      * @since 0.0.1
      */
-    private void definedFormChange(@NotNull Case caze, @NotNull Count count, @Nullable String newValue)
+    private void definedFormChange(@NotNull NounForm nounForm, @Nullable String newValue)
     {
         if (newValue != null)
         {
             String lowerCase = newValue.toLowerCase();
             if (!newValue.equals(lowerCase))
             {
-                tableElements.get(caze, count).getMiddle().setText(lowerCase);
+                tableElements.get(nounForm).getMiddle().setText(lowerCase);
                 return;
             }
             if (currentBackingNoun != null)
             {
-                currentBackingNoun.setDefinedForm(NounForm.of(caze, count), newValue);
+                currentBackingNoun.setDefinedForm(nounForm, newValue);
             }
         }
     }
@@ -390,21 +421,20 @@ public class NounViewController extends Contexed
     /**
      * Called when the user checks or unchecks a checkbox.
      *
-     * @param caze     The case of the form the checkbox was changed on.
-     * @param count    The count of the form the checkbox was changed on.
+     * @param nounForm The form that was changed.
      * @param newValue The new value of the checkbox.
      * @since 0.0.1
      */
-    private void checkBoxChanged(@NotNull Case caze, @NotNull Count count, boolean newValue)
+    private void checkBoxChanged(@NotNull NounForm nounForm, boolean newValue)
     {
         if (currentBackingNoun != null)
             if (!newValue)
             {
-                currentBackingNoun.removeDefinedForm(NounForm.of(caze, count));
+                currentBackingNoun.removeDefinedForm(nounForm);
+            } else
+            {
+                currentBackingNoun.setDefinedForm(nounForm, tableElements.get(nounForm).getMiddle().getText());
             }
-        {
-            currentBackingNoun.setDefinedForm(NounForm.of(caze, count), tableElements.get(caze, count).getMiddle().getText());
-        }
     }
 
     /**
@@ -473,8 +503,22 @@ public class NounViewController extends Contexed
             NounDeclension declension = declensionComboBox.getValue();
             if (declension instanceof DummyNounDeclension)
                 declension = null;
-            bindNoun(new Noun(getContext(), declension, genderComboBox.getValue(), rootWordTextBox.getText()), true, true);
+            bindNoun(new Noun(getContext(), declension, genderComboBox.getValue(), rootWordTextBox.getText()), false, false);
+        } else
+        {
+            tryDestroyBackingNoun();
         }
+    }
+
+    /**
+     * Possibly eliminates the current backing noun, e.g. if the user set the root word to an empty string.
+     *
+     * @since 0.2.0
+     */
+    private void tryDestroyBackingNoun()
+    {
+        if (rootWordTextBox.getText().isEmpty() && currentBackingNoun != null)
+            bindNoun(null, false, false); // do not reset checkboxes, do not override
     }
 
     /**
@@ -518,6 +562,6 @@ public class NounViewController extends Contexed
     @FXML
     private void reset(@Nullable ActionEvent event)
     {
-        bindNoun(this.initialBackingNoun, true, false);
+        bindNoun(initialBackingNoun, true, false);
     }
 }

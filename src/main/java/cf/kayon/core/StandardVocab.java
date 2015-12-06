@@ -18,7 +18,10 @@
 
 package cf.kayon.core;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
 
+import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -34,6 +38,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.2.0
  */
+@ThreadSafe
 public class StandardVocab extends Contexed implements Vocab
 {
     /**
@@ -41,8 +46,19 @@ public class StandardVocab extends Contexed implements Vocab
      *
      * @since 0.2.0
      */
+    @GuardedBy("uuidLock")
     private UUID uuid;
 
+    /**
+     * The guard object for accessing the {@link #uuid UUID field}.
+     *
+     * @since 0.2.0
+     */
+    private final Object uuidLock = new Object();
+
+    /**
+     * @since 0.2.0
+     */
     @Override
     public boolean equals(Object o)
     {
@@ -50,25 +66,44 @@ public class StandardVocab extends Contexed implements Vocab
         if (!(o instanceof StandardVocab)) return false;
         if (!super.equals(o)) return false;
         StandardVocab vocab = (StandardVocab) o;
-        return Objects.equal(uuid, vocab.uuid) &&
-               Objects.equal(translations, vocab.translations);
+        synchronized (uuidLock)
+        {
+            //noinspection NestedSynchronizedStatement
+            synchronized (translations)
+            {
+                return Objects.equal(uuid, vocab.uuid) &&
+                       Objects.equal(translations, vocab.translations);
+            }
+        }
     }
 
+    /**
+     * @since 0.2.0
+     */
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(super.hashCode(), uuid, translations);
+        synchronized (uuidLock)
+        {
+            //noinspection NestedSynchronizedStatement
+            synchronized (translations)
+            {
+                return Objects.hashCode(super.hashCode(), uuid, translations);
+            }
+        }
     }
 
     /**
      * Instantiates a new StandardVocab.
+     * <p>
+     * This constructor is {@code protected} so new instances of this class can only be created
+     * by classes extending this one.
      *
      * @param context The {@link KayonContext} for this instance.
      * @since 0.2.0
      */
     protected StandardVocab(@NotNull KayonContext context)
     {
-
         super(context);
     }
 
@@ -79,7 +114,10 @@ public class StandardVocab extends Contexed implements Vocab
     @Override
     public UUID getUuid()
     {
-        return uuid;
+        synchronized (uuidLock)
+        {
+            return uuid;
+        }
     }
 
     /**
@@ -89,10 +127,13 @@ public class StandardVocab extends Contexed implements Vocab
     public void initializeUuid(@NotNull UUID uuid)
     {
         checkNotNull(uuid);
-        if (this.uuid != null)
-            throw new IllegalStateException("UUID has already been initialized!");
-        this.uuid = uuid;
-        changeSupport.firePropertyChange("uuid", null, uuid);
+        synchronized (uuidLock)
+        {
+            if (this.uuid != null)
+                throw new IllegalStateException("UUID has already been initialized!");
+            this.uuid = uuid;
+        }
+        getPropertyChangeSupport().firePropertyChange("uuid", null, uuid);
     }
 
     /**
@@ -100,7 +141,8 @@ public class StandardVocab extends Contexed implements Vocab
      *
      * @since 0.2.0
      */
-    private Map<Locale, String> translations = new HashMap<>();
+    @GuardedBy("translations")
+    private final HashMap<Locale, String> translations = new HashMap<>();
 
     /**
      * The ResourceBundle.Control instance used to get candidate locales.
@@ -119,7 +161,10 @@ public class StandardVocab extends Contexed implements Vocab
     @Override
     public Map<Locale, String> getTranslations()
     {
-        return translations;
+        synchronized (translations)
+        {
+            return translations;
+        }
     }
 
     /**
@@ -129,32 +174,39 @@ public class StandardVocab extends Contexed implements Vocab
     @Override
     public String getTranslation(@NotNull Locale locale)
     {
+        checkNotNull(locale);
         List<Locale> localeCandidates = CONTROL.getCandidateLocales("_dummy_", locale); // Sun's implementation discards the string argument
-        for (Locale currentCandidate : localeCandidates)
+        synchronized (translations)
         {
-            String translation = translations.get(currentCandidate);
-            if (translation != null)
-                return translation;
+            for (Locale currentCandidate : localeCandidates)
+            {
+                String translation = translations.get(currentCandidate);
+                if (translation != null)
+                    return translation;
+            }
         }
         return null;
     }
 
     /**
+     * @implNote The map instance will not be set in this StandardVocab, instead the map's contents will copied into the own map after the own map has been cleared.
      * @since 0.2.0
      */
     @Override
     public void setTranslations(@NotNull Map<Locale, String> map)
     {
-        this.translations = map;
+        checkNotNull(map);
+        synchronized (translations) // race condition
+        {
+            translations.clear();
+            translations.putAll(map); // Locale and string are immutable
+        }
     }
 
-    /**
-     * The PropertyChangeSupport for this class.
-     *
-     * @since 0.2.0
-     */
+    @SuppressWarnings("FieldNotUsedInToString")
     @NotNull
-    protected final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this); // protected for usage in subclasses
+    @GuardedBy("changeSupport")
+    private final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
 
     /**
      * Add a PropertyChangeListener to the listener list.
@@ -166,11 +218,65 @@ public class StandardVocab extends Contexed implements Vocab
      *
      * @param listener The PropertyChangeListener to be added
      * @see PropertyChangeSupport#addPropertyChangeListener(PropertyChangeListener)
-     * @since 0.0.1
+     * @since 0.2.0
      */
-    public void addPropertyChangeListener(PropertyChangeListener listener)
+    public void addPropertyChangeListener(@NotNull PropertyChangeListener listener)
     {
-        changeSupport.addPropertyChangeListener(listener);
+        checkNotNull(listener);
+        synchronized (changeSupport)
+        {
+            changeSupport.addPropertyChangeListener(listener);
+        }
+    }
+
+    /**
+     * Add a PropertyChangeListener for a specific property.  The listener
+     * will be invoked only when a call on firePropertyChange names that
+     * specific property.
+     * The same listener object may be added more than once.  For each
+     * property,  the listener will be invoked the number of times it was added
+     * for that property.
+     * If {@code propertyName} or {@code listener} is null, no
+     * exception is thrown and no action is taken.
+     *
+     * @param propertyName The name of the property to listen on.
+     * @param listener     The PropertyChangeListener to be added
+     * @see PropertyChangeSupport#addPropertyChangeListener(String, PropertyChangeListener)
+     * @since 0.2.0
+     */
+    public void addPropertyChangeListener(@NotNull String propertyName, @NotNull PropertyChangeListener listener)
+    {
+        checkNotEmpty(propertyName);
+        checkNotNull(listener);
+        synchronized (changeSupport)
+        {
+            changeSupport.addPropertyChangeListener(propertyName, listener);
+        }
+    }
+
+    /**
+     * Remove a PropertyChangeListener for a specific property.
+     * If {@code listener} was added more than once to the same event
+     * source for the specified property, it will be notified one less time
+     * after being removed.
+     * If {@code propertyName} is null,  no exception is thrown and no
+     * action is taken.
+     * If {@code listener} is null, or was never added for the specified
+     * property, no exception is thrown and no action is taken.
+     *
+     * @param propertyName The name of the property that was listened on.
+     * @param listener     The PropertyChangeListener to be removed
+     * @see PropertyChangeSupport#removePropertyChangeListener(String, PropertyChangeListener)
+     * @since 0.2.0
+     */
+    public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener)
+    {
+        checkNotEmpty(propertyName);
+        checkNotNull(listener);
+        synchronized (changeSupport)
+        {
+            changeSupport.removePropertyChangeListener(propertyName, listener);
+        }
     }
 
     /**
@@ -184,11 +290,51 @@ public class StandardVocab extends Contexed implements Vocab
      *
      * @param listener The PropertyChangeListener to be removed
      * @see PropertyChangeSupport#removePropertyChangeListener(PropertyChangeListener)
-     * @since 0.0.1
+     * @since 0.2.0
      */
-    public void removePropertyChangeListener(PropertyChangeListener listener)
+    public void removePropertyChangeListener(@NotNull PropertyChangeListener listener)
     {
-        changeSupport.removePropertyChangeListener(listener);
+        checkNotNull(listener);
+        synchronized (changeSupport)
+        {
+            changeSupport.removePropertyChangeListener(listener);
+        }
     }
 
+    /**
+     * Gets the PropertyChangeSupport for this class.
+     * <p>
+     * This method is {@code protected} so it can be accessed from any classes extending this class (for example for firing events). Code willing to add/remove listeners
+     * to this object should use {@link #addPropertyChangeListener(PropertyChangeListener)} and {@link #removePropertyChangeListener(PropertyChangeListener)}.
+     *
+     * @return The PropertyChangeSupport of this StandardVocab.
+     * @since 0.2.0
+     */
+    @NotNull
+    protected PropertyChangeSupport getPropertyChangeSupport()
+    {
+        synchronized (changeSupport)
+        {
+            return changeSupport;
+        }
+    }
+
+    /**
+     * @since 0.2.0
+     */
+    @Override
+    public String toString()
+    {
+        synchronized (uuidLock)
+        {
+            //noinspection NestedSynchronizedStatement
+            synchronized (translations)
+            {
+                return MoreObjects.toStringHelper(this)
+                                  .add("uuid", uuid)
+                                  .add("translations", translations)
+                                  .toString();
+            }
+        }
+    }
 }

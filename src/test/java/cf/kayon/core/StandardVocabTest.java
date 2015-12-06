@@ -31,7 +31,6 @@ import static org.junit.Assert.*;
 public class StandardVocabTest
 {
 
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Test
     public void testUuid() throws Exception
     {

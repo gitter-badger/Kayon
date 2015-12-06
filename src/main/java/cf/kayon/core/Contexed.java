@@ -24,8 +24,17 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Describes an object that is bound to a {@link KayonContext}.
+ *
+ * @author Ruben Anders
+ * @since 0.2.0
+ */
 public class Contexed
 {
+    /**
+     * @since 0.2.0
+     */
     @Override
     public String toString()
     {
@@ -34,6 +43,9 @@ public class Contexed
                           .toString();
     }
 
+    /**
+     * @since 0.2.0
+     */
     @Override
     public boolean equals(Object o)
     {
@@ -43,31 +55,42 @@ public class Contexed
         return Objects.equal(context, contexed.context);
     }
 
+    /**
+     * @since 0.2.0
+     */
     @Override
     public int hashCode()
     {
         return Objects.hashCode(context);
     }
 
-    /*
-         * Thread safety notice
-         *
-         * All set fields are final, guaranteeing memory visibility.
-         */
+    /**
+     * Gets the KayonContext of this Contexed object.
+     * <p>
+     * The returned object is guaranteed to be consistently the same instance.
+     *
+     * @return The KayonContext of this Contexed.
+     * @since 0.2.0
+     */
     @NotNull
     public KayonContext getContext()
-
     {
         return context;
     }
 
+    /**
+     * Holds the KayonContext of this Contexed object.
+     *
+     * @since 0.2.0
+     */
     @NotNull
     private final KayonContext context;
 
-    /*
-     * Thread safety notice
+    /**
+     * The {@code protected} constructor of Contexed, so it can be instantiated by superclasses, but it cannot be instantiated alone.
      *
-     * All set fields are final, guaranteeing memory visibility.
+     * @param context The KayonContext of this Contexed object.
+     * @since 0.2.0
      */
     protected Contexed(@NotNull KayonContext context)
     {
