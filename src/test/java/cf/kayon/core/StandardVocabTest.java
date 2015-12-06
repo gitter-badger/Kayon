@@ -65,7 +65,7 @@ public class StandardVocabTest
 
         vocab.setTranslations(map);
 
-        assertSame(map, vocab.getTranslations());
+        assertEquals(map, vocab.getTranslations());
     }
 
     @Test
