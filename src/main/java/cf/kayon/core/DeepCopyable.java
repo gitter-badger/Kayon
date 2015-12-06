@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents an object which can be fully cloned.
  *
+ * @param <T> The type of this object, e.g. when implementing {@code DeepCopyable} in a class {@code MySample}, you should write
+ * {@code class MySample implements DeepCopyable<MySample>}.
  * @author Ruben Anders
  * @since 0.2.0
  */
