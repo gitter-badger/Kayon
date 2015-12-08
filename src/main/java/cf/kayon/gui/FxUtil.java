@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.beans.PropertyChangeListener;
+import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,11 +56,9 @@ public class FxUtil
     /**
      * A set containing the images for the application.
      */
-    private static final List<Image> images = Lists.newArrayList(new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo16.png")),
-                                                                 new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo32.png")),
-                                                                 new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo64.png")),
-                                                                 new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo128.png")),
-                                                                 new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo150.png")));
+    private static final List<Image> images = Collections.unmodifiableList(Lists.newArrayList(new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo16.png")),
+                                                                                              new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo32.png")),
+                                                                                              new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo64.png"))));
 
     public static void initIcons(@NotNull Stage stage)
     {

@@ -28,7 +28,7 @@
 <Pane fx:id="pane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="400.0"
       xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cf.kayon.gui.splash.SplashController">
     <ImageView fitHeight="183.0" fitWidth="174.0" layoutX="212.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
-        <Image url="@../logo150.png"/>
+        <Image url="@../logo2048.png"/>
     </ImageView>
     <Text layoutX="14.0" layoutY="121.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Kayon" wrappingWidth="158.13671875">
         <font>
