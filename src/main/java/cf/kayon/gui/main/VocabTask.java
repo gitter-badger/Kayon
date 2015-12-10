@@ -21,6 +21,8 @@ package cf.kayon.gui.main;
 import cf.kayon.core.CaseHandling;
 import cf.kayon.core.KayonContext;
 import cf.kayon.core.Vocab;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -28,7 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -64,6 +68,7 @@ public class VocabTask extends Task<List<Vocab>>
      *
      * @param context      The {@link KayonContext} for this instance.
      * @param searchString The search string. May be the raw user input - both lowercase and uppercase characters are handled appropriately.
+     *                     Also, special regex characters are escaped.
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.2.0
      */
@@ -73,7 +78,7 @@ public class VocabTask extends Task<List<Vocab>>
         checkNotNull(context);
         checkNotNull(searchString);
         this.context = context;
-        this.searchString = searchString.toLowerCase();
+        this.searchString = Pattern.quote(searchString.toLowerCase());
     }
 
     /**
@@ -89,7 +94,8 @@ public class VocabTask extends Task<List<Vocab>>
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     protected List<Vocab> call() throws Exception
     {
-        final List<Vocab> collectedResults = new ArrayList<>();
+        @NotNull
+        final List<Vocab> collectedResults = Collections.synchronizedList(new ArrayList<>());
         try
         {
             collectedResults.addAll(context.getNounSQLFactory().queryNouns(searchString));
@@ -100,5 +106,39 @@ public class VocabTask extends Task<List<Vocab>>
             throw e;
         }
         return collectedResults;
+    }
+
+    /**
+     * @since 0.2.3
+     */
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!(o instanceof VocabTask)) return false;
+        VocabTask vocabTask = (VocabTask) o;
+        return Objects.equal(context, vocabTask.context) &&
+               Objects.equal(searchString, vocabTask.searchString);
+    }
+
+    /**
+     * @since 0.2.3
+     */
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(context, searchString);
+    }
+
+    /**
+     * @since 0.2.3
+     */
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper(this)
+                          .add("context", context)
+                          .add("searchString", searchString)
+                          .toString();
     }
 }

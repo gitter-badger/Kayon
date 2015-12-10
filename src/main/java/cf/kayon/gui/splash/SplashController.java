@@ -48,6 +48,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static cf.kayon.core.util.StringUtil.checkNotEmpty;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.Thread.interrupted;
 import static java.text.MessageFormat.format;
 
 /**
@@ -95,7 +98,7 @@ public class SplashController
             return DriverManager.getConnection(url, info);
         } catch (Throwable t)
         {
-            splashException("ConnectionFailure", t, 3);
+            splashException("ConnectionFailure", t);
             throw new RuntimeException(t);
         }
     }
@@ -117,7 +120,7 @@ public class SplashController
             return ConfigFactory.load(ConfigFactory.parseFileAnySyntax(new File("Kayon")));
         } catch (Throwable t)
         {
-            splashException("ConfigLoadFailure", t, 1);
+            splashException("ConfigLoadFailure", t);
             throw t;
         }
     }
@@ -144,7 +147,7 @@ public class SplashController
             FxUtil.executor.allowCoreThreadTimeOut(true);
         } catch (Throwable t)
         {
-            splashException("ApplicationConfigureFailure", t, 2);
+            splashException("ApplicationConfigureFailure", t);
             throw t;
         }
     }
@@ -152,16 +155,17 @@ public class SplashController
     /**
      * Shows an exception alert.
      * <p>
-     * NOT to be called on the JavaFX application thread, since the current thread will be halted until exit.
+     * NOT to be called on the JavaFX Application Thread, since the current thread will be interrupted.
      *
      * @param resourceBundlePackage The resource bundle package name of the error.
-     * @param t                     The throwable to show in the alert.
-     * @param exitStatus            The exit status to exit the application with.
+     * @param t                     The throwable to inform the user about.
      * @since 0.0.1
      */
-    private void splashException(String resourceBundlePackage, Throwable t, int exitStatus)
+    private void splashException(@NotNull String resourceBundlePackage, @NotNull Throwable t)
     {
-        LOGGER.error("Splash screen exception occurred (resourceBundlePackage: " + resourceBundlePackage + ", exitStatus: " + exitStatus + ")", t);
+        checkNotEmpty(resourceBundlePackage);
+        checkNotNull(t);
+        LOGGER.error("Splash screen exception occurred (resourceBundlePackage: " + resourceBundlePackage + ")", t);
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
 
@@ -179,12 +183,8 @@ public class SplashController
             alert.initModality(Modality.WINDOW_MODAL);
             alert.showAndWait();
             Platform.exit();
-            System.exit(exitStatus);
         });
-        try
-        {
-            this.wait(); // Halt the task thread execution
-        } catch (InterruptedException ignored) {}
+        Thread.currentThread().interrupt(); // Halt the task thread execution
     }
 
     /**
@@ -216,9 +216,10 @@ public class SplashController
         {
             FxUtil.context.getNounSQLFactory().setupDatabaseForNouns();
             FxUtil.context.getNounSQLFactory().compileStatements();
+            checkNotNull(null);
         } catch (Throwable t)
         {
-            splashException("StructureSetupFailure", t, 4);
+            splashException("StructureSetupFailure", t);
             throw new RuntimeException(t);
         }
     }
@@ -238,43 +239,53 @@ public class SplashController
             @Override
             protected Void call() throws Exception
             {
+                if (interrupted()) return null;
                 Platform.runLater(() -> {
                     updateProgress(0, 5);
                     updateMessage(resources.getString("LoadingConfig"));
                 });
 
+                if (interrupted()) return null;
                 Config config = loadConfig();
 
+                if (interrupted()) return null;
                 Platform.runLater(() -> {
                     updateProgress(1, 5);
                     updateMessage(resources.getString("ConnectingToDatabase"));
                 });
 
+                if (interrupted()) return null;
                 Connection connection = connectToDatabase(config);
 
+                if (interrupted()) return null;
                 Platform.runLater(() -> {
                     updateProgress(2, 5);
                     updateMessage(resources.getString("ConfiguringApplication"));
                 });
 
+                if (interrupted()) return null;
                 configureApplication(connection, config);
 
+                if (interrupted()) return null;
                 Platform.runLater(() -> {
                     updateProgress(3, 5);
                     updateMessage(resources.getString("InitializingDatabaseStructure"));
                 });
 
+                if (interrupted()) return null;
                 initializeDatabaseStructure();
 
+                if (interrupted()) return null;
                 Platform.runLater(() -> {
                     updateProgress(4, 5);
                     updateMessage(resources.getString("OpeningMainWindow"));
                 });
 
+                if (interrupted()) return null;
                 Platform.runLater(SplashController.this::openMainWindow);
 
+                if (interrupted()) return null;
                 Platform.runLater(pane.getScene().getWindow()::hide);
-                System.gc();
                 return null;
             }
         };

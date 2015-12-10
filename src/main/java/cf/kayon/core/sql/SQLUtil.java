@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Provides static utilities around database actions.
  *
+ * @author Ruben Anders
  * @since 0.0.1
  */
 public class SQLUtil

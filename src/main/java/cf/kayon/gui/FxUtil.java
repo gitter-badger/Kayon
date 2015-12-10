@@ -22,10 +22,6 @@ import cf.kayon.core.KayonContext;
 import cf.kayon.core.StandardVocab;
 import cf.kayon.core.util.Holder;
 import com.google.common.collect.Lists;
-import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WritableBooleanValue;
 import javafx.beans.value.WritableValue;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -39,7 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static cf.kayon.core.util.StringUtil.checkNotEmpty;
@@ -55,55 +50,39 @@ public class FxUtil
 {
     /**
      * A set containing the images for the application.
+     *
+     * @since 0.2.0
      */
+    @SuppressWarnings("HardcodedFileSeparator")
     private static final List<Image> images = Collections.unmodifiableList(Lists.newArrayList(new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo16.png")),
                                                                                               new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo32.png")),
                                                                                               new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo64.png"))));
 
+    /**
+     * Adds the default icons (16px, 32px and 64px) to the specified stage.
+     *
+     * @param stage The stage to add the icons to.
+     * @since 0.2.0
+     */
     public static void initIcons(@NotNull Stage stage)
     {
         checkNotNull(stage);
         stage.getIcons().addAll(images);
     }
 
-    public static void sleepSafely(long seconds)
-    {
-        try
-        {
-            TimeUnit.SECONDS.sleep(seconds);
-        } catch (InterruptedException ignored) {}
-    }
-
+    /**
+     * The KayonContext for the JavaFX application.
+     *
+     * @since 0.2.0
+     */
     public static volatile KayonContext context;
 
+    /**
+     * The global task executor for the JavaFX application.
+     *
+     * @since 0.2.0
+     */
     public static volatile ThreadPoolExecutor executor;
-
-    public static ChangeListener<Boolean> bindInverse(WritableBooleanValue writeTo, ReadOnlyBooleanProperty readFrom)
-    {
-        ChangeListener<Boolean> listener = (observable, oldValue, newValue) -> Platform.runLater(() -> writeTo.set(!newValue));
-        readFrom.addListener(listener);
-        return listener;
-    }
-
-    @NotNull
-    @SuppressWarnings("unchecked")
-    public static <T> PropertyChangeListener bind(WritableValue<T> writeTo, String propertyName)
-    {
-        return evt -> {
-            if (evt.getPropertyName().equals(propertyName))
-                writeTo.setValue((T) evt.getNewValue());
-        };
-    }
-
-    @NotNull
-    @SuppressWarnings("unchecked")
-    public static <T, R> PropertyChangeListener bind(WritableValue<R> writeTo, String propertyName, Function<T, R> transformer)
-    {
-        return evt -> {
-            if (evt.getPropertyName().equals(propertyName))
-                writeTo.setValue(transformer.apply((T) evt.getNewValue()));
-        };
-    }
 
     @SuppressWarnings("unchecked")
     @NotNull
@@ -198,6 +177,16 @@ public class FxUtil
         return listener;
     }
 
+    /**
+     * Casts a object of arbitrary type to the inferred return type.
+     * <p>
+     * Instead of throwing a {@link ClassCastException} if the types are not convertible, this method returns {@code null} instead.
+     *
+     * @param o   The object to cast.
+     * @param <T> The target cast type (inferred by the compiler)
+     * @return The casted object of {@code null} if it could not be converted.
+     * @since 0.2.0
+     */
     @Nullable
     @Contract(pure = true, value = "null -> null")
     @SuppressWarnings("unchecked")

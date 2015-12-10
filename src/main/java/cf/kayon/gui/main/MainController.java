@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -101,6 +102,7 @@ public class MainController
      * @since 0.0.1
      */
     @FXML
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
     private void search(ActionEvent e)
     {
         LOGGER.info("Search request received");
@@ -132,8 +134,10 @@ public class MainController
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
     private void queryVocab(@NotNull String searchString)
     {
-        LOGGER.info("Querying for " + searchString);
-        VocabTask vocabTask = new VocabTask(FxUtil.context, searchString);
+        LOGGER.info("Querying for user input >" + searchString + "<");
+        String useForm;
+        LOGGER.info("Lowercase and escaped: >" + (useForm = Pattern.quote(searchString.toLowerCase())) + "<");
+        VocabTask vocabTask = new VocabTask(FxUtil.context, useForm);
         vocabTask.stateProperty().addListener((observable, oldValue, newValue) -> {
             switch (newValue)
             {
@@ -156,32 +160,31 @@ public class MainController
 
     /**
      * Constructs the view nodes (and appends them to the vBox) from a list of queried vocab.
+     * <p>
+     * This method should not be called on the JavaFX application thread, since it performs blocking operations.
      *
      * @param serviceResult The result of the vocab database query.
      * @since 0.0.1
      */
     private void constructNodes(List<Vocab> serviceResult)
     {
-        LOGGER.info("Done Querying vocab, constructing JavaFX nodes");
+        LOGGER.info("Constructing JavaFX nodes");
 
         CountDownLatch latch = new CountDownLatch(serviceResult.size());
         try
         {
-            FxUtil.executor.invokeAll(serviceResult.stream()
-                                                   .map(v -> (Callable<Void>) () -> new NodeTask(v, vBox, latch).call())
-                                                   .collect(Collectors.toList())); // Convert vocab to callables
+            // blocks until completion
+            synchronized (serviceResult)
+            {
+                FxUtil.executor.invokeAll(serviceResult.stream()
+                                                       .map(v -> (Callable<Void>) () -> new NodeTask(v, vBox, latch).call())
+                                                       .collect(Collectors.toList())); // Convert vocab to callables
+            }
+            resetUI();
         } catch (InterruptedException e)
         {
             LOGGER.warn("Reconstruction of nodes was interrupted?!", e);
         }
-
-        FxUtil.executor.execute(() -> {
-            try
-            {
-                latch.await();
-            } catch (InterruptedException ignored) {}
-            resetUI();
-        });
     }
 
     /**

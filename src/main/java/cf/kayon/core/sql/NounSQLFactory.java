@@ -325,6 +325,9 @@ public class NounSQLFactory extends Contexed
         }
     }
 
+    /**
+     * @since 0.2.0
+     */
     @Override
     public boolean equals(Object o)
     {
@@ -339,12 +342,18 @@ public class NounSQLFactory extends Contexed
                Objects.equal(setupSql, that.setupSql);
     }
 
+    /**
+     * @since 0.2.0
+     */
     @Override
     public int hashCode()
     {
         return Objects.hashCode(super.hashCode(), insertSql, insertStatement, querySql, queryStatement, setupSql);
     }
 
+    /**
+     * @since 0.2.0
+     */
     @Override
     public String toString()
     {

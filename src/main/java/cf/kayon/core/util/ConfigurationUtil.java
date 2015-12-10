@@ -18,11 +18,10 @@
 
 package cf.kayon.core.util;
 
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
 import org.apache.commons.codec.binary.Hex;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -40,10 +39,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ConfigurationUtil
 {
-
-    @NotNull
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationUtil.class);
-
+    /**
+     * Converts a {@link Config}'s {@link Config#entrySet() entry set} to a {@link Properties} object.
+     *
+     * @param set The set to convert.
+     * @param <K> The type of the entry set's keys.
+     * @param <V> The type of the entry set's values.
+     * @return A properties object.
+     * @since 0.2.0
+     */
     @NotNull
     public static <K, V extends ConfigValue> Properties toProperties(@NotNull Set<Map.Entry<K, V>> set)
     {
@@ -98,7 +102,7 @@ public class ConfigurationUtil
      * @since 0.2.0
      */
     @NotNull
-    public static String toStringWithHashedPassword(@NotNull Map<Object, Object> map, String algorithm, String charsetName)
+    public static String toStringWithHashedPassword(@NotNull Map<Object, Object> map, @NotNull String algorithm, @NotNull String charsetName)
             throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
         checkNotNull(map);

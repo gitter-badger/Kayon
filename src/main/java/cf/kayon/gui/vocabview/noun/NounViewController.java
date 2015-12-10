@@ -236,7 +236,7 @@ public class NounViewController extends Contexed
             TextField currentTextField = currentTriple.getMiddle();
             CheckBox currentCheckBox = currentTriple.getRight();
 
-            FxUtil.bindInverse(currentText.visibleProperty(), currentCheckBox.selectedProperty());
+            currentText.visibleProperty().bind(currentCheckBox.selectedProperty().not());
             currentTextField.visibleProperty().bind(currentCheckBox.selectedProperty());
             currentCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> checkBoxChanged(current, newValue));
             currentTextField.textProperty().addListener((observable, oldValue, newValue) -> definedFormChange(current, newValue));

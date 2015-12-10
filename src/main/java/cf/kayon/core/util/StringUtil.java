@@ -19,19 +19,13 @@
 package cf.kayon.core.util;
 
 import cf.kayon.core.CaseHandling;
-import com.google.common.collect.ArrayTable;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-import com.google.common.collect.Tables;
-import org.apache.commons.collections4.iterators.ObjectArrayIterator;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import net.jcip.annotations.Immutable;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -41,8 +35,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.0.1
  */
+@Immutable
 public class StringUtil
 {
+
+    /**
+     * A private constructor that always fails to prevent instantiation.
+     *
+     * @throws IllegalStateException always
+     * @since 0.2.3
+     */
+    private StringUtil()
+    {
+        throw new IllegalStateException();
+    }
 
     /**
      * A table holding lengthened and shortened characters.
@@ -56,91 +62,64 @@ public class StringUtil
      * @since 0.0.1
      */
     @NotNull
-    public static final Table<Boolean, Character, Character> specialCharsTable;
+    public static final Table<Boolean, Character, Character> specialCharsTable = new ImmutableTable.Builder<Boolean, Character, Character>()
+            .put(true, 'A', 'Ā')
+            .put(true, 'a', 'ā')
+            .put(false, 'A', 'Ă')
+            .put(false, 'a', 'ă')
+            .put(true, 'E', 'Ē')
+            .put(true, 'e', 'ē')
+            .put(false, 'E', 'Ĕ')
+            .put(false, 'e', 'ĕ')
+            .put(true, 'I', 'Ī')
+            .put(true, 'i', 'ī')
+            .put(false, 'I', 'Ĭ')
+            .put(false, 'i', 'ĭ')
+            .put(true, 'O', 'Ō')
+            .put(true, 'o', 'ō')
+            .put(false, 'O', 'Ŏ')
+            .put(false, 'o', 'ŏ')
+            .put(true, 'U', 'Ū')
+            .put(true, 'u', 'ū')
+            .put(false, 'U', 'Ŭ')
+            .put(false, 'u', 'ŭ')
+            .build();
 
     /**
-     * A list of patterns to convert shortened/lengthened characters to their normal variants.
-     * <p>
-     * The key of the pair holds the pattern to apply, the value is the string to replace the pattern with.
+     * Checks for three conditions on the specified {@link CharSequence}:
+     * <ol>
+     * <li>If {@code csqToCheck} is {@code null}, a {@link NullPointerException} without a detail message will be thrown.</li>
+     * <li>If {@code csqToCheck} is empty ({@code csqToCheck.length() <= 0}), an {@link IllegalArgumentException} with the detail message
+     * {@code "Empty string parameter"} will be thrown.</li>
+     * <li>If {@code csqToCheck} is {@link StringUtils#isBlank(CharSequence) blank}, an {@link IllegalArgumentException} with the detail message
+     * {@code "Blank string parameter"} will be thrown.</li>
+     * </ol>
      *
+     * @param csqToCheck The CharSquence to check.
+     * @throws NullPointerException     If {@code csqToCheck} is {@code null}
+     * @throws IllegalArgumentException If {@code csqToCheck} is empty ({@code csqToCheck.length() <= 0}) or {@link StringUtils#isBlank(CharSequence) blank}.
      * @since 0.0.1
      */
-    @NotNull
-    private static final List<Pair<Pattern, String>> patterns;
-
-    static
-    {
-        @NotNull
-        ArrayTable<Boolean, Character, Character> tbl = ArrayTable.create(() -> new ObjectArrayIterator<>(Boolean.TRUE, Boolean.FALSE),
-                                                                          () -> new ObjectArrayIterator<>('A', 'a', 'E', 'e', 'I', 'i', 'O', 'o', 'U', 'u'));
-
-        tbl.put(true, 'A', 'Ā');
-        tbl.put(true, 'a', 'ā');
-        tbl.put(false, 'A', 'Ă');
-        tbl.put(false, 'a', 'ă');
-
-        tbl.put(true, 'E', 'Ē');
-        tbl.put(true, 'e', 'ē');
-        tbl.put(false, 'E', 'Ĕ');
-        tbl.put(false, 'e', 'ĕ');
-
-        tbl.put(true, 'I', 'Ī');
-        tbl.put(true, 'i', 'ī');
-        tbl.put(false, 'I', 'Ĭ');
-        tbl.put(false, 'i', 'ĭ');
-
-        tbl.put(true, 'O', 'Ō');
-        tbl.put(true, 'o', 'ō');
-        tbl.put(false, 'O', 'Ŏ');
-        tbl.put(false, 'o', 'ŏ');
-
-        tbl.put(true, 'U', 'Ū');
-        tbl.put(true, 'u', 'ū');
-        tbl.put(false, 'U', 'Ŭ');
-        tbl.put(false, 'u', 'ŭ');
-
-        specialCharsTable = Tables.unmodifiableTable(tbl);
-
-        patterns = new ArrayList<>(5);
-        patterns.add(new ImmutablePair<>(Pattern.compile("[ĀāĂă]"), "a"));
-        patterns.add(new ImmutablePair<>(Pattern.compile("[ĒēĔĕ]"), "e"));
-        patterns.add(new ImmutablePair<>(Pattern.compile("[ĪīĬĭ]"), "i"));
-        patterns.add(new ImmutablePair<>(Pattern.compile("[ŌōŎŏ]"), "o"));
-        patterns.add(new ImmutablePair<>(Pattern.compile("[ŪūŬŭ]"), "u"));
-    }
-
     @Contract(value = "null -> fail")
     public static void checkNotEmpty(CharSequence csqToCheck)
     {
         checkNotNull(csqToCheck);
-        if (csqToCheck.length() == 0)
-            throw new IllegalArgumentException("Empty string parameter!");
+        if (csqToCheck.length() <= 0)
+            throw new IllegalArgumentException("Empty string parameter");
+        if (StringUtils.isBlank(csqToCheck))
+            throw new IllegalArgumentException("Blank string parameter");
     }
 
-    //    @NotNull
-    //    public static String removeVeryLast(@NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
-    //    {
-    //        if (stringToRemoveFrom.endsWith(stringToRemove))
-    //            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
-    //        return stringToRemoveFrom;
-    //    }
-    //
-    //    @Nullable
-    //    public static String removeVeryLastOrNull(@NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
-    //    {
-    //        if (stringToRemoveFrom.endsWith(stringToRemove))
-    //            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
-    //        return null;
-    //    }
-    //
-    //    @NotNull
-    //    public static String removeVeryLast(@NotNull String normalizedString, @NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
-    //    {
-    //        if (normalizedString.endsWith(stringToRemove))
-    //            return stringToRemoveFrom.substring(0, stringToRemoveFrom.length() - stringToRemove.length());
-    //        return stringToRemoveFrom;
-    //    }
-
+    /**
+     * Removes the specified string {@code stringToRemove} from {@code stringToRemoveFrom} if {@code normalizedString} ends with {@code stringToRemove}.
+     *
+     * @param normalizedString   The string that needs to contain the {@code stringToRemove}.
+     * @param stringToRemoveFrom The string that should be changed.
+     * @param stringToRemove     The string to remove from {@code stringToRemoveFrom}.
+     * @return {@code stringToRemoveFrom} without {@code stringToRemove} (if it was on the very last position). If the operation could not be completed
+     * e.g. if {@code normalizedString} did not end in {@code stringToRemove}, {@code null} is returned.
+     * @since 0.0.1
+     */
     @Nullable
     public static String removeVeryLastOrNull(@NotNull String normalizedString, @NotNull String stringToRemoveFrom, @NotNull String stringToRemove)
     {
@@ -149,33 +128,13 @@ public class StringUtil
         return null;
     }
 
-    //    /**
-    //     * Applies a {@code Macron} or {@code Breve} to a character.
-    //     *
-    //     * @param doLengthen     {@code true} if a {@code Macron} should be applied, {@code false} if a {@code Breve} should be applied.
-    //     * @param charToLengthen The character to apply the {@code Macron} or {@code Breve} to.
-    //     * @return The character with applied {@code Macron} or {@code Breve}.
-    //     * @throws IllegalArgumentException If the char could not be lengthened/shortened. This is thrown if the input {@code char} was not one of {@code A, a, E, e, I, i, O, o, U, u}
-    //     *                                  (or a lengthened/shortened version of them).
-    //     */
-    //    public static char specialChar(boolean doLengthen, char charToLengthen) throws IllegalArgumentException
-    //    {
-    //        Character charOrNull = specialCharsTable.get(doLengthen, charToLengthen);
-    //        if (charOrNull != null)
-    //            return charOrNull;
-    //        // "Expensive" part: Un-apply and apply again
-    //        charOrNull = specialCharsTable.get(doLengthen, unSpecialChar(charToLengthen));
-    //        if (charOrNull != null)
-    //            return charOrNull;
-    //        throw new IllegalArgumentException();
-    //    }
-
     /**
      * Returns the normal variant of a given char.
      *
-     * @param specialChar The character, which
+     * @param specialChar The character, which is either lengthened, shortened or a normal char.
      * @return The normal version of the character.
      * @throws IllegalArgumentException If the character specified is not a special character or any of the possible normal variants of them.
+     * @since 0.0.1
      */
     public static char unSpecialChar(char specialChar) throws IllegalArgumentException
     {
@@ -186,36 +145,8 @@ public class StringUtil
             if (currentCell.getValue() == specialChar)
                 return currentCell.getColumnKey();
         }
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("Character " + specialChar + " is not a special character or a normal variant of them!");
     }
-
-    //    public static String specialString(boolean doLengthen, char charToLengthen) throws IllegalArgumentException
-    //    {
-    //        return String.valueOf(specialChar(doLengthen, charToLengthen));
-    //    }
-
-    //    @NotNull
-    //    public static String specialString(boolean doLengthen, @NotNull String stringToLengthen) throws IllegalArgumentException
-    //    {
-    //        StringBuilder stringBuilder = new StringBuilder(stringToLengthen.length());
-    //        for (int i = 0; i < stringToLengthen.length(); i++)
-    //        {
-    //            try
-    //            {
-    //                stringBuilder.append(specialChar(doLengthen, stringToLengthen.charAt(i)));
-    //            } catch (IllegalArgumentException e)
-    //            {
-    //                stringBuilder.append(stringToLengthen.charAt(i));
-    //            }
-    //        }
-    //        return stringBuilder.toString();
-    //    }
-
-    //    @NotNull
-    //    public static String unSpecialString(char specialChar)
-    //    {
-    //        return String.valueOf(unSpecialChar(specialChar));
-    //    }
 
     /**
      * Replaces all special characters in a string with their normal variants.
@@ -241,18 +172,9 @@ public class StringUtil
         return stringBuilder.toString();
     }
 
-    //    public static boolean normalizedEquals(@NotNull String first, @NotNull String second)
-    //    {
-    //        for (Pair<Pattern, String> currentPair : patterns)
-    //        {
-    //            first = currentPair.getLeft().matcher(first).replaceAll(currentPair.getRight());
-    //            second = currentPair.getLeft().matcher(second).replaceAll(currentPair.getRight());
-    //        }
-    //        return first.equalsIgnoreCase(second);
-    //    }
-
     /**
-     * Applies a all-special-form matching regular expression string. You can {@link Pattern#compile(String) compile} the resulting string into a {@link Pattern} and use it
+     * Applies a all-special-form matching regular expression string. You can {@link java.util.regex.Pattern#compile(String) compile} the resulting string into a
+     * {@link java.util.regex.Pattern Pattern} and use it
      * to match any possible special variant of the supplied form.
      * <p>
      * Example:
@@ -272,9 +194,10 @@ public class StringUtil
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
-    public static String anySpecialRegex(String form)
+    public static String anySpecialRegex(@NotNull String form)
     {
-        StringBuilder patternBuilder = new StringBuilder();
+        checkNotEmpty(form);
+        StringBuilder patternBuilder = new StringBuilder(form.length() * 2);
         for (int i = 0; i < form.length(); i++)
         {
             final char current = form.charAt(i);
@@ -284,7 +207,7 @@ public class StringUtil
                 case 'ā':
                 case 'ă':
                     patternBuilder.append("[aāă]");
-                    break;
+                    break; // breaks switch, not loop
                 case 'e':
                 case 'ē':
                 case 'ĕ':
