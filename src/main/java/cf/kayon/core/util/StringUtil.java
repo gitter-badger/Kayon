@@ -22,7 +22,6 @@ import cf.kayon.core.CaseHandling;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import net.jcip.annotations.Immutable;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,23 +90,19 @@ public class StringUtil
      * <li>If {@code csqToCheck} is {@code null}, a {@link NullPointerException} without a detail message will be thrown.</li>
      * <li>If {@code csqToCheck} is empty ({@code csqToCheck.length() <= 0}), an {@link IllegalArgumentException} with the detail message
      * {@code "Empty string parameter"} will be thrown.</li>
-     * <li>If {@code csqToCheck} is {@link StringUtils#isBlank(CharSequence) blank}, an {@link IllegalArgumentException} with the detail message
-     * {@code "Blank string parameter"} will be thrown.</li>
      * </ol>
      *
-     * @param csqToCheck The CharSquence to check.
+     * @param csqToCheck The CharSequence to check.
      * @throws NullPointerException     If {@code csqToCheck} is {@code null}
-     * @throws IllegalArgumentException If {@code csqToCheck} is empty ({@code csqToCheck.length() <= 0}) or {@link StringUtils#isBlank(CharSequence) blank}.
+     * @throws IllegalArgumentException If {@code csqToCheck} is empty ({@code csqToCheck.length() <= 0}).
      * @since 0.0.1
      */
-    @Contract(value = "null -> fail")
+    @Contract("null -> fail")
     public static void checkNotEmpty(CharSequence csqToCheck)
     {
         checkNotNull(csqToCheck);
         if (csqToCheck.length() <= 0)
             throw new IllegalArgumentException("Empty string parameter");
-        if (StringUtils.isBlank(csqToCheck))
-            throw new IllegalArgumentException("Blank string parameter");
     }
 
     /**

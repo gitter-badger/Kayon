@@ -23,7 +23,6 @@ import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.noun.impl.*;
-import cf.kayon.core.util.Holder;
 import cf.kayon.gui.FxUtil;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.EnumHashBiMap;
@@ -331,11 +330,11 @@ public class NounViewController extends Contexed
                 register("rootWord", FxUtil.bindTo(currentBackingNoun, rootWordTextBox.textProperty(), "rootWord", null, null));
                 register("gender", FxUtil.bindTo(currentBackingNoun, genderComboBox.valueProperty(), "gender", null, null));
                 register("nounDeclension", FxUtil.bindTo(currentBackingNoun, declensionComboBox.valueProperty(), "nounDeclension",
-                                                         (NounDeclension n) -> new Holder<>(n == null ? DummyNounDeclension.getInstance() : n)));
+                                                         (NounDeclension n) -> n == null ? DummyNounDeclension.getInstance() : n));
                 register("uuid", FxUtil.bindTo(currentBackingNoun, uuidValueText.textProperty(), "uuid", uuid -> {
                     if (uuid == null)
-                        return new Holder<>(resources.getString("Text.UUID.NoneSet"));
-                    return new Holder<>(uuid.toString());
+                        return resources.getString("Text.UUID.NoneSet");
+                    return uuid.toString();
                 }));
             }
         }
