@@ -184,7 +184,7 @@ public class FxUtil
      *
      * @param o   The object to cast.
      * @param <T> The target cast type (inferred by the compiler)
-     * @return The casted object of {@code null} if it could not be converted.
+     * @return The casted object, or {@code null} if it could not be converted.
      * @since 0.2.0
      */
     @Nullable
@@ -192,8 +192,6 @@ public class FxUtil
     @SuppressWarnings("unchecked")
     private static <T> T checkCast(@Nullable Object o)
     {
-        if (o == null)
-            return null;
         try
         {
             return (T) o;
