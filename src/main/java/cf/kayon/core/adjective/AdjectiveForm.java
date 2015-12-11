@@ -86,6 +86,65 @@ public class AdjectiveForm
     }
 
     /**
+     * The comparison degree.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final ComparisonDegree comparisonDegree;
+    /**
+     * The case.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final Case caze;
+    /**
+     * The count.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final Count count;
+    /**
+     * The gender.
+     *
+     * @since 0.0.1
+     */
+    @NotNull
+    private final Gender gender;
+    /**
+     * The prefix of the property name as used by the {@link java.beans.PropertyChangeSupport} of {@link Adjective}.
+     *
+     * @since 0.2.0
+     */
+    @NotNull
+    private final String propertyName;
+
+    /**
+     * Constructs a new AdjectiveForm.
+     *
+     * @param comparisonDegree The comparison degree.
+     * @param caze             The case.
+     * @param count            The count.
+     * @param gender           The gender.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.0.1
+     */
+    private AdjectiveForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
+    {
+        checkNotNull(comparisonDegree);
+        checkNotNull(caze);
+        checkNotNull(count);
+        checkNotNull(gender);
+        this.comparisonDegree = comparisonDegree;
+        this.caze = caze;
+        this.count = count;
+        this.gender = gender;
+        this.propertyName = comparisonDegree + "_" + caze + "_" + count + "_" + gender + "_";
+    }
+
+    /**
      * Returns a pooled instance of AdjectiveForm representing the specified arguments.
      *
      * @param comparisonDegree The comparison degree.
@@ -132,46 +191,6 @@ public class AdjectiveForm
         return allValues;
     }
 
-    /**
-     * The comparison degree.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final ComparisonDegree comparisonDegree;
-
-    /**
-     * The case.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final Case caze;
-
-    /**
-     * The count.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final Count count;
-
-    /**
-     * The gender.
-     *
-     * @since 0.0.1
-     */
-    @NotNull
-    private final Gender gender;
-
-    /**
-     * The prefix of the property name as used by the {@link java.beans.PropertyChangeSupport} of {@link Adjective}.
-     *
-     * @since 0.2.0
-     */
-    @NotNull
-    private final String propertyName;
-
     @Override
     public boolean equals(Object o)
     {
@@ -203,29 +222,6 @@ public class AdjectiveForm
                           .add("gender", gender)
                           .add("propertyName", propertyName)
                           .toString();
-    }
-
-    /**
-     * Constructs a new AdjectiveForm.
-     *
-     * @param comparisonDegree The comparison degree.
-     * @param caze             The case.
-     * @param count            The count.
-     * @param gender           The gender.
-     * @throws NullPointerException If any of the arguments is {@code null}.
-     * @since 0.0.1
-     */
-    private AdjectiveForm(@NotNull ComparisonDegree comparisonDegree, @NotNull Case caze, @NotNull Count count, @NotNull Gender gender)
-    {
-        checkNotNull(comparisonDegree);
-        checkNotNull(caze);
-        checkNotNull(count);
-        checkNotNull(gender);
-        this.comparisonDegree = comparisonDegree;
-        this.caze = caze;
-        this.count = count;
-        this.gender = gender;
-        this.propertyName = comparisonDegree + "_" + caze + "_" + count + "_" + gender + "_";
     }
 
     /**
@@ -270,7 +266,7 @@ public class AdjectiveForm
 
     /**
      * Returns the property name for usage with a {@link java.beans.PropertyChangeSupport}.
-     *
+     * <p>
      * The string is in the format {@code $ComparisonDegree_$Case_$Count_$Gender_$Suffix}.
      *
      * @param suffix The suffix to append.

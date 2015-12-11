@@ -39,17 +39,6 @@ public class StringUtil
 {
 
     /**
-     * A private constructor that always fails to prevent instantiation.
-     *
-     * @throws IllegalStateException always
-     * @since 0.2.3
-     */
-    private StringUtil()
-    {
-        throw new IllegalStateException();
-    }
-
-    /**
      * A table holding lengthened and shortened characters.
      * <p>
      * Row: {@code true} if the character denoted by this cell is lengthened, {@code false} if it shortened.
@@ -83,6 +72,17 @@ public class StringUtil
             .put(false, 'U', 'Ŭ')
             .put(false, 'u', 'ŭ')
             .build();
+
+    /**
+     * A private constructor that always fails to prevent instantiation.
+     *
+     * @throws IllegalStateException always
+     * @since 0.2.3
+     */
+    private StringUtil()
+    {
+        throw new IllegalStateException();
+    }
 
     /**
      * Checks for three conditions on the specified {@link CharSequence}:
@@ -133,7 +133,7 @@ public class StringUtil
      */
     public static char unSpecialChar(char specialChar) throws IllegalArgumentException
     {
-        if (specialCharsTable.get(true, specialChar) != null) // If table has the char as key, it's not special
+        if (specialCharsTable.contains(true, specialChar)) // If table has the char as key, it's not special
             return specialChar;
         for (Table.Cell<Boolean, Character, Character> currentCell : specialCharsTable.cellSet())
         {

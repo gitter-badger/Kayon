@@ -48,8 +48,7 @@ public interface AdjectiveDeclension
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    @NotNull
-    String decline(@NotNull AdjectiveForm adjectiveForm, @NotNull String rootWord) throws FormingException;
+    @NotNull String decline(@NotNull AdjectiveForm adjectiveForm, @NotNull String rootWord) throws FormingException;
 
     /**
      * Determines the root word based on a declined form.
@@ -66,8 +65,7 @@ public interface AdjectiveDeclension
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    @NotNull
-    String determineRootWord(@NotNull AdjectiveForm adjectiveForm, @NotNull String declinedForm) throws FormingException;
+    @NotNull String determineRootWord(@NotNull AdjectiveForm adjectiveForm, @NotNull String declinedForm) throws FormingException;
 
     /**
      * Gets all equal forms of the specified form.
@@ -82,6 +80,5 @@ public interface AdjectiveDeclension
      * @return A set of equal forms. {@code null} if there are no equal forms.
      * @since 0.0.1
      */
-    @Nullable
-    Set<AdjectiveForm> getEqualForms(@NotNull AdjectiveForm adjectiveForm);
+    @Nullable Set<AdjectiveForm> getEqualForms(@NotNull AdjectiveForm adjectiveForm);
 }

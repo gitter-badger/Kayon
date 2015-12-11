@@ -40,6 +40,13 @@ public class DummyNounDeclension implements NounDeclension
     public static final DummyNounDeclension INSTANCE = new DummyNounDeclension();
 
     /**
+     * The private constructor to never let anybody construct this class.
+     *
+     * @since 0.0.1
+     */
+    private DummyNounDeclension() {}
+
+    /**
      * Gets the only instance of this as specified by {@link cf.kayon.core.noun.NounDeclension}.
      *
      * @return The only instance.
@@ -49,13 +56,6 @@ public class DummyNounDeclension implements NounDeclension
     {
         return INSTANCE;
     }
-
-    /**
-     * The private constructor to never let anybody construct this class.
-     *
-     * @since 0.0.1
-     */
-    private DummyNounDeclension() {}
 
     /**
      * @since 0.0.1

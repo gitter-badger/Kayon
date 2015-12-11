@@ -41,13 +41,6 @@ import java.util.Map;
 public class AdjectiveDeclensionUtil
 {
     /**
-     * The private constructor to never let anyone construct this static-only class.
-     *
-     * @since 0.0.1
-     */
-    private AdjectiveDeclensionUtil() {}
-
-    /**
      * Universal endings for the comparative comparison degree.
      *
      * @since 0.0.1
@@ -57,7 +50,6 @@ public class AdjectiveDeclensionUtil
             AdjectiveDeclensionUtil.endingsTable("ior", "ioris", "iorī", "iorem", "iore", "ior", "iorēs", "iorum", "ioribus", "iorēs", "ioribus", "iorēs",
                                                  "ior", "ioris", "iorī", "iorem", "iore", "ior", "iorēs", "iorum", "ioribus", "iorēs", "ioribus", "iorēs",
                                                  "ius", "ioris", "iorī", "ius", "iore", "ius", "iora", "iorum", "ioribus", "iora", "ioribus", "iora");
-
     /**
      * Universal endings for the superlative comparison degree.
      *
@@ -68,6 +60,13 @@ public class AdjectiveDeclensionUtil
             AdjectiveDeclensionUtil.endingsTable("us", "ī", "ō", "um", "ō", "e", "ī", "ōrum", "īs", "ōs", "īs", "ī",
                                                  "a", "ae", "ae", "am", "ā", "a", "ae", "ārum", "īs", "ās", "īs", "ae",
                                                  "um", "ī", "ō", "um", "ō", "um", "a", "ōrum", "īs", "a", "īs", "a");
+
+    /**
+     * The private constructor to never let anyone construct this static-only class.
+     *
+     * @since 0.0.1
+     */
+    private AdjectiveDeclensionUtil() {}
 
     /**
      * Constructs a table of endings.

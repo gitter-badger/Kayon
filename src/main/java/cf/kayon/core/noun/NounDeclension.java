@@ -66,8 +66,7 @@ public interface NounDeclension
      * @return The primary gender. May be null if the implementation does not have a primary gender.
      * @since 0.0.1
      */
-    @Nullable
-    Gender getPrimaryGender();
+    @Nullable Gender getPrimaryGender();
 
     /**
      * Declines a form based on a root word.
@@ -85,8 +84,7 @@ public interface NounDeclension
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    @NotNull
-    String decline(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String rootWord) throws FormingException;
+    @NotNull String decline(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String rootWord) throws FormingException;
 
     /**
      * Determines the root word based on a declined form.
@@ -104,8 +102,7 @@ public interface NounDeclension
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    @NotNull
-    String determineRootWord(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException;
+    @NotNull String determineRootWord(@NotNull NounForm nounForm, @NotNull Gender gender, @NotNull String declinedForm) throws FormingException;
 
     /**
      * Returns whether a specified gender is supported by this NounDeclension. If a gender is not allowed, a usage cannot expect declining results to be accurate,

@@ -79,46 +79,46 @@ public class NounViewController extends Contexed
                                                                                    UNounDeclension.getInstance(),
                                                                                    ENounDeclension.getInstance(),
                                                                                    DummyNounDeclension.getInstance());
-
+    /**
+     * The listeners bound to the current backing noun by this class, for later unregistering purposes.
+     *
+     * @since 0.0.1
+     */
+    private final Map<String, PropertyChangeListener> listeners = new HashMap<>();
     @FXML
     ResourceBundle resources;
-
     Map<NounForm, Triple<Text, TextField, CheckBox>> tableElements;
-
     @FXML
     CheckBox nomSgCheckBox, genSgCheckBox, datSgCheckBox, accSgCheckBox, ablSgCheckBox, vocSgCheckBox, nomPlCheckBox, genPlCheckBox, datPlCheckBox, accPlCheckBox,
             ablPlCheckBox, vocPlCheckBox;
-
     @FXML
     Text nomSgText, genSgText, datSgText, accSgText, ablSgText, vocSgText, nomPlText, genPlText, datPlText, accPlText, ablPlText, vocPlText;
-
     @FXML
     TextField nomSgTextField, genSgTextField, datSgTextField, accSgTextField, ablSgTextField, vocSgTextField, nomPlTextField, genPlTextField, datPlTextField,
             accPlTextField, ablPlTextField, vocPlTextField;
-
     @FXML
     Button resetButton, saveButton;
-
     @FXML
     TextField rootWordTextBox;
-
     @FXML
     ComboBox<Gender> genderComboBox;
-
     @FXML
     ComboBox<NounDeclension> declensionComboBox;
-
     @FXML
     GridPane rootPane;
-
     @FXML
     Text uuidText, uuidValueText;
-
     @Nullable
     Noun initialBackingNoun;
-
     @Nullable
     Noun currentBackingNoun;
+    /**
+     * Whether this NounView is being displayed on its own window ( {@code true} ) or
+     * if it is just displayed in a pane ( {@code false} ).
+     *
+     * @since 0.0.1
+     */
+    private boolean isWindowed = false;
 
     protected NounViewController(@NotNull KayonContext context)
     {
@@ -243,21 +243,6 @@ public class NounViewController extends Contexed
     }
 
     /**
-     * Whether this NounView is being displayed on its own window ( {@code true} ) or
-     * if it is just displayed in a pane ( {@code false} ).
-     *
-     * @since 0.0.1
-     */
-    private boolean isWindowed = false;
-
-    /**
-     * The listeners bound to the current backing noun by this class, for later unregistering purposes.
-     *
-     * @since 0.0.1
-     */
-    private final Map<String, PropertyChangeListener> listeners = new HashMap<>();
-
-    /**
      * Registers a listener into the listeners set for later unbinding.
      *
      * @param propertyName The property name the listener is bound to.
@@ -304,7 +289,7 @@ public class NounViewController extends Contexed
                                   initialBackingNoun));
 
         @Nullable Noun oldBackingNoun = currentBackingNoun;
-        @Nullable Noun oldInitialBackingNoun = initialBackingNoun;
+//        @Nullable Noun oldInitialBackingNoun = initialBackingNoun;
         currentBackingNoun = newNoun;
         if (isInit) initialBackingNoun = newNoun != null ? newNoun.copyDeep() : null;
 
@@ -348,7 +333,7 @@ public class NounViewController extends Contexed
         }
 
 
-        for (NounForm current : NounForm.values())
+        for (@NotNull NounForm current : NounForm.values())
         {
             @NotNull Triple<Text, TextField, CheckBox> currentTriple = tableElements.get(current);
             @NotNull Text currentText = currentTriple.getLeft();

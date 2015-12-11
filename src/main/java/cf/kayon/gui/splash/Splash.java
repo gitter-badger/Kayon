@@ -47,28 +47,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class Splash extends Application
 {
     /**
-     * @throws Exception If an {@link java.sql.SQLException} occurs when closing the connection of the application KayonContext ({@link FxUtil#context})
-     * @since 0.2.0
-     */
-    @Override
-    public void stop() throws Exception
-    {
-        super.stop();
-        @Nullable
-        KayonContext context = FxUtil.context;
-        if (context != null) // If object is present, its contents are also present (null checks are performed on construct)
-        {
-            context.getConnection().close();
-        }
-        @Nullable
-        ThreadPoolExecutor executor = FxUtil.executor;
-        if (executor != null)
-        {
-            executor.shutdown(); // Complete all tasks and terminate pool threads
-        }
-    }
-
-    /**
      * The main entry point for the application.
      *
      * @param args The arguments the program was launched with.
@@ -79,17 +57,6 @@ public class Splash extends Application
         System.setProperty("glass.accessible.force", "false"); // http://stackoverflow.com/a/32597281/4464702 (Windows 10 devices with touch)
         // Fixed in Java 9 only
         launch(args);
-    }
-
-    /**
-     * @since 0.0.1
-     */
-    @Override
-    public void start(Stage stage) throws Exception
-    {
-        SplashController controller = createOntoStage(stage);
-        stage.show();
-        controller.startApplication();
     }
 
     /**
@@ -158,5 +125,38 @@ public class Splash extends Application
         stage.setScene(pair.getLeft());
 
         return pair.getRight();
+    }
+
+    /**
+     * @throws Exception If an {@link java.sql.SQLException} occurs when closing the connection of the application KayonContext ({@link FxUtil#context})
+     * @since 0.2.0
+     */
+    @Override
+    public void stop() throws Exception
+    {
+        super.stop();
+        @Nullable
+        KayonContext context = FxUtil.context;
+        if (context != null) // If object is present, its contents are also present (null checks are performed on construct)
+        {
+            context.getConnection().close();
+        }
+        @Nullable
+        ThreadPoolExecutor executor = FxUtil.executor;
+        if (executor != null)
+        {
+            executor.shutdown(); // Complete all tasks and terminate pool threads
+        }
+    }
+
+    /**
+     * @since 0.0.1
+     */
+    @Override
+    public void start(Stage stage) throws Exception
+    {
+        SplashController controller = createOntoStage(stage);
+        stage.show();
+        controller.startApplication();
     }
 }

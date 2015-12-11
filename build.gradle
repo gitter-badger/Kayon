@@ -47,7 +47,7 @@ if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
 
     task copyCIArtifacts << { // because why not, doubleshift and nested copy (intuitive, isn't it?)
         copy {
-            from(file("$buildDir/libs/").listFiles() + file("$buildDir/distributions/").listFiles() + file("$buildDir/launch4j").listFiles({File dir, String filename -> filename.endsWith '.exe'} as FilenameFilter))
+            from(file("$buildDir/libs/").listFiles() + file("$buildDir/distributions/").listFiles() + file("$buildDir/launch4j").listFiles({ File dir, String filename -> filename.endsWith '.exe' } as FilenameFilter))
             into System.getenv('CIRCLE_ARTIFACTS')
         }
     }

@@ -151,7 +151,7 @@ public abstract class StandardAdjectiveDeclension implements AdjectiveDeclension
      * Gets all equal forms to a specified form.
      *
      * @param adjectiveForm The adjective form.
-     * @param goRecursive      Whether to include equal forms of equal forms.
+     * @param goRecursive   Whether to include equal forms of equal forms.
      * @return A Set of adjective forms.
      * @since 0.0.1
      */

@@ -55,6 +55,37 @@ public class NounSQLFactory extends Contexed
 {
 
     /**
+     * The SQL string for inserting a {@link Noun} into a database.
+     *
+     * @since 0.0.1
+     */
+    private final String insertSql;
+    /**
+     * The SQL string for querying {@link Noun}s by a finite form from a database.
+     *
+     * @since 0.0.1
+     */
+    private final String querySql;
+    /**
+     * The SQL string for setting up a database for noun operations.
+     *
+     * @since 0.0.1
+     */
+    private final String setupSql;
+    /**
+     * The SQL statement for inserting a {@link Noun} into a database.
+     *
+     * @since 0.2.0
+     */
+    private volatile PreparedStatement insertStatement;
+    /**
+     * The SQL statement for querying {@link Noun}s by a finite form from a database.
+     *
+     * @since 0.2.0
+     */
+    private volatile PreparedStatement queryStatement;
+
+    /**
      * Constructs a new instance.
      * <p>
      * All statements are retrieved from the config of the context at construct time. The statements are also compiled at construct time.
@@ -71,7 +102,8 @@ public class NounSQLFactory extends Contexed
     }
 
     /**
-     * Compiles the SQL statements into PreparedStatement objects. Required for later calls to {@link #queryNouns(String)} or {@link #saveNounToDatabase(Noun)}.
+     * Compiles the SQL statements into {@link PreparedStatement} objects.
+     * Required for later calls to {@link #queryNouns(String)} or {@link #saveNounToDatabase(Noun)}.
      * <p>
      * <strong>This method depends on {@link #setupDatabaseForNouns()}.</strong>
      *
@@ -92,42 +124,6 @@ public class NounSQLFactory extends Contexed
         }
     }
 
-
-    /**
-     * The SQL string for inserting a {@link Noun} into a database.
-     *
-     * @since 0.0.1
-     */
-    private final String insertSql;
-
-    /**
-     * The SQL statement for inserting a {@link Noun} into a database.
-     *
-     * @since 0.2.0
-     */
-    private volatile PreparedStatement insertStatement;
-
-    /**
-     * The SQL string for querying {@link Noun}s by a finite form from a database.
-     *
-     * @since 0.0.1
-     */
-    private final String querySql;
-
-    /**
-     * The SQL statement for querying {@link Noun}s by a finite form from a database.
-     *
-     * @since 0.2.0
-     */
-    private volatile PreparedStatement queryStatement;
-
-    /**
-     * The SQL string for setting up a database for noun operations.
-     *
-     * @since 0.0.1
-     */
-    private final String setupSql;
-
     /*
      * Thread safety notice
      *
@@ -143,8 +139,9 @@ public class NounSQLFactory extends Contexed
      * @throws SQLException If there are any issues when executing the SQL update against the database connection.
      * @since 0.0.1
      */
-    public void saveNounToDatabase(Noun noun) throws SQLException
+    public void saveNounToDatabase(@NotNull Noun noun) throws SQLException
     {
+        checkNotNull(noun);
         synchronized (getContext().getConnection())
         {
             insertStatement.setString(1, noun.getRootWord());
@@ -188,7 +185,8 @@ public class NounSQLFactory extends Contexed
     /**
      * Constructs a {@link Noun} out of the currently selected row of a {@link ResultSet}.
      * <p>
-     * The passed {@link ResultSet} will not be closed by this method. It is the task of the caller to close the {@link ResultSet} after it is done with all operations.
+     * The passed {@link ResultSet} will not be closed by this method.
+     * It is the task of the caller to close the {@link ResultSet} after it is done with all operations.
      *
      * @param resultSet The {@link ResultSet} with the row selected to read from.
      * @return A reconstructed {@link Noun}.
@@ -232,23 +230,24 @@ public class NounSQLFactory extends Contexed
      */
 
     /**
-     * Gets a {@link Set} of {@link Noun}s out of a database connection by the specified form.
-     * Searches in the table {@code NOUNS}.
+     * Gets a {@link List} of {@link Noun}s out of a database connection by the specified form.
      *
-     * @param formToSearch The form to search. May be any kind of special form. Should not contain uppercase characters.
-     * @return A {@link Set} of {@link Noun}s. May be empty if no nouns have been found.
+     * @param formToSearch The form to search. May be any kind of special form (and may be raw user input).
+     * @return A {@link List} of {@link Noun}s. May be empty if no nouns have been found, but is never {@code null} itself.
      * @throws SQLException         If a error in executing the query against the database connection occurs.
-     * @throws NullPointerException If {@code connection} or {@code formToSearch} is {@code null}.
+     * @throws NullPointerException If {@code formToSearch} is {@code null}.
      * @since 0.0.1
      */
     @NotNull
-    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
     public List<Noun> queryNouns(@NotNull String formToSearch) throws SQLException
     {
-        synchronized (getContext().getConnection())
-        {
-            return queryNounsFromRegex(StringUtil.anySpecialRegex(formToSearch));
-        }
+        checkNotNull(formToSearch);
+
+        // 1. MAnŪs -> manūs
+        // 2. manūs -> man[uūŭ]s
+        String regex = StringUtil.anySpecialRegex(formToSearch.toLowerCase());
+        return queryNounsFromRegex(regex);
     }
 
     /*
@@ -258,22 +257,21 @@ public class NounSQLFactory extends Contexed
      */
 
     /**
-     * Gets a {@link Set} of {@link Noun}s out of a database connection by the specified form.
+     * Gets a {@link List} of {@link Noun}s out of a database connection by the specified form.
      * Searches in the table {@code NOUNS}.
      *
      * @param regex The form's regular expression as returned by {@link StringUtil#anySpecialRegex(String)}.
-     * @return A {@link Set} of {@link Noun}s. May be empty if no nouns have been found.
+     * @return A {@link List} of {@link Noun}s. May be empty if no nouns have been found, but is never {@code null} itself.
      * @throws SQLException         If a error in executing the query occurs.
-     * @throws NullPointerException If {@code connection} or {@code regex} is {@code null}.
+     * @throws NullPointerException If {@code regex} is {@code null}.
      * @since 0.0.1
      */
     @NotNull
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     private List<Noun> queryNounsFromRegex(@NotNull String regex) throws SQLException
     {
-
         checkNotNull(regex);
-        ArrayList<Noun> list = Lists.newArrayList();
+        List<Noun> list = Lists.newArrayList();
         synchronized (getContext().getConnection())
         {
             queryStatement.setString(1, regex);
@@ -286,10 +284,10 @@ public class NounSQLFactory extends Contexed
                     for (NounForm nounForm : NounForm.values())
                     {
                         String form = currentResult.getForm(nounForm);
-                        if (form != null && pattern.matcher(form).matches()) // If a matching form has been found, short-circuit
+                        if (form != null && pattern.matcher(form).matches())
                         {
                             list.add(currentResult);
-                            break; // break out of nested loop
+                            break; // break out of nested for iteration loop, jump to next result
                         }
                     }
 
@@ -310,8 +308,7 @@ public class NounSQLFactory extends Contexed
      * <p>
      * If the {@code NOUNS} table already exists, nothing is changed.
      *
-     * @throws SQLException         If there were any errors when executing the SQL statements.
-     * @throws NullPointerException If the {@code connection} is null.
+     * @throws SQLException If there were any errors when executing the SQL statements.
      * @since 0.0.1
      */
     public void setupDatabaseForNouns() throws SQLException

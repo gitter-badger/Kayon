@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -135,9 +134,7 @@ public class MainController
     private void queryVocab(@NotNull String searchString)
     {
         LOGGER.info("Querying for user input >" + searchString + "<");
-        String useForm;
-        LOGGER.info("Lowercase and escaped: >" + (useForm = Pattern.quote(searchString.toLowerCase())) + "<");
-        VocabTask vocabTask = new VocabTask(FxUtil.context, useForm);
+        VocabTask vocabTask = new VocabTask(FxUtil.context, searchString); // delegates lowercasing and regex escaping
         vocabTask.stateProperty().addListener((observable, oldValue, newValue) -> {
             switch (newValue)
             {

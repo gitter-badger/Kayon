@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ONounDeclensionTest
 {
-    
+
     @Test
     public void testONounDeclension() throws Exception
     {
@@ -48,5 +48,5 @@ public class ONounDeclensionTest
 
         assertSame(Gender.MASCULINE, ONounDeclension.getInstance().getPrimaryGender());
     }
-    
+
 }

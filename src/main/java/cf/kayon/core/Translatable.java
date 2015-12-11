@@ -41,21 +41,7 @@ public interface Translatable
      * @return The translations.
      * @since 0.2.0
      */
-    @NotNull
-    Map<Locale, String> getTranslations();
-
-    /**
-     * Gets a translation string.
-     * <p>
-     * This method is supposed to fall back on other alternate locales of same language, if necessary.
-     *
-     * @param locale The locale to translate to.
-     * @return A translation. {@code null} if no translation could be found.
-     * @throws NullPointerException If {@code locale} is {@code null}.
-     * @since 0.2.0
-     */
-    @Nullable
-    String getTranslation(@NotNull Locale locale);
+    @NotNull Map<Locale, String> getTranslations();
 
     /**
      * Sets the translations of this Translatable.
@@ -67,5 +53,17 @@ public interface Translatable
      * @since 0.2.0
      */
     void setTranslations(@NotNull Map<Locale, String> map);
+
+    /**
+     * Gets a translation string.
+     * <p>
+     * This method is supposed to fall back on other alternate locales of same language, if necessary.
+     *
+     * @param locale The locale to translate to.
+     * @return A translation. {@code null} if no translation could be found.
+     * @throws NullPointerException If {@code locale} is {@code null}.
+     * @since 0.2.0
+     */
+    @Nullable String getTranslation(@NotNull Locale locale);
 
 }

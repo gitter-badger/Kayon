@@ -31,7 +31,6 @@ String adjustedSrcDir = "$buildDir/tmp/adjustedSource"
 //    description 'Copies the source files main to a temporary location, replacing version and CI Build number tokens in them.'
 //}
 
-
 // https://ant.apache.org/manual/Tasks/copy.html
 task adjustSource << {
     ant.copy(todir: adjustedSrcDir, overwrite: true, encoding: 'utf8', outputencoding: 'utf8') {

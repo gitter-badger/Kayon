@@ -150,6 +150,15 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
 
     //region Constructors
 
+    // since 0.0.1
+    {
+        addPropertyChangeListener(evt -> {
+            String propertyName = evt.getPropertyName();
+            if (propertyName.endsWith("_defined") || propertyName.equals("adjectiveDeclension") || propertyName.equals("rootWord") || propertyName.endsWith("_allowed"))
+                _declineIntoBuffer();
+        });
+    }
+
     /**
      * Constructs a new Adjective.
      * <p>
@@ -174,6 +183,9 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
             _declineIntoBuffer(); // speed improvement
         }
     }
+    //endregion
+
+    //region Getters and Setters
 
     /**
      * Constructs a new Adjective with no AdjectiveDeclension.
@@ -191,9 +203,6 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
     {
         this(context, null, rootWord);
     }
-    //endregion
-
-    //region Getters and Setters
 
     /**
      * Gets the root word of this adjective.
@@ -363,6 +372,9 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
                 throw new RuntimeException();
         }
     }
+    //endregion
+
+    //region Defining Forms
 
     /**
      * Sets whether this adjective allows the specified comparison degree.
@@ -391,9 +403,6 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
                 throw new RuntimeException();
         }
     }
-    //endregion
-
-    //region Defining Forms
 
     /**
      * Defines a form.
@@ -481,6 +490,9 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
         requireAllowedComparisonDegree(adjectiveForm);
         return definedForms.get(adjectiveForm);
     }
+    //endregion
+
+    //region Declension-based operations
 
     /**
      * Removes a defined form.
@@ -497,9 +509,6 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
 
         getPropertyChangeSupport().firePropertyChange(adjectiveForm.getPropertyName("defined"), definedForms.remove(adjectiveForm), null);
     }
-    //endregion
-
-    //region Declension-based operations
 
     /**
      * Gets a declined form. This always returns what the underlying declension determined or what has been declined out of defined forms and equal forms.
@@ -551,6 +560,7 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
             getPropertyChangeSupport().firePropertyChange(propertyName, oldForm, form);
         }
     }
+    //endregion
 
     /**
      * Declines all forms into the buffer. Called by the property change listener.
@@ -593,7 +603,6 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
                     putDeclinedForm(adjectiveForm, this.adjectiveDeclension.decline(adjectiveForm, rootWord));
             } catch (FormingException ignored) {} // null will reside
     }
-    //endregion
 
     /**
      * Precondition to call to make sure a passed comparison degree is {@link #allows(ComparisonDegree) allowed}.
@@ -627,15 +636,6 @@ public class Adjective extends StandardVocab implements DeepCopyable<Adjective>
         checkNotNull(adjectiveForm);
         requireAllowedComparisonDegree(adjectiveForm.getComparisonDegree());
         return adjectiveForm;
-    }
-
-    // since 0.0.1
-    {
-        addPropertyChangeListener(evt -> {
-            String propertyName = evt.getPropertyName();
-            if (propertyName.endsWith("_defined") || propertyName.equals("adjectiveDeclension") || propertyName.equals("rootWord") || propertyName.endsWith("_allowed"))
-                _declineIntoBuffer();
-        });
     }
 
     /**

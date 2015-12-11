@@ -33,6 +33,26 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class Contexed
 {
     /**
+     * Holds the KayonContext of this Contexed object.
+     *
+     * @since 0.2.0
+     */
+    @NotNull
+    private final KayonContext context;
+
+    /**
+     * The {@code protected} constructor of Contexed, so it can be instantiated by superclasses, but it cannot be instantiated alone.
+     *
+     * @param context The KayonContext of this Contexed object.
+     * @since 0.2.0
+     */
+    protected Contexed(@NotNull KayonContext context)
+    {
+        checkNotNull(context);
+        this.context = context;
+    }
+
+    /**
      * @since 0.2.0
      */
     @Override
@@ -76,25 +96,5 @@ public class Contexed
     public KayonContext getContext()
     {
         return context;
-    }
-
-    /**
-     * Holds the KayonContext of this Contexed object.
-     *
-     * @since 0.2.0
-     */
-    @NotNull
-    private final KayonContext context;
-
-    /**
-     * The {@code protected} constructor of Contexed, so it can be instantiated by superclasses, but it cannot be instantiated alone.
-     *
-     * @param context The KayonContext of this Contexed object.
-     * @since 0.2.0
-     */
-    protected Contexed(@NotNull KayonContext context)
-    {
-        checkNotNull(context);
-        this.context = context;
     }
 }

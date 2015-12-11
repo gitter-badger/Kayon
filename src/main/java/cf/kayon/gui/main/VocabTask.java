@@ -32,7 +32,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -78,20 +77,15 @@ public class VocabTask extends Task<List<Vocab>>
         checkNotNull(context);
         checkNotNull(searchString);
         this.context = context;
-        this.searchString = Pattern.quote(searchString.toLowerCase());
+        this.searchString = searchString;
     }
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * Even though this method is annotated as {@link cf.kayon.core.CaseHandling.CaseType#LOWERCASE_ONLY}, the {@link VocabTask#VocabTask(KayonContext, String) constructor
-     * of this class} handles both uppercase and lowercase characters by converting the string it was constructed with to lowercase.
-     *
      * @since 0.0.1
      */
     @Override
     @NotNull
-    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
     protected List<Vocab> call() throws Exception
     {
         @NotNull

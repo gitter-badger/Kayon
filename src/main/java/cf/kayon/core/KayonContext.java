@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -41,6 +42,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class KayonContext
 {
+    /**
+     * Provides a static final Pattern for matching newline characters (CR and LF).
+     *
+     * @since 0.2.3
+     */
+    @NotNull
+    private static final Pattern PATTERN_NEWLINES = Pattern.compile("[\n\r]");
+
     /**
      * The connection.
      *
@@ -66,6 +75,61 @@ public class KayonContext
     private final NounSQLFactory nounSQLFactory;
 
     /**
+     * The version as written in {@code /src/main/resources/version}.
+     *
+     * @since 0.2.0
+     */
+    @NotNull
+    private final String version;
+
+    /**
+     * The build ID as written in {@code /src/main/resources/build}.
+     *
+     * @since 0.2.0
+     */
+    private final long build;
+
+    // since 0.2.0
+    {
+        //noinspection HardcodedFileSeparator
+        try (InputStream inputStream = this.getClass().getResourceAsStream("/version");
+             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        {
+            version = PATTERN_NEWLINES.matcher(IOUtils.toString(inputStreamReader)).replaceAll("");
+        } catch (IOException ioe)
+        {
+            throw new RuntimeException(ioe);
+        }
+
+        //noinspection HardcodedFileSeparator
+        try (InputStream inputStream = this.getClass().getResourceAsStream("/build");
+             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        {
+            build = Long.parseLong(PATTERN_NEWLINES.matcher(IOUtils.toString(inputStreamReader)).replaceAll(""));
+        } catch (IOException ioe)
+        {
+            throw new RuntimeException(ioe);
+        } catch (NumberFormatException e)
+        {
+            throw new RuntimeException("Build number in file is in invalid format", e);
+        }
+    }
+
+    /*
+     * Thread safety notice
+     *
+     * All set fields are final, guaranteeing memory visibility.
+     */
+    public KayonContext(@NotNull Connection connection, @NotNull Config config)
+    {
+        checkNotNull(connection);
+        checkNotNull(config);
+        this.connection = connection;
+        this.config = config;
+        this.nounSQLFactory = new NounSQLFactory(this);
+    }
+
+    /**
      * Gets the build ID.
      *
      * @return The build ID as written in {@code /src/main/resources/build}.
@@ -86,42 +150,6 @@ public class KayonContext
     public String getVersion()
     {
         return version;
-    }
-
-    /**
-     * The version as written in {@code /src/main/resources/version}.
-     *
-     * @since 0.2.0
-     */
-    @NotNull
-    private final String version;
-
-    /**
-     * The build ID as written in {@code /src/main/resources/build}.
-     *
-     * @since 0.2.0
-     */
-    private final long build;
-
-    // since 0.2.0
-    {
-        try (InputStream inputStream = this.getClass().getResourceAsStream("/version");
-             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-        {
-            version = IOUtils.toString(inputStreamReader).replaceAll("[\n\r]", "");
-        } catch (IOException ioe)
-        {
-            throw new RuntimeException(ioe);
-        }
-
-        try (InputStream inputStream = this.getClass().getResourceAsStream("/build");
-             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-        {
-            build = Long.parseLong(IOUtils.toString(inputStreamReader).replaceAll("[\n\r]", ""));
-        } catch (IOException ioe)
-        {
-            throw new RuntimeException(ioe);
-        }
     }
 
     @Override
@@ -153,20 +181,6 @@ public class KayonContext
     public int hashCode()
     {
         return Objects.hashCode(connection, config, nounSQLFactory, version, build);
-    }
-
-    /*
-         * Thread safety notice
-         *
-         * All set fields are final, guaranteeing memory visibility.
-         */
-    public KayonContext(@NotNull Connection connection, @NotNull Config config)
-    {
-        checkNotNull(connection);
-        checkNotNull(config);
-        this.connection = connection;
-        this.config = config;
-        this.nounSQLFactory = new NounSQLFactory(this);
     }
 
     @NotNull

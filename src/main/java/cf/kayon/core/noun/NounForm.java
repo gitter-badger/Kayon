@@ -20,10 +20,11 @@ package cf.kayon.core.noun;
 
 import cf.kayon.core.Case;
 import cf.kayon.core.Count;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import net.jcip.annotations.Immutable;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 
+import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -168,11 +170,7 @@ public class NounForm
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper(this)
-                          .add("caze", caze)
-                          .add("count", count)
-                          .add("propertyName", propertyName)
-                          .toString();
+        return StringUtils.capitalize(caze.name().toLowerCase().substring(0, 3)) + StringUtils.capitalize(count.name().toLowerCase().substring(0, 2));
     }
 
     /**
@@ -235,14 +233,17 @@ public class NounForm
     /**
      * Returns the property name for usage with a {@link java.beans.PropertyChangeSupport}.
      * <p>
-     * The string is in the format {@code $ComparisonDegree_$Case_$Count_$Gender_$Suffix}.
+     * The returned string is in the format {@code $ComparisonDegree_$Case_$Count_$Gender_$Suffix}.
      *
      * @param suffix The suffix to append.
      * @return A property name.
+     * @throws NullPointerException     If {@code suffix} is {@code null}.
+     * @throws IllegalArgumentException If {@code suffix} is {@link String#isEmpty() empty}.
      * @since 0.2.0
      */
-    public String getPropertyName(String suffix)
+    public String getPropertyName(@NotNull @NonNls String suffix)
     {
+        checkNotEmpty(suffix);
         return propertyName + suffix;
     }
 }

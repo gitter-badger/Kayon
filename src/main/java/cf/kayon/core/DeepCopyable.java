@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * Represents an object which can be fully cloned.
  *
  * @param <T> The type of this object, e.g. when implementing {@code DeepCopyable} in a class {@code MySample}, you should write
- * {@code class MySample implements DeepCopyable<MySample>}.
+ *            {@code class MySample implements DeepCopyable<MySample>}.
  * @author Ruben Anders
  * @since 0.2.0
  */
@@ -36,11 +36,10 @@ public interface DeepCopyable<T extends DeepCopyable<T>>
     /**
      * Creates a <strong>deep</strong> copy of the current object and returns it.
      * <p>
-     * This means that the copy returned is not connected to this object in any state, but they may share immutable objects.
+     * This means that the copy returned is not connected to this object in any mutable state, but they may share immutable state (such as Strings).
      *
-     * @return A deep copy.
+     * @return A deep copy of this object.
      * @since 0.2.0
      */
-    @NotNull
-    T copyDeep();
+    @NotNull T copyDeep();
 }

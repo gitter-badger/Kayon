@@ -40,6 +40,10 @@ public class NounSaveTask extends Task<Void>
 
     @NotNull
     private static final Logger LOGGER = LoggerFactory.getLogger(NounSaveTask.class);
+    @NotNull
+    private final Noun noun;
+    @NotNull
+    private final KayonContext context;
 
     public NounSaveTask(final @NotNull KayonContext context, final @NotNull Noun noun)
     {
@@ -53,12 +57,6 @@ public class NounSaveTask extends Task<Void>
     {
         this(noun.getContext(), noun);
     }
-
-    @NotNull
-    private final Noun noun;
-
-    @NotNull
-    private final KayonContext context;
 
     @Nullable
     @Override

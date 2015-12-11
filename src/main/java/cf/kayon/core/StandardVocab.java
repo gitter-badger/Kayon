@@ -42,6 +42,32 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class StandardVocab extends Contexed implements Vocab
 {
     /**
+     * The ResourceBundle.Control instance used to get candidate locales.
+     * <p>
+     * Actually, these control instances were not made for this job (they are supposed to operate with properties files or classes,
+     * but it's possible to never bring them into context of resource bundles and simply use their utility methods, as it is done here.
+     *
+     * @since 0.2.0
+     */
+    private static final ResourceBundle.Control CONTROL = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+    /**
+     * The guard object for accessing the {@link #uuid UUID field}.
+     *
+     * @since 0.2.0
+     */
+    private final Object uuidLock = new Object();
+    /**
+     * The translation storage of this StandardVocab.
+     *
+     * @since 0.2.0
+     */
+    @GuardedBy("translations")
+    private final HashMap<Locale, String> translations = new HashMap<>();
+    @SuppressWarnings("FieldNotUsedInToString")
+    @NotNull
+    @GuardedBy("changeSupport")
+    private final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
+    /**
      * The UUID of this StandardVocab.
      *
      * @since 0.2.0
@@ -50,11 +76,18 @@ public class StandardVocab extends Contexed implements Vocab
     private UUID uuid;
 
     /**
-     * The guard object for accessing the {@link #uuid UUID field}.
+     * Instantiates a new StandardVocab.
+     * <p>
+     * This constructor is {@code protected} so new instances of this class can only be created
+     * by classes extending this one.
      *
+     * @param context The {@link KayonContext} for this instance.
      * @since 0.2.0
      */
-    private final Object uuidLock = new Object();
+    protected StandardVocab(@NotNull KayonContext context)
+    {
+        super(context);
+    }
 
     /**
      * @since 0.2.0
@@ -94,20 +127,6 @@ public class StandardVocab extends Contexed implements Vocab
     }
 
     /**
-     * Instantiates a new StandardVocab.
-     * <p>
-     * This constructor is {@code protected} so new instances of this class can only be created
-     * by classes extending this one.
-     *
-     * @param context The {@link KayonContext} for this instance.
-     * @since 0.2.0
-     */
-    protected StandardVocab(@NotNull KayonContext context)
-    {
-        super(context);
-    }
-
-    /**
      * @since 0.2.0
      */
     @Nullable
@@ -137,24 +156,6 @@ public class StandardVocab extends Contexed implements Vocab
     }
 
     /**
-     * The translation storage of this StandardVocab.
-     *
-     * @since 0.2.0
-     */
-    @GuardedBy("translations")
-    private final HashMap<Locale, String> translations = new HashMap<>();
-
-    /**
-     * The ResourceBundle.Control instance used to get candidate locales.
-     * <p>
-     * Actually, these control instances were not made for this job (they are supposed to operate with properties files or classes,
-     * but it's possible to never bring them into context of resource bundles and simply use their utility methods, as it is done here.
-     *
-     * @since 0.2.0
-     */
-    private static final ResourceBundle.Control CONTROL = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
-
-    /**
      * @since 0.2.0
      */
     @NotNull
@@ -164,6 +165,24 @@ public class StandardVocab extends Contexed implements Vocab
         synchronized (translations)
         {
             return translations;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * <strong>Implementation note:</strong> The map instance will not be set in this StandardVocab, instead the map's contents will copied into the own map after the own map has been cleared.
+     *
+     * @since 0.2.0
+     */
+    @Override
+    public void setTranslations(@NotNull Map<Locale, String> map)
+    {
+        checkNotNull(map);
+        synchronized (translations) // race condition
+        {
+            translations.clear();
+            translations.putAll(map); // Locale and string are immutable
         }
     }
 
@@ -187,29 +206,6 @@ public class StandardVocab extends Contexed implements Vocab
         }
         return null;
     }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * <strong>Implementation note:</strong> The map instance will not be set in this StandardVocab, instead the map's contents will copied into the own map after the own map has been cleared.
-     *
-     * @since 0.2.0
-     */
-    @Override
-    public void setTranslations(@NotNull Map<Locale, String> map)
-    {
-        checkNotNull(map);
-        synchronized (translations) // race condition
-        {
-            translations.clear();
-            translations.putAll(map); // Locale and string are immutable
-        }
-    }
-
-    @SuppressWarnings("FieldNotUsedInToString")
-    @NotNull
-    @GuardedBy("changeSupport")
-    private final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
 
     /**
      * Add a PropertyChangeListener to the listener list.

@@ -216,7 +216,8 @@ public class SplashController
         {
             FxUtil.context.getNounSQLFactory().setupDatabaseForNouns();
             FxUtil.context.getNounSQLFactory().compileStatements();
-            checkNotNull(null);
+            if (FxUtil.context.getConfig().getBoolean("debug.gui.startupException"))
+                throw new RuntimeException();
         } catch (Throwable t)
         {
             splashException("StructureSetupFailure", t);

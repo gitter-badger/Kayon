@@ -24,7 +24,8 @@ package cf.kayon.core;
  * @author Ruben Anders
  * @since 0.0.1
  */
-public enum Count {
+public enum Count
+{
     /**
      * Describes the singular.
      *
