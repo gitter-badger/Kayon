@@ -131,7 +131,7 @@ tasks.withType(JavaCompile) {
 }
 
 tasks.run {
-    workingDir "$buildDir/run-dir/"
+    workingDir "$buildDir/test-results/working-dir/"
     doFirst { workingDir.mkdirs() }
 }
 

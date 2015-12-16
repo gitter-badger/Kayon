@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,15 +44,17 @@ public class TestContextUtil
     public static KayonContext newTestingContext()
     {
         final int index = COUNTER.getAndIncrement();
-        LOGGER.info("Creating context for caller method " + new Throwable().getStackTrace()[1]);
+        LOGGER.info("Creating context #" + index + " for caller method " + new Throwable().getStackTrace()[1]);
 
         Config config = ConfigFactory.load(); // do not load from file(s) outside
         try
         {
-            KayonContext context = new KayonContext(DriverManager.getConnection(
-                    "jdbc:h2:." + File.separatorChar + "test-context-" + index), config);
+            Connection connection = DriverManager.getConnection("jdbc:h2:mem:" + index);
+            KayonContext context = new KayonContext(connection, config);
+
             context.getNounSQLFactory().setupDatabaseForNouns();
             context.getNounSQLFactory().compileStatements();
+            
             return context;
         } catch (SQLException e)
         {
