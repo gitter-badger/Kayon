@@ -20,31 +20,37 @@ package cf.kayon.core;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@ThreadSafe
 public class TestContextUtil
 {
     @NotNull
     private static final Logger LOGGER = LoggerFactory.getLogger(TestContextUtil.class);
 
+    @NotNull
     private static final AtomicInteger COUNTER = new AtomicInteger();
 
+    @NotNull
     public static KayonContext newTestingContext()
     {
-        int index = COUNTER.getAndIncrement();
+        final int index = COUNTER.getAndIncrement();
         LOGGER.info("Creating context for caller method " + new Throwable().getStackTrace()[1]);
 
-        Config config = ConfigFactory.load();
+        Config config = ConfigFactory.load(); // do not load from file(s) outside
         try
         {
-            KayonContext context = new KayonContext(DriverManager.getConnection("jdbc:h2:./" + index), config);
+            KayonContext context = new KayonContext(DriverManager.getConnection(
+                    "jdbc:h2:." + File.separatorChar + "test-context-" + index), config);
             context.getNounSQLFactory().setupDatabaseForNouns();
             context.getNounSQLFactory().compileStatements();
             return context;
