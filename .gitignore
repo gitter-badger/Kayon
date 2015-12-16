@@ -74,3 +74,8 @@ gradle-app.setting
 
 # Cache of project
 .gradletasknamecache
+
+### Kayon
+
+logs/
+*.mv.db
