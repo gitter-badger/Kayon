@@ -21,6 +21,7 @@ package cf.kayon.core.noun;
 import cf.kayon.core.*;
 import cf.kayon.core.noun.impl.ANounDeclension;
 import cf.kayon.core.noun.impl.ONounDeclension;
+import net.jcip.annotations.Immutable;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -32,6 +33,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.*;
 
+@Immutable
 public class NounEqualityTest
 {
 
@@ -144,7 +146,7 @@ public class NounEqualityTest
         assertBidirectionalEquals(noun1, noun2);
         assertNotSame(noun1, noun2);
 
-        noun2.setDefinedForm(NounForm.of(Case.ACCUSATIVE, Count.PLURAL), "HEYAHEYA");
+        noun2.setDefinedForm(NounForm.of(Case.ACCUSATIVE, Count.PLURAL), "heyaheya");
 
         assertBidirectionalNotEquals(noun1, noun2);
     }
