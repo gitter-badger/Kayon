@@ -63,6 +63,7 @@ public class StandardVocab extends Contexed implements Vocab
      */
     @GuardedBy("translations")
     private final HashMap<Locale, String> translations = new HashMap<>();
+
     @SuppressWarnings("FieldNotUsedInToString")
     @NotNull
     @GuardedBy("changeSupport")
