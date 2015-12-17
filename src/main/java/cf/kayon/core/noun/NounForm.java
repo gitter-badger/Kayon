@@ -20,17 +20,20 @@ package cf.kayon.core.noun;
 
 import cf.kayon.core.Case;
 import cf.kayon.core.Count;
+import cf.kayon.core.util.NotTested;
+import cf.kayon.core.util.Tested;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import net.jcip.annotations.Immutable;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -51,35 +54,39 @@ public class NounForm
 {
 
     /**
-     * The cache pool.
+     * The immutable cache pool.
      *
      * @since 0.2.0
      */
     @NotNull
-    private static final EnumMap<Count, EnumMap<Case, NounForm>> pool = new EnumMap<>(Count.class);
+    private static final Map<Count, Map<Case, NounForm>> pool;
+
     /**
-     * An unmodifiable list of all values.
+     * An immutable list of all values.
      *
      * @since 0.2.0
      */
     @NotNull
     private static final List<NounForm> allValues;
 
+    // since 0.0.1
     static
     {
-        List<NounForm> temporaryList = new ArrayList<>(12);
+        ImmutableList.Builder<NounForm> builder = ImmutableList.<NounForm>builder();
+        EnumMap<Count, EnumMap<Case, NounForm>> poolBuilder = new EnumMap<>(Count.class);
         for (Count count : Count.values())
         {
             EnumMap<Case, NounForm> currentSub = new EnumMap<>(Case.class);
-            pool.put(count, currentSub);
+            poolBuilder.put(count, currentSub);
             for (Case caze : Case.values())
             {
                 NounForm currentForm = new NounForm(caze, count);
                 currentSub.put(caze, currentForm);
-                temporaryList.add(currentForm);
+                builder.add(currentForm);
             }
         }
-        allValues = Collections.unmodifiableList(temporaryList);
+        pool = Maps.immutableEnumMap(poolBuilder);
+        allValues = builder.build();
     }
 
     /**
@@ -96,22 +103,36 @@ public class NounForm
      */
     @NotNull
     private final Count count;
+
     /**
      * The prefix of the property name as used by the {@link java.beans.PropertyChangeSupport} of {@link Noun}.
      *
      * @since 0.2.0
      */
+    @SuppressWarnings("FieldNotUsedInToString")
     @NotNull
     private final String propertyName;
 
     /**
+     * The string returned by {@link #toString()}.
+     *
+     * @since 0.2.3
+     */
+    @NotNull
+    private final String toStringRepresentation;
+
+    /**
      * Constructs a new NounForm.
+     * <p>
+     * This constructor is <strong>not</strong> to be invoked from outside this class.
+     * Use {@link #of(Case, Count)} instead.
      *
      * @param caze  The case.
      * @param count The count.
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounFormTest.testEquals")
     private NounForm(@NotNull final Case caze, @NotNull final Count count)
     {
         checkNotNull(caze);
@@ -119,6 +140,8 @@ public class NounForm
         this.caze = caze;
         this.count = count;
         this.propertyName = caze + "_" + count + "_";
+        this.toStringRepresentation = StringUtils.capitalize(caze.name().toLowerCase().substring(0, 3)) +
+                                      StringUtils.capitalize(count.name().toLowerCase().substring(0, 2));
     }
 
     /**
@@ -130,6 +153,7 @@ public class NounForm
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.2.0
      */
+    @Tested("cf.kayon.core.noun.NounFormTest.testOf")
     @NotNull
     public static NounForm of(@NotNull final Case caze, @NotNull final Count count)
     {
@@ -154,11 +178,12 @@ public class NounForm
      * <li>Plural ...</li>
      * </ul>
      *
-     * @return A List of values. The list is {@link Collections#unmodifiableList(List) unmodifiable}.
+     * @return A List of values. The list is {@link ImmutableList immutable}.
      * @since 0.2.0
      */
     @Contract(pure = true)
     @NotNull
+    @Tested("cf.kayon.core.noun.NounFormTest.testValues")
     public static List<NounForm> values()
     {
         return allValues;
@@ -167,10 +192,11 @@ public class NounForm
     /**
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounFormTest.testToString")
     @Override
     public String toString()
     {
-        return StringUtils.capitalize(caze.name().toLowerCase().substring(0, 3)) + StringUtils.capitalize(count.name().toLowerCase().substring(0, 2));
+        return toStringRepresentation;
     }
 
     /**
@@ -187,6 +213,7 @@ public class NounForm
      *
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounFormTest.testEquals")
     @Override
     public boolean equals(Object o)
     {
@@ -200,10 +227,11 @@ public class NounForm
     /**
      * @since 0.0.1
      */
+    @NotTested
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(caze, count);
+        return Objects.hashCode(caze, count); // Property name does not need to be hashed
     }
 
     /**
@@ -212,6 +240,7 @@ public class NounForm
      * @return The case.
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounFormTest.testGetCase")
     @NotNull
     public Case getCase()
     {
@@ -224,6 +253,7 @@ public class NounForm
      * @return The count.
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounFormTest.testGetCount")
     @NotNull
     public Count getCount()
     {
@@ -233,7 +263,7 @@ public class NounForm
     /**
      * Returns the property name for usage with a {@link java.beans.PropertyChangeSupport}.
      * <p>
-     * The returned string is in the format {@code $ComparisonDegree_$Case_$Count_$Gender_$Suffix}.
+     * The returned string is in the format {@code $Case_$Count_$Suffix}.
      *
      * @param suffix The suffix to append.
      * @return A property name.
@@ -241,6 +271,7 @@ public class NounForm
      * @throws IllegalArgumentException If {@code suffix} is {@link String#isEmpty() empty}.
      * @since 0.2.0
      */
+    @Tested("cf.kayon.core.noun.NounFormTest.testGetPropertyName")
     public String getPropertyName(@NotNull @NonNls String suffix)
     {
         checkNotEmpty(suffix);
