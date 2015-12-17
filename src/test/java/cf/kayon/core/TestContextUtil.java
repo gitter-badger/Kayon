@@ -54,7 +54,7 @@ public class TestContextUtil
 
             context.getNounSQLFactory().setupDatabaseForNouns();
             context.getNounSQLFactory().compileStatements();
-            
+
             return context;
         } catch (SQLException e)
         {
