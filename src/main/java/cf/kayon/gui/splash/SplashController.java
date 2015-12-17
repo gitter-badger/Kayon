@@ -44,9 +44,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -55,6 +53,9 @@ import static java.text.MessageFormat.format;
 
 /**
  * Controller for the splash screen.
+ *
+ * @since 0.0.1
+ * @author Ruben Anders
  */
 public class SplashController
 {
@@ -65,13 +66,13 @@ public class SplashController
     ResourceBundle resources;
 
     @FXML
-    ProgressBar progress;
+    private ProgressBar progress;
 
     @FXML
-    Pane pane;
+    private Pane pane;
 
     @FXML
-    Text text;
+    private Text text;
 
     /**
      * Makes the application-wide connection to the database.
@@ -143,7 +144,39 @@ public class SplashController
             FxUtil.executor = new ThreadPoolExecutor(config.getInt("gui.executor.poolSize"),
                                                      config.getInt("gui.executor.poolSize"),
                                                      config.getDuration("gui.executor.keepAliveTime", TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS,
-                                                     new LinkedBlockingQueue<>());
+                                                     new LinkedBlockingQueue<>())
+            {
+                @Override
+                protected void afterExecute(Runnable r, Throwable t)
+                {
+                    super.afterExecute(r, t);
+                    if (t == null && r instanceof Future<?>)
+                    {
+                        try
+                        {
+                            Future<?> future = (Future<?>) r;
+                            if (future.isDone())
+                            {
+                                future.get();
+                            }
+                        } catch (CancellationException ce)
+                        {
+                            t = ce;
+                        } catch (ExecutionException ee)
+                        {
+                            t = ee.getCause();
+                        } catch (InterruptedException ie)
+                        {
+                            Thread.currentThread().interrupt(); // ignore/reset
+                        }
+                    }
+                    if (t != null)
+                    {
+                        // Log any exceptions thrown in the executor
+                        LOGGER.error("Exception in FX executor occured!", t);
+                    }
+                }
+            };
             FxUtil.executor.allowCoreThreadTimeOut(true);
         } catch (Throwable t)
         {
