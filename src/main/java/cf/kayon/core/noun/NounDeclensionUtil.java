@@ -20,12 +20,15 @@ package cf.kayon.core.noun;
 
 import cf.kayon.core.Case;
 import cf.kayon.core.Count;
+import cf.kayon.core.util.Tested;
+import com.google.common.collect.ImmutableMap;
+import net.jcip.annotations.Immutable;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,8 +40,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.0.1
  */
+@Immutable
 public class NounDeclensionUtil
 {
+
+    /**
+     * A private constructor to prevent instantiation of this class.
+     *
+     * @throws IllegalStateException always
+     * @since 0.2.3
+     */
+    @Tested("cf.kayon.core.noun.NounDeclensionUtilTest.testConstructor")
+    private NounDeclensionUtil()
+    {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Constructs a {@link java.util.Collections#unmodifiableMap(Map) unmodifiable} map of endings.
@@ -59,16 +75,10 @@ public class NounDeclensionUtil
      * @since 0.2.0
      */
     @NotNull
+    @Tested("cf.kayon.core.noun.NounDeclensionUtilTest.testEndingsMap")
     public static Map<NounForm, String> endingsMap(
-            @Nullable String nomSg,
-            @Nullable String genSg,
-            @Nullable String datSg,
-            @Nullable String accSg,
-            @Nullable String ablSg,
-            @Nullable String vocSg,
-            @Nullable String nomPl,
-            @Nullable String genPl,
-            @Nullable String datPl, @Nullable String accPl, @Nullable String ablPl, @Nullable String vocPl)
+            @Nullable String nomSg, @Nullable String genSg, @Nullable String datSg, @Nullable String accSg, @Nullable String ablSg, @Nullable String vocSg,
+            @Nullable String nomPl, @Nullable String genPl, @Nullable String datPl, @Nullable String accPl, @Nullable String ablPl, @Nullable String vocPl)
     {
         @NotNull
         Map<NounForm, String> map = new HashMap<>(12);
@@ -86,11 +96,11 @@ public class NounDeclensionUtil
         putIfNotNull(map, NounForm.of(Case.ABLATIVE, Count.PLURAL), ablPl);
         putIfNotNull(map, NounForm.of(Case.VOCATIVE, Count.PLURAL), vocPl);
 
-        return Collections.unmodifiableMap(map);
+        return ImmutableMap.copyOf(map);
     }
 
     /**
-     * Puts an entry into a map, if the value is not {@code null.}
+     * Puts an entry into a map, if the value is not {@code null}.
      *
      * @param map   The map.
      * @param key   The key.
@@ -100,6 +110,7 @@ public class NounDeclensionUtil
      * @throws NullPointerException If {@code map} or {@code key} are {@code null}.
      * @since 0.2.0
      */
+    @Tested("cf.kayon.core.noun.NounDeclensionUtilTest.testPutIfNotNull")
     public static <K, V> void putIfNotNull(@NotNull Map<K, V> map, @NotNull K key, @Nullable V value)
     {
         checkNotNull(map);
@@ -109,7 +120,7 @@ public class NounDeclensionUtil
     }
 
     /**
-     * Reflectively reconstructs a NounDeclension by invoking its {@code public static NounDeclension getInstance()}
+     * Reflectively reconstructs a NounDeclension by invoking its {@code public static NounDeclension getInstance()} method.
      *
      * @param className The name of the class.
      * @return A NounDeclension. {@code null} if the reconstruction was not successful or the class name was {@code null}.
@@ -117,7 +128,8 @@ public class NounDeclensionUtil
      */
     @Nullable
     @Contract("null -> null")
-    public static NounDeclension forName(@Nullable String className)
+    @Tested("cf.kayon.core.noun.NounDeclensionUtilTest.testForName")
+    public static NounDeclension forName(@Nullable @NonNls String className)
     {
         if (className == null)
             return null;
