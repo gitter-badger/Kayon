@@ -19,15 +19,13 @@
 package cf.kayon.gui.vocabview.noun;
 
 import cf.kayon.core.*;
+import cf.kayon.core.Count;
 import cf.kayon.core.noun.Noun;
 import cf.kayon.core.noun.NounDeclension;
 import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.noun.impl.*;
 import cf.kayon.gui.FxUtil;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.EnumHashBiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -47,7 +45,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeListener;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -65,20 +66,25 @@ public class NounViewController extends Contexed
     private static final Logger LOGGER = LoggerFactory.getLogger(NounViewController.class);
 
     /**
-     * A static buffer of all noun declensions.
+     * A static immutable buffer of all noun declensions.
+     *
+     * Safe to be used and accessed amongst arbitrary threads.
      *
      * @since 0.0.1
      */
     @NotNull
-    private static final List<NounDeclension> nounDeclensions = Lists.newArrayList(ANounDeclension.getInstance(),
-                                                                                   ONounDeclension.getInstance(),
-                                                                                   ORNounDeclension.getInstance(),
-                                                                                   ConsonantNounDeclension.getInstance(),
-                                                                                   INounDeclension.getInstance(),
-                                                                                   MixedNounDeclension.getInstance(),
-                                                                                   UNounDeclension.getInstance(),
-                                                                                   ENounDeclension.getInstance(),
-                                                                                   DummyNounDeclension.getInstance());
+    public static final List<NounDeclension> nounDeclensions = ImmutableList.<NounDeclension>builder()
+            .add(ANounDeclension.getInstance())
+            .add(ONounDeclension.getInstance())
+            .add(ORNounDeclension.getInstance())
+            .add(ConsonantNounDeclension.getInstance())
+            .add(INounDeclension.getInstance())
+            .add(MixedNounDeclension.getInstance())
+            .add(UNounDeclension.getInstance())
+            .add(ENounDeclension.getInstance())
+            .add(DummyNounDeclension.getInstance())
+            .build();
+
     /**
      * The listeners bound to the current backing noun by this class, for later unregistering purposes.
      *
@@ -194,20 +200,20 @@ public class NounViewController extends Contexed
         /*
          * Table elements
          */
-        Map<NounForm, Triple<Text, TextField, CheckBox>> temporaryMap = new HashMap<>(12);
-        temporaryMap.put(NounForm.of(Case.NOMINATIVE, Count.SINGULAR), new ImmutableTriple<>(nomSgText, nomSgTextField, nomSgCheckBox));
-        temporaryMap.put(NounForm.of(Case.GENITIVE, Count.SINGULAR), new ImmutableTriple<>(genSgText, genSgTextField, genSgCheckBox));
-        temporaryMap.put(NounForm.of(Case.DATIVE, Count.SINGULAR), new ImmutableTriple<>(datSgText, datSgTextField, datSgCheckBox));
-        temporaryMap.put(NounForm.of(Case.ACCUSATIVE, Count.SINGULAR), new ImmutableTriple<>(accSgText, accSgTextField, accSgCheckBox));
-        temporaryMap.put(NounForm.of(Case.ABLATIVE, Count.SINGULAR), new ImmutableTriple<>(ablSgText, ablSgTextField, ablSgCheckBox));
-        temporaryMap.put(NounForm.of(Case.VOCATIVE, Count.SINGULAR), new ImmutableTriple<>(vocSgText, vocSgTextField, vocSgCheckBox));
-        temporaryMap.put(NounForm.of(Case.NOMINATIVE, Count.PLURAL), new ImmutableTriple<>(nomPlText, nomPlTextField, nomPlCheckBox));
-        temporaryMap.put(NounForm.of(Case.GENITIVE, Count.PLURAL), new ImmutableTriple<>(genPlText, genPlTextField, genPlCheckBox));
-        temporaryMap.put(NounForm.of(Case.DATIVE, Count.PLURAL), new ImmutableTriple<>(datPlText, datPlTextField, datPlCheckBox));
-        temporaryMap.put(NounForm.of(Case.ACCUSATIVE, Count.PLURAL), new ImmutableTriple<>(accPlText, accPlTextField, accPlCheckBox));
-        temporaryMap.put(NounForm.of(Case.ABLATIVE, Count.PLURAL), new ImmutableTriple<>(ablPlText, ablPlTextField, ablPlCheckBox));
-        temporaryMap.put(NounForm.of(Case.VOCATIVE, Count.PLURAL), new ImmutableTriple<>(vocPlText, vocPlTextField, vocPlCheckBox));
-        this.tableElements = Collections.unmodifiableMap(temporaryMap);
+        this.tableElements = ImmutableMap.<NounForm, Triple<Text, TextField, CheckBox>>builder()
+                .put(NounForm.of(Case.NOMINATIVE, Count.SINGULAR), new ImmutableTriple<>(nomSgText, nomSgTextField, nomSgCheckBox))
+                .put(NounForm.of(Case.GENITIVE, Count.SINGULAR), new ImmutableTriple<>(genSgText, genSgTextField, genSgCheckBox))
+                .put(NounForm.of(Case.DATIVE, Count.SINGULAR), new ImmutableTriple<>(datSgText, datSgTextField, datSgCheckBox))
+                .put(NounForm.of(Case.ACCUSATIVE, Count.SINGULAR), new ImmutableTriple<>(accSgText, accSgTextField, accSgCheckBox))
+                .put(NounForm.of(Case.ABLATIVE, Count.SINGULAR), new ImmutableTriple<>(ablSgText, ablSgTextField, ablSgCheckBox))
+                .put(NounForm.of(Case.VOCATIVE, Count.SINGULAR), new ImmutableTriple<>(vocSgText, vocSgTextField, vocSgCheckBox))
+                .put(NounForm.of(Case.NOMINATIVE, Count.PLURAL), new ImmutableTriple<>(nomPlText, nomPlTextField, nomPlCheckBox))
+                .put(NounForm.of(Case.GENITIVE, Count.PLURAL), new ImmutableTriple<>(genPlText, genPlTextField, genPlCheckBox))
+                .put(NounForm.of(Case.DATIVE, Count.PLURAL), new ImmutableTriple<>(datPlText, datPlTextField, datPlCheckBox))
+                .put(NounForm.of(Case.ACCUSATIVE, Count.PLURAL), new ImmutableTriple<>(accPlText, accPlTextField, accPlCheckBox))
+                .put(NounForm.of(Case.ABLATIVE, Count.PLURAL), new ImmutableTriple<>(ablPlText, ablPlTextField, ablPlCheckBox))
+                .put(NounForm.of(Case.VOCATIVE, Count.PLURAL), new ImmutableTriple<>(vocPlText, vocPlTextField, vocPlCheckBox))
+                .build();
 
         /*
          * Listeners
@@ -289,7 +295,7 @@ public class NounViewController extends Contexed
                                   initialBackingNoun));
 
         @Nullable Noun oldBackingNoun = currentBackingNoun;
-//        @Nullable Noun oldInitialBackingNoun = initialBackingNoun;
+        //        @Nullable Noun oldInitialBackingNoun = initialBackingNoun;
         currentBackingNoun = newNoun;
         if (isInit) initialBackingNoun = newNoun != null ? newNoun.copyDeep() : null;
 
