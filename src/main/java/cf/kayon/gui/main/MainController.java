@@ -21,6 +21,7 @@ package cf.kayon.gui.main;
 import cf.kayon.core.CaseHandling;
 import cf.kayon.core.Vocab;
 import cf.kayon.gui.FxUtil;
+import cf.kayon.gui.extras.noungenerator.NounGenerator;
 import cf.kayon.gui.vocabview.noun.NounView;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -32,6 +33,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,7 @@ import java.util.stream.Collectors;
  * @see Main
  * @since 0.0.1
  */
+@NotThreadSafe
 public class MainController
 {
     @NotNull
@@ -87,7 +90,7 @@ public class MainController
     VBox vBox;
 
     /**
-     * The progress indicator hidden under the search button.
+     * The progress indicator (initially hidden under the search button).
      *
      * @since 0.0.1
      */
@@ -216,6 +219,28 @@ public class MainController
         try
         {
             NounView.createOntoStage(newStage, null);
+        } catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+        newStage.initOwner(mainPane.getScene().getWindow());
+        newStage.initModality(Modality.WINDOW_MODAL);
+        newStage.show();
+    }
+
+    /**
+     * Called when the user selects the "Generate nouns..." option in the extras menu.
+     *
+     * @since 0.2.3
+     */
+    @FXML
+    private void generateNouns(ActionEvent event)
+    {
+        LOGGER.info("Launching dialog for generating nouns");
+        Stage newStage = new Stage();
+        try
+        {
+            NounGenerator.createOntoStage(newStage);
         } catch (IOException e)
         {
             throw new RuntimeException(e);
