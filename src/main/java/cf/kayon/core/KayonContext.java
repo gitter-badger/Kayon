@@ -22,6 +22,7 @@ import cf.kayon.core.sql.NounSQLFactory;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.typesafe.config.Config;
+import net.jcip.annotations.Immutable;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,10 +41,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.2.0
  */
+@Immutable
 public class KayonContext
 {
     /**
-     * Provides a static final Pattern for matching newline characters (CR and LF).
+     * Provides a static final Pattern for matching newline characters (CR {@code \r} and LF {@code \n}).
      *
      * @since 0.2.3
      */
@@ -98,7 +100,7 @@ public class KayonContext
             version = PATTERN_NEWLINES.matcher(IOUtils.toString(inputStreamReader)).replaceAll("");
         } catch (IOException ioe)
         {
-            throw new RuntimeException(ioe);
+            throw new RuntimeException("Exception whilst reading version file!" + ioe);
         }
 
         //noinspection HardcodedFileSeparator
@@ -108,7 +110,7 @@ public class KayonContext
             build = Long.parseLong(PATTERN_NEWLINES.matcher(IOUtils.toString(inputStreamReader)).replaceAll(""));
         } catch (IOException ioe)
         {
-            throw new RuntimeException(ioe);
+            throw new RuntimeException("Exception whilst reading build file!", ioe);
         } catch (NumberFormatException e)
         {
             throw new RuntimeException("Build number in file is in invalid format", e);
