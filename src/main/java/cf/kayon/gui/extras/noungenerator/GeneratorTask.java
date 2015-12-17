@@ -157,12 +157,15 @@ public class GeneratorTask extends Task<Void>
             /*
              * Generate noun
              */
-            @NotNull final String rootWord = RandomStringUtils.random(length, 0, 0, true, numeric, null, random).toLowerCase();
+            @NotNull
+            final String rootWord = RandomStringUtils.random(length, 0, 0, true, numeric, null, random).toLowerCase();
             @Nullable NounDeclension nounDeclension = NounViewController.nounDeclensions.get(random.nextInt(nounDeclensions));
             nounDeclension = nounDeclension instanceof DummyNounDeclension ? null : nounDeclension;
-            @NotNull final Gender gender = Gender.values()[random.nextInt(genders)];
+            @NotNull
+            final Gender gender = Gender.values()[random.nextInt(genders)];
 
-            @NotNull final Noun noun = new Noun(context, nounDeclension, gender, rootWord);
+            @NotNull
+            final Noun noun = new Noun(context, nounDeclension, gender, rootWord);
 
             if (log) LOGGER.info("Generated noun " + noun);
             /*
@@ -170,7 +173,7 @@ public class GeneratorTask extends Task<Void>
              */
             final boolean cancelled = isCancelled() || Thread.interrupted();
             final boolean doExecute = c % batchSize == 0 || c + 1 == count || cancelled;
-            System.out.print("\rc = " + (doExecute ? c + "\n": c));
+            System.out.print("\rc = " + (doExecute ? c + "\n" : c));
             context.getNounSQLFactory().saveNounToDatabase(noun, !doExecute);
 
             updateProgress(++c, count);

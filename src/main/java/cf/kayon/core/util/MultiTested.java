@@ -27,6 +27,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface MultiTested
 {
-    @NotNull
-    Tested[] value();
+    @NotNull Tested[] value();
 }

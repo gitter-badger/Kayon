@@ -28,8 +28,8 @@ import java.lang.annotation.*;
  * that is tested using its public API or is an enum/interface/annotation (these types
  * do not provide implementations).
  *
- * @since 0.2.3
  * @author Ruben Anders
+ * @since 0.2.3
  */
 @Documented
 @Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.TYPE})

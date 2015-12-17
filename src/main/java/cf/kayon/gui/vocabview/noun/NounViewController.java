@@ -62,12 +62,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class NounViewController extends Contexed
 {
-    @NotNull
-    private static final Logger LOGGER = LoggerFactory.getLogger(NounViewController.class);
-
     /**
      * A static immutable buffer of all noun declensions.
-     *
+     * <p>
      * Safe to be used and accessed amongst arbitrary threads.
      *
      * @since 0.0.1
@@ -84,7 +81,8 @@ public class NounViewController extends Contexed
             .add(ENounDeclension.getInstance())
             .add(DummyNounDeclension.getInstance())
             .build();
-
+    @NotNull
+    private static final Logger LOGGER = LoggerFactory.getLogger(NounViewController.class);
     /**
      * The listeners bound to the current backing noun by this class, for later unregistering purposes.
      *

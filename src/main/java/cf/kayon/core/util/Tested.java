@@ -28,7 +28,7 @@ import java.lang.annotation.*;
  * The {@link #value()} usually references to a fully qualified method reference.
  * <p>
  * This annotation can be repeated if it is tested by multiple unit/integration tests.
- *
+ * <p>
  * Because this annotation serves no runtime purpose, its retention policy specifies that is only has to be
  * retained to class level, not until runtime. The level could also be
  *
@@ -45,7 +45,7 @@ public @interface Tested
      * References what is testing this element.
      * <p>
      * For example, this could be a fully qualified reference to a test method (e.g. {@code com.example.impl.SomeImplTest.testSomeFunction})
-     *
+     * <p>
      * In IntelliJ IDEA, this reference can be easily copy-pasted into the string by right-clicking whilst your caret is on the test method and
      * choosing "Copy Reference".
      * Then paste whilst your caret is in the new empty string of the annotation on the element.

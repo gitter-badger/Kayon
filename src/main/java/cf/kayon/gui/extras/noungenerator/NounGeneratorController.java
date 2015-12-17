@@ -34,26 +34,19 @@ public class NounGeneratorController
 {
 
     @FXML
+    ResourceBundle resources;
+    @FXML
     private ToggleGroup characterSet;
-
     @FXML
     private RadioButton alphanumericRadioButton;
-
     @FXML
     private Spinner<Integer> countSpinner, lengthSpinner;
-
     @FXML
     private GridPane root;
-
     @FXML
     private ProgressBar progressBar;
-
     @FXML
     private TextField seedTextField;
-
-    @FXML
-    ResourceBundle resources;
-
     @Nullable
     private GeneratorTask currentTask;
 

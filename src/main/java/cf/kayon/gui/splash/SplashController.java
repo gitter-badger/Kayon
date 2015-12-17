@@ -54,8 +54,8 @@ import static java.text.MessageFormat.format;
 /**
  * Controller for the splash screen.
  *
- * @since 0.0.1
  * @author Ruben Anders
+ * @since 0.0.1
  */
 public class SplashController
 {

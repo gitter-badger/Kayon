@@ -23,8 +23,8 @@ import java.lang.annotation.*;
 /**
  * Documents that testing a constructor or method is on the to-do list.
  *
- * @since 0.2.3
  * @author Ruben Anders
+ * @since 0.2.3
  */
 @Documented
 @Target({ElementType.CONSTRUCTOR, ElementType.METHOD})
