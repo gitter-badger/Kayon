@@ -18,6 +18,8 @@
 
 package cf.kayon.core;
 
+import cf.kayon.core.util.NotTested;
+
 /**
  * Describes a grammatical gender.
  *
@@ -26,6 +28,7 @@ package cf.kayon.core;
  * @see cf.kayon.core.sql.SQLUtil#genderForId(byte)
  * @since 0.0.1
  */
+@NotTested
 public enum Gender
 {
     /**
