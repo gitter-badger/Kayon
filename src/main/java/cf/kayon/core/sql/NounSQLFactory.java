@@ -31,6 +31,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.typesafe.config.ConfigException;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +39,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -136,40 +140,81 @@ public class NounSQLFactory extends Contexed
      * If the specified noun did not have a UUID before, it gets a random UUID assigned.
      *
      * @param noun The noun to save.
-     * @throws SQLException If there are any issues when executing the SQL update against the database connection.
+     * @throws SQLException         If there are any issues when executing the SQL update against the database connection.
+     * @throws NullPointerException If {@code noun} is {@code null}.
      * @since 0.0.1
      */
     public void saveNounToDatabase(@NotNull Noun noun) throws SQLException
     {
         checkNotNull(noun);
+        saveNounToDatabase(noun, false);
+    }
+
+    /**
+     * Saves a noun to the database or adds the insert statement to the statement batch.
+     * <p>
+     * If the specified noun did not have UUID before, it gets a random UUID assigned.
+     * <p>
+     * Thread safety notice:
+     * External synchronization may be necessary to prevent other threads from messing with the batch created by this method.
+     * External code should lock on {@link KayonContext#getConnection()}, like this:
+     * <pre>{@code
+     * Noun[] nouns = ...;
+     *
+     * synchronized(getContext().getConnection())
+     * {
+     *     for(int i = 0; i < nouns.length; i++)
+     *     {
+     *         getContext().getNounSQLFactory()
+     *                     .saveNounToDatabase(nouns[i],
+     *                                         i + 1 != nouns.length));
+     *     }
+     * }
+     * }</pre>
+     *
+     * @param noun    The noun to save.
+     * @param doBatch {@code true} to add the insert statement to the batch or {@code false} if the statement should
+     *                be executed now (will also execute any old statements added to the batch).
+     * @throws SQLException If there are any issues when executing the SQL update against the database connection.
+     * @since 0.2.3
+     */
+    @Contract("null, true -> fail")
+    public void saveNounToDatabase(@Nullable Noun noun, boolean doBatch) throws SQLException
+    {
         synchronized (getContext().getConnection())
         {
-            insertStatement.setString(1, noun.getRootWord());
-            UUID uuid = noun.getUuid();
-            if (uuid == null)
+            if (noun != null)
             {
-                uuid = UUID.randomUUID();
-                noun.initializeUuid(uuid);
-            }
-            insertStatement.setObject(2, uuid.toString());
-            insertStatement.setByte(3, SQLUtil.idForGender(noun.getGender()));
-            if (noun.getNounDeclension() != null)
-                insertStatement.setString(4, noun.getNounDeclension().getClass().getName()); // Full class name
-            else
-                insertStatement.setString(4, null);
-            insertStatement.setObject(5, noun.getTranslations());
-            int counter = 6;
-            for (NounForm nounForm : NounForm.values())
-            {
-                @Nullable
-                String formOrNull = noun.getForm(nounForm);
-                @Nullable
-                String definedForm = noun.getDefinedForm(nounForm);
+                insertStatement.setString(1, noun.getRootWord());
+                UUID uuid = noun.getUuid();
+                if (uuid == null)
+                {
+                    uuid = UUID.randomUUID();
+                    noun.initializeUuid(uuid);
+                }
+                insertStatement.setObject(2, uuid.toString());
+                insertStatement.setByte(3, SQLUtil.idForGender(noun.getGender()));
+                if (noun.getNounDeclension() != null)
+                    insertStatement.setString(4, noun.getNounDeclension().getClass().getName()); // Full class name
+                else
+                    insertStatement.setString(4, null);
+                insertStatement.setObject(5, noun.getTranslations());
+                int counter = 6;
+                for (NounForm nounForm : NounForm.values())
+                {
+                    @Nullable
+                    String formOrNull = noun.getForm(nounForm);
+                    @Nullable
+                    String definedForm = noun.getDefinedForm(nounForm);
 
-                insertStatement.setString(counter + 12, definedForm);
-                insertStatement.setString(counter++, formOrNull);
-            }
-            insertStatement.executeUpdate();
+                    insertStatement.setString(counter + 12, definedForm);
+                    insertStatement.setString(counter++, formOrNull);
+                }
+                insertStatement.addBatch();
+            } else if (doBatch)
+                throw new IllegalArgumentException("noun == null and doBatch == true not allowed");
+            if (!doBatch)
+                insertStatement.executeBatch();
         }
     }
 
