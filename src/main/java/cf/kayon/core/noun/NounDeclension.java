@@ -21,6 +21,7 @@ package cf.kayon.core.noun;
 import cf.kayon.core.CaseHandling;
 import cf.kayon.core.FormingException;
 import cf.kayon.core.Gender;
+import net.jcip.annotations.Immutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +59,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Ruben Anders
  * @since 0.0.1
  */
+@Immutable
 public interface NounDeclension
 {
     /**
