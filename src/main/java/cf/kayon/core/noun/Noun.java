@@ -19,6 +19,8 @@
 package cf.kayon.core.noun;
 
 import cf.kayon.core.*;
+import cf.kayon.core.util.NotTested;
+import cf.kayon.core.util.Tested;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import net.jcip.annotations.GuardedBy;
@@ -27,9 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -88,7 +89,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.2.0
      */
     @NotNull
-    private final ConcurrentMap<NounForm, String> declinedForms = new ConcurrentHashMap<>(12);
+    private final Map<NounForm, String> declinedForms = new HashMap<>(12);
 
     /**
      * The defined forms of this noun.
@@ -96,7 +97,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @NotNull
-    private final ConcurrentMap<NounForm, String> definedForms = new ConcurrentHashMap<>(12);
+    private final Map<NounForm, String> definedForms = new HashMap<>(12);
 
     /**
      * The gender of this noun.
@@ -201,8 +202,9 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @throws NullPointerException If {@code nounForm} is {@code null}.
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounTest.testSetGetDefinedForm")
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    public void setDefinedForm(@NotNull NounForm nounForm, @Nullable String form)
+    public synchronized void setDefinedForm(@NotNull NounForm nounForm, @Nullable String form)
     {
         checkNotNull(nounForm);
         if (form == null || form.isEmpty())
@@ -222,9 +224,10 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounTest.testSetGetDefinedForm")
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
-    public String getDefinedForm(@NotNull NounForm nounForm)
+    public synchronized String getDefinedForm(@NotNull NounForm nounForm)
     {
         checkNotNull(nounForm);
         return definedForms.get(nounForm);
@@ -241,7 +244,8 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.0.1
      */
-    public void removeDefinedForm(@NotNull NounForm nounForm)
+    @Tested("cf.kayon.core.noun.NounTest.testRemoveDefinedForm")
+    public synchronized void removeDefinedForm(@NotNull NounForm nounForm)
     {
         setDefinedForm(nounForm, null);
     }
@@ -259,7 +263,8 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @Nullable
-    public String getDeclinedForm(@NotNull NounForm nounForm)
+    @Tested("cf.kayon.core.noun.NounTest.testGetDeclinedForm")
+    public synchronized String getDeclinedForm(@NotNull NounForm nounForm)
     {
         checkNotNull(nounForm);
         return this.declinedForms.get(nounForm);
@@ -274,6 +279,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @Nullable
+    @Tested("cf.kayon.core.noun.NounTest.testGetForm")
     public synchronized String getForm(@NotNull NounForm nounForm)
     {
         @Nullable
@@ -291,6 +297,8 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
+    /* Indirectly tested via public API */
+    @NotTested
     private synchronized void _declineIntoBuffer()
     {
         for (NounForm nounForm : NounForm.values())
@@ -317,6 +325,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @return The gender. Never null.
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounTest.testSetGetGender")
     @NotNull
     public synchronized Gender getGender()
     {
@@ -329,6 +338,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @param gender The new gender.
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounTest.testSetGetGender")
     public synchronized void setGender(@NotNull Gender gender)
     {
         Gender oldGender = this.gender;
@@ -347,6 +357,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
     @NotNull
+    @Tested("cf.kayon.core.noun.NounTest.testSetGetRootWord")
     public synchronized String getRootWord()
     {
         return rootWord;
@@ -362,6 +373,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
+    @Tested("cf.kayon.core.noun.NounTest.testSetGetRootWord")
     public synchronized void setRootWord(@NotNull String rootWord)
     {
         checkNotEmpty(rootWord);
@@ -377,6 +389,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.0.1
      */
     @Nullable
+    @Tested("cf.kayon.core.noun.NounTest.testSetGetNounDeclension")
     public synchronized NounDeclension getNounDeclension()
     {
         return this.nounDeclension;
@@ -388,6 +401,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @param nounDeclension The new NounDeclension. {@code null} if the noun should not have a noun declension.
      * @since 0.0.1
      */
+    @Tested("cf.kayon.core.noun.NounTest.testSetGetNounDeclension")
     public synchronized void setNounDeclension(@Nullable NounDeclension nounDeclension)
     {
         NounDeclension oldNounDeclension = this.nounDeclension;
@@ -403,6 +417,15 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.2.0
      */
     @Override
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testUUIDEquality")
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testTranslationEquality")
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testNounDeclensionEquality")
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testGenderEquality")
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testRootWordEquality")
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testContextEquality")
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testDefinedFormsEquality")
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testDeclinedFormsEquality")
+    @Tested("cf.kayon.core.noun.NounEqualityTest.testPropertyChangeSupportEquality")
     public synchronized boolean equals(Object o)
     {
         if (this == o) return true;
@@ -421,6 +444,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.2.0
      */
     @Override
+    @NotTested
     public synchronized int hashCode()
     {
         return Objects.hashCode(super.hashCode(), declinedForms, definedForms, gender, rootWord, nounDeclension);
@@ -436,8 +460,16 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      */
     @NotNull
     @Override
+    @Tested("cf.kayon.core.noun.NounDeepCopyTest.testDeepCopyNounDeclension")
+    @Tested("cf.kayon.core.noun.NounDeepCopyTest.testDeepCopyRootWord")
+    @Tested("cf.kayon.core.noun.NounDeepCopyTest.testDeepCopyUuid")
+    @Tested("cf.kayon.core.noun.NounDeepCopyTest.testDeepCopyTranslations")
+    @Tested("cf.kayon.core.noun.NounDeepCopyTest.testDeepCopyGender")
+    @Tested("cf.kayon.core.noun.NounDeepCopyTest.testDeepCopyDeclinedForms")
+    @Tested("cf.kayon.core.noun.NounDeepCopyTest.testDeepCopyDefinedForms")
     public synchronized Noun copyDeep()
     {
+
         // Noun Declension, Gender, root word (all immutable)
         Noun noun = new Noun(getContext(), this.nounDeclension, this.gender, this.rootWord);
 
@@ -462,6 +494,7 @@ public class Noun extends StandardVocab implements DeepCopyable<Noun>
      * @since 0.2.0
      */
     @Override
+    @NotTested
     public synchronized String toString()
     {
         return MoreObjects.toStringHelper(this)
