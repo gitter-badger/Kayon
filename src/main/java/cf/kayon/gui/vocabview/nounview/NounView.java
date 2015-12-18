@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.gui.vocabview.noun;
+package cf.kayon.gui.vocabview.nounview;
 
 import cf.kayon.core.noun.Noun;
 import cf.kayon.gui.FxUtil;
@@ -52,11 +52,13 @@ public class NounView
      *
      * @since 0.0.1
      */
+    @NotNull
     private static final byte[] FXML;
 
     static
     {
-        try (InputStream inputStream = NounView.class.getResourceAsStream("/cf/kayon/gui/vocabview/noun/noun.fxml"))
+        //noinspection HardcodedFileSeparator
+        try (InputStream inputStream = NounView.class.getResourceAsStream("/cf/kayon/gui/vocabview/noun/nounview.fxml"))
         {
             FXML = IOUtils.toByteArray(inputStream);
         } catch (IOException e)
@@ -83,7 +85,8 @@ public class NounView
     {
         FXMLLoader loader = new FXMLLoader();
         loader.setResources(ResourceBundle.getBundle("cf.kayon.gui.vocabview.noun.noun"));
-        loader.setLocation(NounView.class.getResource("/cf/kayon/gui/vocabview/noun/noun.fxml"));
+        //noinspection HardcodedFileSeparator
+        loader.setLocation(NounView.class.getResource("/cf/kayon/gui/vocabview/noun/nounview.fxml"));
         Parent parent = loader.load(new ByteArrayInputStream(FXML));
         NounViewController controller = loader.getController();
         controller.bindNoun(noun, true, true);

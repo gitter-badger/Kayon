@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.gui.vocabview.noun;
+package cf.kayon.gui.vocabview.nounview;
 
 import cf.kayon.core.*;
 import cf.kayon.core.Count;
@@ -81,41 +81,58 @@ public class NounViewController extends Contexed
             .add(ENounDeclension.getInstance())
             .add(DummyNounDeclension.getInstance())
             .build();
+
     @NotNull
     private static final Logger LOGGER = LoggerFactory.getLogger(NounViewController.class);
+
     /**
      * The listeners bound to the current backing noun by this class, for later unregistering purposes.
      *
      * @since 0.0.1
      */
     private final Map<String, PropertyChangeListener> listeners = new HashMap<>();
+
+    private Map<NounForm, Triple<Text, TextField, CheckBox>> tableElements;
+
+    /* package-private */
     @FXML
     ResourceBundle resources;
-    Map<NounForm, Triple<Text, TextField, CheckBox>> tableElements;
+
     @FXML
-    CheckBox nomSgCheckBox, genSgCheckBox, datSgCheckBox, accSgCheckBox, ablSgCheckBox, vocSgCheckBox, nomPlCheckBox, genPlCheckBox, datPlCheckBox, accPlCheckBox,
+    private CheckBox nomSgCheckBox, genSgCheckBox, datSgCheckBox, accSgCheckBox, ablSgCheckBox, vocSgCheckBox, nomPlCheckBox, genPlCheckBox, datPlCheckBox, accPlCheckBox,
             ablPlCheckBox, vocPlCheckBox;
+
     @FXML
-    Text nomSgText, genSgText, datSgText, accSgText, ablSgText, vocSgText, nomPlText, genPlText, datPlText, accPlText, ablPlText, vocPlText;
+    private Text nomSgText, genSgText, datSgText, accSgText, ablSgText, vocSgText, nomPlText, genPlText, datPlText, accPlText, ablPlText, vocPlText;
+
     @FXML
-    TextField nomSgTextField, genSgTextField, datSgTextField, accSgTextField, ablSgTextField, vocSgTextField, nomPlTextField, genPlTextField, datPlTextField,
+    private TextField nomSgTextField, genSgTextField, datSgTextField, accSgTextField, ablSgTextField, vocSgTextField, nomPlTextField, genPlTextField, datPlTextField,
             accPlTextField, ablPlTextField, vocPlTextField;
+
     @FXML
-    Button resetButton, saveButton;
+    private Button resetButton, saveButton;
+
     @FXML
-    TextField rootWordTextBox;
+    private TextField rootWordTextField;
+
     @FXML
-    ComboBox<Gender> genderComboBox;
+    private ComboBox<Gender> genderComboBox;
+
     @FXML
-    ComboBox<NounDeclension> declensionComboBox;
+    private ComboBox<NounDeclension> declensionComboBox;
+
     @FXML
-    GridPane rootPane;
+    private GridPane rootPane;
+
     @FXML
-    Text uuidText, uuidValueText;
+    private Text uuidValueText;
+
     @Nullable
-    Noun initialBackingNoun;
+    private Noun initialBackingNoun;
+
     @Nullable
-    Noun currentBackingNoun;
+    private Noun currentBackingNoun;
+
     /**
      * Whether this NounView is being displayed on its own window ( {@code true} ) or
      * if it is just displayed in a pane ( {@code false} ).
@@ -216,7 +233,7 @@ public class NounViewController extends Contexed
         /*
          * Listeners
          */
-        this.rootWordTextBox.textProperty().addListener((observable, oldValue, newValue) -> rootWordChange(newValue));
+        this.rootWordTextField.textProperty().addListener((observable, oldValue, newValue) -> rootWordChange(newValue));
         this.genderComboBox.valueProperty().addListener((observable, oldValue, newValue) -> genderChange(newValue));
         this.declensionComboBox.valueProperty().addListener((observable, oldValue, newValue) -> declensionChange(newValue));
 
@@ -286,7 +303,8 @@ public class NounViewController extends Contexed
      *                this method set the {@link #initialBackingNoun} field.
      * @since 0.0.1
      */
-    public void bindNoun(@Nullable Noun newNoun, boolean isReset, boolean isInit)
+    /* package-local */
+    void bindNoun(@Nullable Noun newNoun, boolean isReset, boolean isInit)
     {
         LOGGER.info(String.format("Binding noun:%nnewNoun: %s%nisReset: %b%nisInit: %b%ncurrentBackingNoun: %s%ninitialBackingNoun: %s", newNoun, isReset, isInit,
                                   currentBackingNoun,
@@ -312,11 +330,11 @@ public class NounViewController extends Contexed
             // Yes:  null -> Noun@123abc
             if (currentBackingNoun != null)
             {
-                rootWordTextBox.setText(currentBackingNoun.getRootWord());
+                rootWordTextField.setText(currentBackingNoun.getRootWord());
                 genderComboBox.setValue(currentBackingNoun.getGender());
                 declensionComboBox.setValue(currentBackingNoun.getNounDeclension());
                 uuidValueText.setText(currentBackingNoun.getUuid() != null ? currentBackingNoun.getUuid().toString() : resources.getString("Text.UUID.NoneSet"));
-                register("rootWord", FxUtil.bindTo(currentBackingNoun, rootWordTextBox.textProperty(), "rootWord", null, null));
+                register("rootWord", FxUtil.bindTo(currentBackingNoun, rootWordTextField.textProperty(), "rootWord", null, null));
                 register("gender", FxUtil.bindTo(currentBackingNoun, genderComboBox.valueProperty(), "gender", null, null));
                 register("nounDeclension", FxUtil.bindTo(currentBackingNoun, declensionComboBox.valueProperty(), "nounDeclension",
                                                          (NounDeclension n) -> n == null ? DummyNounDeclension.getInstance() : n));
@@ -330,7 +348,7 @@ public class NounViewController extends Contexed
 
         if (currentBackingNoun == null && isReset)
         {
-            rootWordTextBox.clear();
+            rootWordTextField.clear();
             genderComboBox.setValue(null);
             declensionComboBox.setValue(null);
             uuidValueText.setText(resources.getString("Text.UUID.NoneSet"));
@@ -438,7 +456,7 @@ public class NounViewController extends Contexed
             String lowerCase = newValue.toLowerCase();
             if (!newValue.equals(lowerCase))
             {
-                rootWordTextBox.setText(lowerCase);
+                rootWordTextField.setText(lowerCase);
                 return;
             }
             tryBackingNoun();
@@ -486,12 +504,12 @@ public class NounViewController extends Contexed
      */
     private void tryBackingNoun()
     {
-        if (currentBackingNoun == null && !rootWordTextBox.getText().isEmpty() && genderComboBox.getValue() != null)
+        if (currentBackingNoun == null && !rootWordTextField.getText().isEmpty() && genderComboBox.getValue() != null)
         {
             NounDeclension declension = declensionComboBox.getValue();
             if (declension instanceof DummyNounDeclension)
                 declension = null;
-            bindNoun(new Noun(getContext(), declension, genderComboBox.getValue(), rootWordTextBox.getText()), false, false);
+            bindNoun(new Noun(getContext(), declension, genderComboBox.getValue(), rootWordTextField.getText()), false, false);
         } else
         {
             tryDestroyBackingNoun();
@@ -505,7 +523,7 @@ public class NounViewController extends Contexed
      */
     private void tryDestroyBackingNoun()
     {
-        if (rootWordTextBox.getText().isEmpty() && currentBackingNoun != null)
+        if (rootWordTextField.getText().isEmpty() && currentBackingNoun != null)
             bindNoun(null, false, false); // do not reset checkboxes, do not override
     }
 

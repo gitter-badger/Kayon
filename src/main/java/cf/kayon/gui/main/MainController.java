@@ -22,7 +22,7 @@ import cf.kayon.core.CaseHandling;
 import cf.kayon.core.Vocab;
 import cf.kayon.gui.FxUtil;
 import cf.kayon.gui.extras.noungenerator.NounGenerator;
-import cf.kayon.gui.vocabview.noun.NounView;
+import cf.kayon.gui.vocabview.nounview.NounView;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

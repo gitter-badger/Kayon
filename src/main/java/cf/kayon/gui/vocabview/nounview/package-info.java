@@ -22,4 +22,4 @@
  * @author Ruben Anders
  * @since 0.0.1
  */
-package cf.kayon.gui.vocabview.noun;
+package cf.kayon.gui.vocabview.nounview;

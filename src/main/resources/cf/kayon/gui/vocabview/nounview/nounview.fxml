@@ -23,7 +23,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 <GridPane xmlns:fx="http://javafx.com/fxml/1" fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0"
-          prefWidth="935.0" xmlns="http://javafx.com/javafx/8.0.40" fx:controller="cf.kayon.gui.vocabview.noun.NounViewController">
+          prefWidth="935.0" xmlns="http://javafx.com/javafx/8.0.40" fx:controller="cf.kayon.gui.vocabview.nounview.NounViewController">
     <columnConstraints>
         <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
@@ -57,7 +57,7 @@
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
         </GridPane.margin>
     </Text>
-    <TextField fx:id="rootWordTextBox" GridPane.columnIndex="1">
+    <TextField fx:id="rootWordTextField" GridPane.columnIndex="1">
         <GridPane.margin>
             <Insets bottom="5.0" left="5.0" top="5.0"/>
         </GridPane.margin>
@@ -279,7 +279,7 @@
             <Insets bottom="5.0" left="5.0"/>
         </GridPane.margin>
     </Button>
-    <Text fx:id="uuidText" fill="#00000080" strokeType="OUTSIDE" strokeWidth="0.0" text="%Text.UUID" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+    <Text fill="#00000080" strokeType="OUTSIDE" strokeWidth="0.0" text="%Text.UUID" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
         <GridPane.margin>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
         </GridPane.margin>

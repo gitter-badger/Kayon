@@ -20,7 +20,7 @@ package cf.kayon.gui.main;
 
 import cf.kayon.core.Vocab;
 import cf.kayon.core.noun.Noun;
-import cf.kayon.gui.vocabview.noun.NounView;
+import cf.kayon.gui.vocabview.nounview.NounView;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.Node;

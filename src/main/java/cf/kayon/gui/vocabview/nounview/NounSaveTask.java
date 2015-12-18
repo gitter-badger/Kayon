@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cf.kayon.gui.vocabview.noun;
+package cf.kayon.gui.vocabview.nounview;
 
 import cf.kayon.core.KayonContext;
 import cf.kayon.core.noun.Noun;
