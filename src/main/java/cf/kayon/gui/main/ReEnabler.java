@@ -55,9 +55,10 @@ public class ReEnabler implements Runnable
         } catch (InterruptedException e)
         {
             Thread.currentThread().interrupt();
-        } finally {
+        } finally
+        {
             controller.resetUI();
-            LOGGER.info("ReEnabler terminated normally: "+ Thread.currentThread());
+            LOGGER.info("ReEnabler terminated normally: " + Thread.currentThread());
         }
     }
 }

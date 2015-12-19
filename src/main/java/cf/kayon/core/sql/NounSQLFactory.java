@@ -273,12 +273,13 @@ public class NounSQLFactory extends Contexed
      *
      * Method is synchronized on the connection object.
      */
+
     /**
      * Queries the {@link Noun}s out of a database connection by the specified form.
      * Searches in the table {@code NOUNS} (Unless the application is configured differently).
      *
      * @param formToSearch The form to search. May be any kind of special form (and may be raw user input).
-     * @param writeTo The {@link BlockingQueue} to write the resulting {@link Noun}s to.
+     * @param writeTo      The {@link BlockingQueue} to write the resulting {@link Noun}s to.
      * @throws SQLException         If a error in executing the query occurs.
      * @throws InterruptedException If a write to the BlockingQueue was interrupted.
      * @throws NullPointerException If any of the arguments is {@code null}.
@@ -301,6 +302,7 @@ public class NounSQLFactory extends Contexed
      *
      * Method is synchronized on the connection object. (only for the time of database operations)
      */
+
     /**
      * Queries the {@link Noun}s out of a database connection by the specified form.
      * Searches in the table {@code NOUNS} (Unless the application is configured differently).

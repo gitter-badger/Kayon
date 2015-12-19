@@ -91,13 +91,10 @@ public class NounViewController extends Contexed
      * @since 0.0.1
      */
     private final Map<String, PropertyChangeListener> listeners = new HashMap<>();
-
-    private Map<NounForm, Triple<Text, TextField, CheckBox>> tableElements;
-
     /* package-private */
     @FXML
     ResourceBundle resources;
-
+    private Map<NounForm, Triple<Text, TextField, CheckBox>> tableElements;
     @FXML
     private CheckBox nomSgCheckBox, genSgCheckBox, datSgCheckBox, accSgCheckBox, ablSgCheckBox, vocSgCheckBox, nomPlCheckBox, genPlCheckBox, datPlCheckBox, accPlCheckBox,
             ablPlCheckBox, vocPlCheckBox;

@@ -42,48 +42,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class StandardVocab extends Contexed implements Vocab
 {
     /**
-     * Static utility factory for making dummy poison vocab objects for producer-consumer-queues.
-     *
-     * @return A non-functional {@link Vocab} (throws {@link UnsupportedOperationException} on every method).
-     * @since 0.2.3
-     */
-    @NotNull
-    public static Vocab newPoison()
-    {
-        return new Vocab() {
-            @Override
-            public @Nullable UUID getUuid()
-            {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void initializeUuid(@NotNull UUID uuid)
-            {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public @NotNull Map<Locale, String> getTranslations()
-            {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void setTranslations(@NotNull Map<Locale, String> map)
-            {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public @Nullable String getTranslation(@NotNull Locale locale)
-            {
-                throw new UnsupportedOperationException();
-            }
-        };
-    }
-
-    /**
      * The ResourceBundle.Control instance used to get candidate locales.
      * <p>
      * Actually, these control instances were not made for this job (they are supposed to operate with properties files or classes,
@@ -130,6 +88,49 @@ public class StandardVocab extends Contexed implements Vocab
     protected StandardVocab(@NotNull KayonContext context)
     {
         super(context);
+    }
+
+    /**
+     * Static utility factory for making dummy poison vocab objects for producer-consumer-queues.
+     *
+     * @return A non-functional {@link Vocab} (throws {@link UnsupportedOperationException} on every method).
+     * @since 0.2.3
+     */
+    @NotNull
+    public static Vocab newPoison()
+    {
+        return new Vocab()
+        {
+            @Override
+            public @Nullable UUID getUuid()
+            {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void initializeUuid(@NotNull UUID uuid)
+            {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public @NotNull Map<Locale, String> getTranslations()
+            {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void setTranslations(@NotNull Map<Locale, String> map)
+            {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public @Nullable String getTranslation(@NotNull Locale locale)
+            {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     /**

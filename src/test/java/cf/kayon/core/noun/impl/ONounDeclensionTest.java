@@ -36,7 +36,7 @@ public class ONounDeclensionTest
 
         NounDeclensionTestingUtil.testCorrectDeclining(                                                       ONounDeclension.getInstance(), Gender.MASCULINE,       "fili",
                                                        "filius", "filiī", "filiō", "filium", "filiō", "filī", // notice: filī is different
-                                                       "filiī",                                               "filiōrum", "filiīs", "filiōs", "filiīs", "filiī");
+                                                       "filiī",                                               "filiōrum",                                   "filiīs",                         "filiōs", "filiīs",     "filiī");
 
         NounDeclensionTestingUtil.testCorrectDeclining(ONounDeclension.getInstance(), Gender.NEUTER, "templ",
                                                        "templum", "templī", "templō", "templum", "templō", "templum",
