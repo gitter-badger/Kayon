@@ -29,6 +29,9 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
@@ -74,6 +77,12 @@ public class SplashController
     @FXML
     private Text text;
 
+    @FXML
+    private ImageView view;
+
+    @FXML
+    private ProgressIndicator progressIndicator;
+
     /**
      * Makes the application-wide connection to the database.
      * <p>
@@ -102,6 +111,19 @@ public class SplashController
             splashException("ConnectionFailure", t);
             throw new RuntimeException(t);
         }
+    }
+
+    public void initialize()
+    {
+        //noinspection HardcodedFileSeparator
+        Image img = new Image(getClass().getResource("/cf/kayon/gui/logo2048.png").toExternalForm(), true);
+        img.progressProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.doubleValue() == 1d)
+                progressIndicator.setVisible(false);
+        });
+        // in case image was already 100% loaded before listener was registered
+        progressIndicator.setVisible(img.getProgress() != 1d);
+        view.setImage(img);
     }
 
     /**
