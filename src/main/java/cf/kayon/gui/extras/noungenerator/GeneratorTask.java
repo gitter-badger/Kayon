@@ -111,6 +111,7 @@ public class GeneratorTask extends Task<Void>
     /**
      * Constructs a new GeneratorTask with a string seed.
      *
+     * @param context The {@link KayonContext} used to fetch configuration values and operate on the database.
      * @param numeric Whether to generate numeric characters in the root word.
      * @param length  The length of the generated root words.
      * @param count   The count of nouns to generate.

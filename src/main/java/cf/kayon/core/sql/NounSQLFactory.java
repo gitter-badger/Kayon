@@ -38,7 +38,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -108,7 +107,7 @@ public class NounSQLFactory extends Contexed
 
     /**
      * Compiles the SQL statements into {@link PreparedStatement} objects.
-     * Required for later calls to {@link #queryNouns(String)} or {@link #saveNounToDatabase(Noun)}.
+     * Required for later calls to {@link #queryNouns(String, BlockingQueue)} or {@link #saveNounToDatabase(Noun)}.
      * <p>
      * <strong>This method depends on {@link #setupDatabaseForNouns()}.</strong>
      *

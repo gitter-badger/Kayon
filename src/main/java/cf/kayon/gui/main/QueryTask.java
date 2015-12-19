@@ -70,7 +70,7 @@ public class QueryTask implements Callable<Void>
     private final BlockingQueue<? super Vocab> queue;
 
     /**
-     * The posion object to notify consumers to stop working.
+     * The poison object to notify consumers to stop working.
      *
      * @since 0.2.3
      */
@@ -83,6 +83,8 @@ public class QueryTask implements Callable<Void>
      * @param context      The {@link KayonContext} for this instance.
      * @param searchString The search string. May be the raw user input - both lowercase and uppercase characters are handled appropriately.
      *                     Also, special regex characters are escaped.
+     * @param queue        The {@link BlockingQueue} this task puts its results on.
+     * @param poison       The poison object to notify consumers to stop working.
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.2.0
      */
@@ -99,6 +101,9 @@ public class QueryTask implements Callable<Void>
         this.poison = poison;
     }
 
+    /**
+     * @since 0.2.3
+     */
     @Override
     public boolean equals(Object o)
     {
@@ -111,6 +116,9 @@ public class QueryTask implements Callable<Void>
                Objects.equal(poison, queryTask.poison);
     }
 
+    /**
+     * @since 0.2.3
+     */
     @Override
     public int hashCode()
     {

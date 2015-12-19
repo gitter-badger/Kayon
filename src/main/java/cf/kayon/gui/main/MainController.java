@@ -36,6 +36,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,10 +201,11 @@ public class MainController
     /**
      * Called when the user selects the "Generate nouns..." option in the extras menu.
      *
+     * @param event The ActionEvent passed in by JavaFX (will be discarded)
      * @since 0.2.3
      */
     @FXML
-    private void generateNouns(ActionEvent event)
+    private void generateNouns(@Nullable ActionEvent event)
     {
         LOGGER.info("Launching dialog for generating nouns");
         Stage newStage = new Stage();
