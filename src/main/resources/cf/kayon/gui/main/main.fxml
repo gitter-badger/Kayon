@@ -27,9 +27,9 @@
 
 <GridPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cf.kayon.gui.main.MainController">
     <columnConstraints>
-        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        <ColumnConstraints hgrow="ALWAYS" maxWidth="755.0" minWidth="10.0" prefWidth="641.0" />
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="160.0" />
+        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="164.0" />
     </columnConstraints>
     <rowConstraints>
         <RowConstraints />
@@ -77,12 +77,12 @@
         </GridPane.margin>
         <VBox fx:id="vBox" prefHeight="200.0" prefWidth="100.0" />
     </ScrollPane>
-   <Button fx:id="rootSearchButton" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#rootSearch" text="%MainPane.RootSearchButton.Text" GridPane.columnIndex="1" GridPane.rowIndex="1">
-      <GridPane.margin>
-         <Insets bottom="5.0" right="5.0" top="5.0" />
-      </GridPane.margin>
-      <graphic>
-         <FontAwesomeIconView glyphName="SEARCH" />
-      </graphic>
-   </Button>
+    <Button fx:id="rootSearchButton" disable="true" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#rootSearch" text="%MainPane.RootSearchButton.Text" GridPane.columnIndex="1" GridPane.rowIndex="1">
+        <GridPane.margin>
+            <Insets bottom="5.0" right="5.0" top="5.0" />
+        </GridPane.margin>
+        <graphic>
+            <FontAwesomeIconView glyphName="SEARCH" />
+        </graphic>
+    </Button>
 </GridPane>
