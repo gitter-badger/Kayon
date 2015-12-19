@@ -136,6 +136,6 @@ public class NounGeneratorController
     private void cancel(ActionEvent event)
     {
         if (currentTask != null)
-            currentTask.cancel();
+            currentTask.cancel(false);
     }
 }
