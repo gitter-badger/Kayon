@@ -63,7 +63,7 @@ public class MainController
      * @since 0.0.1
      */
     @FXML
-    GridPane mainPane;
+    private GridPane mainPane;
 
     /**
      * The search term text box.
@@ -71,7 +71,7 @@ public class MainController
      * @since 0.0.1
      */
     @FXML
-    TextField searchField;
+    private TextField searchField;
 
     /**
      * The "Search" button.
@@ -79,7 +79,15 @@ public class MainController
      * @since 0.0.1
      */
     @FXML
-    Button searchButton;
+    private Button searchButton;
+
+    /**
+     * The "Search by root word" button.
+     *
+     * @since 0.2.3
+     */
+    @FXML
+    private Button rootSearchButton;
 
     /**
      * The VBox contained in the ScrollPane.
@@ -87,7 +95,7 @@ public class MainController
      * @since 0.0.1
      */
     @FXML
-    VBox vBox;
+    private VBox vBox;
 
     /**
      * The progress indicator (initially hidden under the search button).
@@ -95,7 +103,7 @@ public class MainController
      * @since 0.0.1
      */
     @FXML
-    ProgressIndicator progressIndicator;
+    private ProgressIndicator progressIndicator;
 
     /**
      * Handles a search button press. Bound to the button in the FXML file.
@@ -108,10 +116,23 @@ public class MainController
     private void search(ActionEvent e)
     {
         LOGGER.info("Search request received");
-        progressIndicator.setVisible(true);
-        searchButton.setVisible(false);
-        searchField.setDisable(true);
-        queryVocab(searchField.getText());
+        queryVocab(searchField.getText(), false);
+    }
+
+    private void setSearchActive(boolean isSearchActive)
+    {
+        progressIndicator.setVisible(isSearchActive);
+        searchButton.setVisible(!isSearchActive);
+        rootSearchButton.setVisible(!isSearchActive);
+        searchField.setDisable(isSearchActive);
+    }
+
+    @FXML
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
+    private void rootSearch(ActionEvent e)
+    {
+        LOGGER.info("Root word search request received");
+        queryVocab(searchField.getText(), true);
     }
 
     /**
@@ -122,7 +143,8 @@ public class MainController
      */
     public void initialize()
     {
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> searchButton.setDisable(newValue == null || newValue.isEmpty()));
+        searchButton.disableProperty().bind(searchField.textProperty().isEmpty());
+        rootSearchButton.disableProperty().bind(searchField.textProperty().isEmpty());
     }
 
     /**
@@ -131,29 +153,32 @@ public class MainController
      * Handles both uppercase and lowercase characters.
      *
      * @param searchString The search string (user input).
+     * @param byRootWord   {@code false} if {@code searchString} is a finite form to search for, {@code true} if {@code searchString} is a root word to search for
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
-    private void queryVocab(@NotNull String searchString)
+    private void queryVocab(@NotNull String searchString, boolean byRootWord)
     {
         LOGGER.info("Querying for user input >" + searchString + "<");
+        setSearchActive(true);
 
         final ArrayBlockingQueue<Vocab> queue = new ArrayBlockingQueue<>(FxUtil.context.getConfig().getInt("gui.main.queryQueueSize"));
         final Vocab poison = StandardVocab.newPoison();
         // delegates toLowerCase() and regex escaping
-        final QueryTask producer = new QueryTask(FxUtil.context, searchString, queue, poison);
+        final QueryTask producer = new QueryTask(FxUtil.context, searchString, queue, poison, byRootWord);
 
         int iMax = FxUtil.context.getConfig().getInt("gui.main.reconstructThreads");
         final CountDownLatch latch = new CountDownLatch(iMax);
+
+        FxUtil.executor.submit(producer);
+        final ReEnabler reEnabler = new ReEnabler(latch, this);
+        FxUtil.executor.execute(reEnabler);
+
         for (int i = 0; i < iMax; i++)
         {
             final NodeTask consumer = new NodeTask(vBox, queue, poison, latch);
             FxUtil.executor.submit(consumer);
         }
-        FxUtil.executor.submit(producer);
-
-        final ReEnabler reEnabler = new ReEnabler(latch, this);
-        FxUtil.executor.execute(reEnabler);
     }
 
     /**
@@ -166,9 +191,7 @@ public class MainController
     {
         Platform.runLater(() -> {
             LOGGER.info("Resetting UI back to normal");
-            progressIndicator.setVisible(false);
-            searchButton.setVisible(true);
-            searchField.setDisable(false);
+            setSearchActive(false);
             searchField.requestFocus();
             searchField.clear(); // Also disables button
         });

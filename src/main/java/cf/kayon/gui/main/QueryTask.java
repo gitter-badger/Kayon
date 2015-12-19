@@ -78,6 +78,13 @@ public class QueryTask implements Callable<Void>
     private final Vocab poison;
 
     /**
+     * {@code false} if {@code searchString} is a finite form to search for, {@code true} if {@code searchString} is a root word to search for
+     *
+     * @since 0.2.3
+     */
+    private final boolean byRootWord;
+
+    /**
      * Constructs a new QueryTask.
      *
      * @param context      The {@link KayonContext} for this instance.
@@ -85,20 +92,39 @@ public class QueryTask implements Callable<Void>
      *                     Also, special regex characters are escaped.
      * @param queue        The {@link BlockingQueue} this task puts its results on.
      * @param poison       The poison object to notify consumers to stop working.
+     * @param byRootWord   {@code false} if {@code searchString} is a finite form to search for, {@code true} if {@code searchString} is a root word to search for
      * @throws NullPointerException If any of the arguments is {@code null}.
      * @since 0.2.0
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
-    public QueryTask(@NotNull final KayonContext context, @NotNull final String searchString, @NotNull final BlockingQueue<? super Vocab> queue, @NotNull Vocab poison)
+    public QueryTask(@NotNull final KayonContext context, @NotNull final String searchString, @NotNull final BlockingQueue<? super Vocab> queue, @NotNull Vocab poison,
+                     boolean byRootWord)
     {
         checkNotNull(context);
         checkNotNull(searchString);
         checkNotNull(queue);
         checkNotNull(poison);
+
         this.context = context;
         this.searchString = searchString;
         this.queue = queue;
         this.poison = poison;
+        this.byRootWord = byRootWord;
+    }
+
+    /**
+     * @since 0.2.3
+     */
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper(this)
+                          .add("context", context)
+                          .add("searchString", searchString)
+                          .add("queue", queue)
+                          .add("poison", poison)
+                          .add("byRootWord", byRootWord)
+                          .toString();
     }
 
     /**
@@ -110,7 +136,8 @@ public class QueryTask implements Callable<Void>
         if (this == o) return true;
         if (!(o instanceof QueryTask)) return false;
         QueryTask queryTask = (QueryTask) o;
-        return Objects.equal(context, queryTask.context) &&
+        return byRootWord == queryTask.byRootWord &&
+               Objects.equal(context, queryTask.context) &&
                Objects.equal(searchString, queryTask.searchString) &&
                Objects.equal(queue, queryTask.queue) &&
                Objects.equal(poison, queryTask.poison);
@@ -122,7 +149,7 @@ public class QueryTask implements Callable<Void>
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(context, searchString, queue, poison);
+        return Objects.hashCode(context, searchString, queue, poison, byRootWord);
     }
 
     /**
@@ -136,7 +163,10 @@ public class QueryTask implements Callable<Void>
         LOGGER.info("Query task started: " + Thread.currentThread());
         try
         {
-            context.getNounSQLFactory().queryNouns(searchString, queue);
+            if (byRootWord)
+                context.getNounSQLFactory().queryNounsByRootWord(searchString, queue);
+            else
+                context.getNounSQLFactory().queryNouns(searchString, queue);
         } finally
         {
             while (true)
@@ -154,17 +184,4 @@ public class QueryTask implements Callable<Void>
         return null;
     }
 
-    /**
-     * @since 0.2.3
-     */
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper(this)
-                          .add("context", context)
-                          .add("searchString", searchString)
-                          .add("queue", queue)
-                          .add("poison", poison)
-                          .toString();
-    }
 }

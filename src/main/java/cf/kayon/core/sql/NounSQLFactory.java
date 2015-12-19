@@ -77,6 +77,12 @@ public class NounSQLFactory extends Contexed
      */
     private final String setupSql;
     /**
+     * The SQL string for searching for querying {@link Noun}s by their root word.
+     *
+     * @since 0.2.3
+     */
+    private final String rootQuerySql;
+    /**
      * The SQL statement for inserting a {@link Noun} into a database.
      *
      * @since 0.2.0
@@ -88,11 +94,17 @@ public class NounSQLFactory extends Contexed
      * @since 0.2.0
      */
     private volatile PreparedStatement queryStatement;
+    /**
+     * The SQL statement for searching for querying {@link Noun}s by their root word.
+     *
+     * @since 0.2.3
+     */
+    private volatile PreparedStatement rootQueryStatement;
 
     /**
      * Constructs a new instance.
      * <p>
-     * All statements are retrieved from the config of the context at construct time. The statements are also compiled at construct time.
+     * All statements are retrieved from the config of the context at construct time. The statements are compiled later by calling {@link #compileStatements()}.
      *
      * @param context The {@link KayonContext} for this instance.
      * @since 0.2.0
@@ -103,6 +115,7 @@ public class NounSQLFactory extends Contexed
         insertSql = context.getConfig().getString("database.statements.insert");
         querySql = context.getConfig().getString("database.statements.query");
         setupSql = context.getConfig().getString("database.statements.setup");
+        rootQuerySql = context.getConfig().getString("database.statements.rootQuery");
     }
 
     /**
@@ -118,13 +131,19 @@ public class NounSQLFactory extends Contexed
         String currentPath = null;
         try
         {
-            currentPath = "database.statements.insert";
-            insertStatement = getContext().getConnection().prepareStatement(insertSql);
-            currentPath = "database.statements.query";
-            queryStatement = getContext().getConnection().prepareStatement(querySql);
+            synchronized (getContext().getConnection())
+            {
+                currentPath = "database.statements.insert";
+                insertStatement = getContext().getConnection().prepareStatement(insertSql);
+                currentPath = "database.statements.query";
+                queryStatement = getContext().getConnection().prepareStatement(querySql);
+                currentPath = "database.statements.rootQuery";
+                rootQueryStatement = getContext().getConnection().prepareStatement(rootQuerySql);
+            }
         } catch (SQLException e)
         {
-            throw new ConfigException.BadValue(getContext().getConfig().origin(), currentPath, "See cause below!", e);
+            throw new ConfigException.BadValue(getContext().getConfig().origin(), currentPath,
+                                               "See cause below (Invalid SQL statement in config could not be compiled)!", e);
         }
     }
 
@@ -283,12 +302,13 @@ public class NounSQLFactory extends Contexed
      * @throws SQLException         If a error in executing the query occurs.
      * @throws InterruptedException If a write to the BlockingQueue was interrupted.
      * @throws NullPointerException If any of the arguments is {@code null}.
+     * @throws IllegalArgumentException If {@code formToSearch} is {@link String#isEmpty() empty}.
      * @since 0.2.3
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
     public void queryNouns(@NotNull String formToSearch, @NotNull BlockingQueue<? super Noun> writeTo) throws SQLException, InterruptedException
     {
-        checkNotNull(formToSearch);
+        checkNotEmpty(formToSearch);
         checkNotNull(writeTo);
 
         // 1. MAnŪs -> manūs
@@ -309,9 +329,10 @@ public class NounSQLFactory extends Contexed
      *
      * @param regex   The form's regular expression (typically as returned by {@link StringUtil#anySpecialRegex(String)}).
      * @param writeTo The {@link BlockingQueue} to write the resulting {@link Noun}s to.
-     * @throws SQLException         If a error in executing the query occurs.
-     * @throws InterruptedException If a write to the BlockingQueue was interrupted.
-     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @throws SQLException             If a error in executing the query occurs.
+     * @throws InterruptedException     If a write to the BlockingQueue was interrupted.
+     * @throws NullPointerException     If any of the arguments is {@code null}.
+     * @throws IllegalArgumentException If {@code regex} is {@link String#isEmpty() empty}.
      * @since 0.2.3
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
@@ -352,6 +373,75 @@ public class NounSQLFactory extends Contexed
      */
 
     /**
+     * Queries the {@link Noun}s out of a database connection by the specified root word.
+     * Searches in the table {@code NOUNS} (Unless the application is configured differently).
+     *
+     * @param rootWordToSearch The root word to search. May be any kind of special form (and may be raw user input).
+     * @param writeTo          The {@link BlockingQueue} to write the resulting {@link Noun}s to.
+     * @throws SQLException         If a error in executing the query occurs.
+     * @throws InterruptedException If a write to the BlockingQueue was interrupted.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @throws IllegalArgumentException If {@code rootWordToSearch} is {@link String#isEmpty() empty}.
+     * @since 0.2.3
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
+    public void queryNounsByRootWord(@NotNull String rootWordToSearch, @NotNull BlockingQueue<? super Noun> writeTo) throws SQLException, InterruptedException
+    {
+        checkNotEmpty(rootWordToSearch);
+        checkNotNull(writeTo);
+
+        // 1. MAnŪs -> manūs
+        // 2. manūs -> man[uūŭ]s
+        String regex = StringUtil.anySpecialRegex(rootWordToSearch.toLowerCase());
+        queryNounsByRootWordRegex(regex, writeTo);
+    }
+
+    /*
+     * Thread safety notice
+     *
+     * Method is synchronized on the connection object. (only for the time of database operations)
+     */
+
+    /**
+     * Queries the {@link Noun}s out of a database connection by the specified root word.
+     * Searches in the table {@code NOUNS} (Unless the application is configured differently).
+     *
+     * @param regexRootWord The root word's regular expression (typically as returned by {@link StringUtil#anySpecialRegex(String)}).
+     * @param writeTo       The {@link BlockingQueue} to write the resulting {@link Noun}s to.
+     * @throws SQLException             If a error in executing the query occurs.
+     * @throws InterruptedException     If a write to the BlockingQueue was interrupted.
+     * @throws NullPointerException     If any of the arguments is {@code null}.
+     * @throws IllegalArgumentException If {@code regexRootWord} is {@link String#isEmpty() empty}.
+     * @since 0.2.3
+     */
+    @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
+    private void queryNounsByRootWordRegex(@NotNull String regexRootWord, @NotNull BlockingQueue<? super Noun> writeTo) throws SQLException, InterruptedException
+    {
+        checkNotEmpty(regexRootWord);
+        checkNotNull(writeTo);
+        synchronized (getContext().getConnection())
+        {
+            rootQueryStatement.setString(1, regexRootWord);
+            try (ResultSet results = rootQueryStatement.executeQuery())
+            {
+                while (results.next())
+                {
+                    if (Thread.interrupted())
+                        throw new InterruptedException();
+                    Noun currentResult = constructNounFromResultSet(results);
+                    writeTo.put(currentResult);
+                }
+            }
+        }
+    }
+
+    /*
+     * Thread safety notice
+     *
+     * Method is synchronized on the connection object.
+     */
+
+    /**
      * Makes sure that the {@code NOUNS} table exists in the specified connection to a database.
      * <p>
      * If the {@code NOUNS} table already exists, nothing is changed.
@@ -380,11 +470,12 @@ public class NounSQLFactory extends Contexed
         if (!(o instanceof NounSQLFactory)) return false;
         if (!super.equals(o)) return false;
         NounSQLFactory that = (NounSQLFactory) o;
-        return com.google.common.base.Objects.equal(insertSql, that.insertSql) &&
-               Objects.equal(insertStatement, that.insertStatement) &&
+        return Objects.equal(insertSql, that.insertSql) &&
                Objects.equal(querySql, that.querySql) &&
-               Objects.equal(queryStatement, that.queryStatement) &&
-               Objects.equal(setupSql, that.setupSql);
+               Objects.equal(setupSql, that.setupSql) &&
+               Objects.equal(rootQuerySql, that.rootQuerySql) &&
+               Objects.equal(insertStatement, that.insertStatement) &&
+               Objects.equal(queryStatement, that.queryStatement);
     }
 
     /**
@@ -393,7 +484,7 @@ public class NounSQLFactory extends Contexed
     @Override
     public int hashCode()
     {
-        return Objects.hashCode(super.hashCode(), insertSql, insertStatement, querySql, queryStatement, setupSql);
+        return Objects.hashCode(super.hashCode(), insertSql, querySql, setupSql, rootQuerySql, insertStatement, queryStatement);
     }
 
     /**
@@ -404,11 +495,11 @@ public class NounSQLFactory extends Contexed
     {
         return MoreObjects.toStringHelper(this)
                           .add("insertSql", insertSql)
-                          .add("insertStatement", insertStatement)
                           .add("querySql", querySql)
-                          .add("queryStatement", queryStatement)
                           .add("setupSql", setupSql)
+                          .add("rootQuerySql", rootQuerySql)
+                          .add("insertStatement", insertStatement)
+                          .add("queryStatement", queryStatement)
                           .toString();
-
     }
 }
