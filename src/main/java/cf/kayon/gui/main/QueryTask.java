@@ -23,15 +23,14 @@ import cf.kayon.core.KayonContext;
 import cf.kayon.core.Vocab;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import javafx.concurrent.Task;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -41,10 +40,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.0.1
  */
-public class VocabTask extends Task<List<Vocab>>
+public class QueryTask implements Callable<Void>
 {
     @NotNull
-    private static final Logger LOGGER = LoggerFactory.getLogger(VocabTask.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(QueryTask.class);
 
     /**
      * The context of this class.
@@ -55,7 +54,7 @@ public class VocabTask extends Task<List<Vocab>>
     private final KayonContext context;
 
     /**
-     * The search string of this VocabTask.
+     * The search string of this QueryTask.
      *
      * @since 0.0.1
      */
@@ -63,7 +62,23 @@ public class VocabTask extends Task<List<Vocab>>
     private final String searchString;
 
     /**
-     * Constructs a new VocabTask.
+     * The {@link BlockingQueue} this task puts its results on.
+     *
+     * @since 0.2.3
+     */
+    @NotNull
+    private final BlockingQueue<? super Vocab> queue;
+
+    /**
+     * The posion object to notify consumers to stop working.
+     *
+     * @since 0.2.3
+     */
+    @NotNull
+    private final Vocab poison;
+
+    /**
+     * Constructs a new QueryTask.
      *
      * @param context      The {@link KayonContext} for this instance.
      * @param searchString The search string. May be the raw user input - both lowercase and uppercase characters are handled appropriately.
@@ -72,56 +87,63 @@ public class VocabTask extends Task<List<Vocab>>
      * @since 0.2.0
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
-    public VocabTask(@NotNull final KayonContext context, @NotNull final String searchString)
+    public QueryTask(@NotNull final KayonContext context, @NotNull final String searchString, @NotNull final BlockingQueue<? super Vocab> queue, @NotNull Vocab poison)
     {
         checkNotNull(context);
         checkNotNull(searchString);
+        checkNotNull(queue);
+        checkNotNull(poison);
         this.context = context;
         this.searchString = searchString;
+        this.queue = queue;
+        this.poison = poison;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) return true;
+        if (!(o instanceof QueryTask)) return false;
+        QueryTask queryTask = (QueryTask) o;
+        return Objects.equal(context, queryTask.context) &&
+               Objects.equal(searchString, queryTask.searchString) &&
+               Objects.equal(queue, queryTask.queue) &&
+               Objects.equal(poison, queryTask.poison);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hashCode(context, searchString, queue, poison);
     }
 
     /**
      * @since 0.0.1
      */
     @Override
-    @NotNull
+    @Nullable
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
-    protected List<Vocab> call() throws Exception
+    public Void call() throws SQLException, InterruptedException
     {
-        @NotNull
-        final List<Vocab> collectedResults = Collections.synchronizedList(new ArrayList<>());
+        LOGGER.info("Query task started: " + Thread.currentThread());
         try
         {
-            collectedResults.addAll(context.getNounSQLFactory().queryNouns(searchString));
-            // Add more types here
-        } catch (SQLException e)
+            context.getNounSQLFactory().queryNouns(searchString, queue);
+        } finally
         {
-            LOGGER.error("SQLException in VocabTask!", e);
-            throw e;
+            while (true)
+            {
+                try
+                {
+                    queue.put(poison);
+                    break;
+                } catch (InterruptedException ignored) {}
+            }
         }
-        return collectedResults;
-    }
-
-    /**
-     * @since 0.2.3
-     */
-    @Override
-    public boolean equals(Object o)
-    {
-        if (this == o) return true;
-        if (!(o instanceof VocabTask)) return false;
-        VocabTask vocabTask = (VocabTask) o;
-        return Objects.equal(context, vocabTask.context) &&
-               Objects.equal(searchString, vocabTask.searchString);
-    }
-
-    /**
-     * @since 0.2.3
-     */
-    @Override
-    public int hashCode()
-    {
-        return Objects.hashCode(context, searchString);
+        // do not catch InterruptedException or SQLException thrown in try { ... } block
+        // (they are logged by the executor)
+        LOGGER.info("QueryTask terminated normally: " + Thread.currentThread());
+        return null;
     }
 
     /**
@@ -133,6 +155,8 @@ public class VocabTask extends Task<List<Vocab>>
         return MoreObjects.toStringHelper(this)
                           .add("context", context)
                           .add("searchString", searchString)
+                          .add("queue", queue)
+                          .add("poison", poison)
                           .toString();
     }
 }

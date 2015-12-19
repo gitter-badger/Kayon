@@ -141,7 +141,8 @@ public class GeneratorTask extends Task<Void>
         final int nounDeclensions = NounViewController.nounDeclensions.size();
         final int genders = Gender.values().length;
         final int batchSize = context.getConfig().getInt("gui.extras.noungenerator.batchSize");
-        final boolean log = context.getConfig().getBoolean("gui.extras.noungenerator.log");
+        final boolean doLog = context.getConfig().getBoolean("gui.extras.noungenerator.log.doLog");
+        final int everyAbsolute = context.getConfig().getInt("gui.extras.noungenerator.log.every");
 
         LOGGER.info("GeneratorTask running");
         LOGGER.info("    nounDeclensions = " + nounDeclensions);
@@ -153,7 +154,7 @@ public class GeneratorTask extends Task<Void>
 
         for (int c = 0; c < count; )
         {
-            if (log) LOGGER.info("Iteration " + c);
+            if (doLog && c % everyAbsolute == 0) LOGGER.info("Finished " + c + " iterations");
             /*
              * Generate noun
              */
@@ -167,13 +168,11 @@ public class GeneratorTask extends Task<Void>
             @NotNull
             final Noun noun = new Noun(context, nounDeclension, gender, rootWord);
 
-            if (log) LOGGER.info("Generated noun " + noun);
             /*
              * Execute SQL (or add to batch)
              */
             final boolean cancelled = isCancelled() || Thread.interrupted();
             final boolean doExecute = c % batchSize == 0 || c + 1 == count || cancelled;
-            System.out.print("\rc = " + (doExecute ? c + "\n" : c));
             context.getNounSQLFactory().saveNounToDatabase(noun, !doExecute);
 
             updateProgress(++c, count);

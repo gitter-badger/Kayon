@@ -19,6 +19,7 @@
 package cf.kayon.gui.main;
 
 import cf.kayon.core.CaseHandling;
+import cf.kayon.core.StandardVocab;
 import cf.kayon.core.Vocab;
 import cf.kayon.gui.FxUtil;
 import cf.kayon.gui.extras.noungenerator.NounGenerator;
@@ -39,10 +40,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 
 /**
  * Controls the main view.
@@ -130,61 +129,30 @@ public class MainController
      * <p>
      * Handles both uppercase and lowercase characters.
      *
-     * @param searchString The search string.
+     * @param searchString The search string (user input).
      * @since 0.0.1
      */
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
     private void queryVocab(@NotNull String searchString)
     {
         LOGGER.info("Querying for user input >" + searchString + "<");
-        VocabTask vocabTask = new VocabTask(FxUtil.context, searchString); // delegates lowercasing and regex escaping
-        vocabTask.stateProperty().addListener((observable, oldValue, newValue) -> {
-            switch (newValue)
-            {
-                case SUCCEEDED:
-                    constructNodes(vocabTask.getValue());
-                    break;
-                case CANCELLED:
-                case FAILED:
-                    resetUI();
-                    break;
-                case READY:
-                case RUNNING:
-                case SCHEDULED:
-                    vBox.getChildren().clear();
-                    break;
-            }
-        });
-        FxUtil.executor.execute(vocabTask);
-    }
 
-    /**
-     * Constructs the view nodes (and appends them to the vBox) from a list of queried vocab.
-     * <p>
-     * This method should not be called on the JavaFX application thread, since it performs blocking operations.
-     *
-     * @param serviceResult The result of the vocab database query.
-     * @since 0.0.1
-     */
-    private void constructNodes(List<Vocab> serviceResult)
-    {
-        LOGGER.info("Constructing JavaFX nodes");
+        final ArrayBlockingQueue<Vocab> queue = new ArrayBlockingQueue<>(FxUtil.context.getConfig().getInt("gui.main.queryQueueSize"));
+        final Vocab poison = StandardVocab.newPoison();
+        // delegates toLowerCase() and regex escaping
+        final QueryTask producer = new QueryTask(FxUtil.context, searchString, queue, poison);
 
-        CountDownLatch latch = new CountDownLatch(serviceResult.size());
-        try
+        int iMax = FxUtil.context.getConfig().getInt("gui.main.reconstructThreads");
+        final CountDownLatch latch = new CountDownLatch(iMax);
+        for (int i = 0; i < iMax; i++)
         {
-            // blocks until completion
-            synchronized (serviceResult)
-            {
-                FxUtil.executor.invokeAll(serviceResult.stream()
-                                                       .map(v -> (Callable<Void>) () -> new NodeTask(v, vBox, latch).call())
-                                                       .collect(Collectors.toList())); // Convert vocab to callables
-            }
-            resetUI();
-        } catch (InterruptedException e)
-        {
-            LOGGER.warn("Reconstruction of nodes was interrupted?!", e);
+            final NodeTask consumer = new NodeTask(vBox, queue, poison, latch);
+            FxUtil.executor.submit(consumer);
         }
+        FxUtil.executor.submit(producer);
+
+        final ReEnabler reEnabler = new ReEnabler(latch, this);
+        FxUtil.executor.execute(reEnabler);
     }
 
     /**
@@ -192,7 +160,8 @@ public class MainController
      *
      * @since 0.0.1
      */
-    private void resetUI()
+    /* package-local */
+    void resetUI()
     {
         Platform.runLater(() -> {
             LOGGER.info("Resetting UI back to normal");

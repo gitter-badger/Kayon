@@ -58,7 +58,7 @@ public class NounView
     static
     {
         //noinspection HardcodedFileSeparator
-        try (InputStream inputStream = NounView.class.getResourceAsStream("/cf/kayon/gui/vocabview/noun/nounview.fxml"))
+        try (InputStream inputStream = NounView.class.getResourceAsStream("/cf/kayon/gui/vocabview/nounview/nounview.fxml"))
         {
             FXML = IOUtils.toByteArray(inputStream);
         } catch (IOException e)
@@ -72,6 +72,14 @@ public class NounView
      * <p>
      * Note that the FXML's file contents are buffered and will be loaded from the classpath only once (on static class initialization, or, more precisely, the first
      * request to construct a NounView).
+     * <p>
+     * It's safe to call this method
+     * <ol>
+     * <li>
+     * on any thread
+     * </li>
+     * <li>concurrently</li>
+     * </ol>
      *
      * @param noun The noun to initialize the NounView with.
      * @return A Pair: The new parent and its controller class instance.
@@ -84,7 +92,7 @@ public class NounView
     public static Pair<Parent, NounViewController> createNewParent(@Nullable Noun noun) throws IOException
     {
         FXMLLoader loader = new FXMLLoader();
-        loader.setResources(ResourceBundle.getBundle("cf.kayon.gui.vocabview.noun.noun"));
+        loader.setResources(ResourceBundle.getBundle("cf.kayon.gui.vocabview.nounview.nounview"));
         //noinspection HardcodedFileSeparator
         loader.setLocation(NounView.class.getResource("/cf/kayon/gui/vocabview/noun/nounview.fxml"));
         Parent parent = loader.load(new ByteArrayInputStream(FXML));

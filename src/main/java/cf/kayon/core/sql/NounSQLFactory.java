@@ -29,7 +29,6 @@ import cf.kayon.core.noun.NounForm;
 import cf.kayon.core.util.StringUtil;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.typesafe.config.ConfigException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -43,8 +42,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.regex.Pattern;
 
+import static cf.kayon.core.util.StringUtil.checkNotEmpty;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -273,26 +274,27 @@ public class NounSQLFactory extends Contexed
      *
      * Method is synchronized on the connection object.
      */
-
     /**
-     * Gets a {@link List} of {@link Noun}s out of a database connection by the specified form.
+     * Queries the {@link Noun}s out of a database connection by the specified form.
+     * Searches in the table {@code NOUNS} (Unless the application is configured differently).
      *
      * @param formToSearch The form to search. May be any kind of special form (and may be raw user input).
-     * @return A {@link List} of {@link Noun}s. May be empty if no nouns have been found, but is never {@code null} itself.
-     * @throws SQLException         If a error in executing the query against the database connection occurs.
-     * @throws NullPointerException If {@code formToSearch} is {@code null}.
-     * @since 0.0.1
+     * @param writeTo The {@link BlockingQueue} to write the resulting {@link Noun}s to.
+     * @throws SQLException         If a error in executing the query occurs.
+     * @throws InterruptedException If a write to the BlockingQueue was interrupted.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.2.3
      */
-    @NotNull
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_AND_UPPERCASE)
-    public List<Noun> queryNouns(@NotNull String formToSearch) throws SQLException
+    public void queryNouns(@NotNull String formToSearch, @NotNull BlockingQueue<? super Noun> writeTo) throws SQLException, InterruptedException
     {
         checkNotNull(formToSearch);
+        checkNotNull(writeTo);
 
         // 1. MAnŪs -> manūs
         // 2. manūs -> man[uūŭ]s
         String regex = StringUtil.anySpecialRegex(formToSearch.toLowerCase());
-        return queryNounsFromRegex(regex);
+        queryNounsFromRegex(regex, writeTo);
     }
 
     /*
@@ -300,23 +302,22 @@ public class NounSQLFactory extends Contexed
      *
      * Method is synchronized on the connection object. (only for the time of database operations)
      */
-
     /**
-     * Gets a {@link List} of {@link Noun}s out of a database connection by the specified form.
-     * Searches in the table {@code NOUNS}.
+     * Queries the {@link Noun}s out of a database connection by the specified form.
+     * Searches in the table {@code NOUNS} (Unless the application is configured differently).
      *
-     * @param regex The form's regular expression as returned by {@link StringUtil#anySpecialRegex(String)}.
-     * @return A {@link List} of {@link Noun}s. May be empty if no nouns have been found, but is never {@code null} itself.
+     * @param regex   The form's regular expression (typically as returned by {@link StringUtil#anySpecialRegex(String)}).
+     * @param writeTo The {@link BlockingQueue} to write the resulting {@link Noun}s to.
      * @throws SQLException         If a error in executing the query occurs.
-     * @throws NullPointerException If {@code regex} is {@code null}.
-     * @since 0.0.1
+     * @throws InterruptedException If a write to the BlockingQueue was interrupted.
+     * @throws NullPointerException If any of the arguments is {@code null}.
+     * @since 0.2.3
      */
-    @NotNull
     @CaseHandling(CaseHandling.CaseType.LOWERCASE_ONLY)
-    private List<Noun> queryNounsFromRegex(@NotNull String regex) throws SQLException
+    private void queryNounsFromRegex(@NotNull String regex, @NotNull BlockingQueue<? super Noun> writeTo) throws SQLException, InterruptedException
     {
-        checkNotNull(regex);
-        List<Noun> list = Lists.newArrayList();
+        checkNotEmpty(regex);
+        checkNotNull(writeTo);
         synchronized (getContext().getConnection())
         {
             queryStatement.setString(1, regex);
@@ -325,20 +326,21 @@ public class NounSQLFactory extends Contexed
             {
                 while (results.next())
                 {
+                    if (Thread.interrupted())
+                        throw new InterruptedException();
                     Noun currentResult = constructNounFromResultSet(results);
                     for (NounForm nounForm : NounForm.values())
                     {
                         String form = currentResult.getForm(nounForm);
                         if (form != null && pattern.matcher(form).matches())
                         {
-                            list.add(currentResult);
+                            writeTo.put(currentResult);
                             break; // break out of nested for iteration loop, jump to next result
                         }
                     }
 
                 }
             }
-            return list;
         }
     }
 

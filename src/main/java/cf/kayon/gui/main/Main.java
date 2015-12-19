@@ -58,6 +58,7 @@ public class Main
     {
         FXMLLoader loader = new FXMLLoader();
         loader.setResources(ResourceBundle.getBundle("cf.kayon.gui.main.main"));
+        //noinspection HardcodedFileSeparator
         loader.setLocation(Main.class.getResource("/cf/kayon/gui/main/main.fxml"));
         Parent parent = loader.load();
         MainController controller = loader.getController();
