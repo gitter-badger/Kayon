@@ -176,7 +176,7 @@ launch4j {
     else
         outfile = "$project.name-${project.version}-all.exe"
     mainClassName = project.mainClassName
-    icon = file('logo.ico')
+    icon = file('logo/logo.ico')
     copyConfigurable = project.tasks.shadowJar.outputs.files
     jar = "lib/${project.tasks.shadowJar.archiveName}"
 }
