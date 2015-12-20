@@ -140,7 +140,7 @@ public class NounView
     public static NounViewController createOntoStage(@NotNull Stage stage, @Nullable Noun noun) throws IOException
     {
         checkNotNull(stage);
-        FxUtil.initIcons(stage);
+        FxUtil.initLogo(stage);
         stage.setResizable(false);
 
         Pair<Scene, NounViewController> pair = createNewScene(noun);

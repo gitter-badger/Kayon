@@ -105,7 +105,7 @@ public class NounGenerator
     public static NounGeneratorController createOntoStage(@NotNull Stage stage) throws IOException
     {
         checkNotNull(stage);
-        FxUtil.initIcons(stage);
+        FxUtil.initLogo(stage);
         Pair<Scene, NounGeneratorController> pair = createNewScene();
         stage.setScene(pair.getLeft());
         stage.setTitle(pair.getRight().resources.getString("WindowTitle"));

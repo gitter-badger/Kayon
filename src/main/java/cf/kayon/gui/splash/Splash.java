@@ -75,6 +75,7 @@ public class Splash extends Application
     {
         FXMLLoader loader = new FXMLLoader();
         loader.setResources(ResourceBundle.getBundle("cf.kayon.gui.splash.splash"));
+        //noinspection HardcodedFileSeparator
         loader.setLocation(Splash.class.getResource("/cf/kayon/gui/splash/splash.fxml"));
         Parent parent = loader.load();
         SplashController controller = loader.getController();
@@ -118,7 +119,7 @@ public class Splash extends Application
     public static SplashController createOntoStage(@NotNull Stage stage) throws IOException
     {
         checkNotNull(stage);
-        FxUtil.initIcons(stage); // For taskbar
+        FxUtil.initLogo(stage); // For taskbar
         stage.initStyle(StageStyle.UNDECORATED);
 
         Pair<Scene, SplashController> pair = createNewScene();

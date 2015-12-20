@@ -30,7 +30,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
@@ -116,14 +115,16 @@ public class SplashController
     public void initialize()
     {
         //noinspection HardcodedFileSeparator
-        Image img = new Image(getClass().getResource("/cf/kayon/gui/logo2048.png").toExternalForm(), true);
-        img.progressProperty().addListener((observable, oldValue, newValue) -> {
+        FxUtil.LOGO.progressProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.doubleValue() == 1d)
+            {
                 progressIndicator.setVisible(false);
+                FxUtil.initLogo((Stage) pane.getScene().getWindow());
+            }
         });
         // in case image was already 100% loaded before listener was registered
-        progressIndicator.setVisible(img.getProgress() != 1d);
-        view.setImage(img);
+        progressIndicator.setVisible(FxUtil.LOGO.getProgress() != 1d);
+        view.setImage(FxUtil.LOGO);
     }
 
     /**

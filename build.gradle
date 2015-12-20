@@ -166,7 +166,8 @@ tasks.withType(Test) {
 }
 
 shadowJar {
-    exclude 'META-INF/LICENSE.txt'
+    exclude 'META-INF/LICENSE.txt' // don't include foreign incorrect licenses
+    exclude 'META-INF/NOTICE.txt'
 }
 
 launch4j {

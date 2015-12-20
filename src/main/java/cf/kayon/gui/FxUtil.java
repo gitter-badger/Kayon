@@ -20,17 +20,15 @@ package cf.kayon.gui;
 
 import cf.kayon.core.KayonContext;
 import cf.kayon.core.StandardVocab;
-import com.google.common.collect.Lists;
 import javafx.beans.value.WritableValue;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.beans.PropertyChangeListener;
-import java.util.Collections;
-import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
@@ -44,24 +42,24 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Ruben Anders
  * @since 0.2.0
  */
+@ThreadSafe
 public class FxUtil
 {
     /**
-     * A set containing the images for the application.
+     * The logo of the application.
      *
      * @since 0.2.0
      */
     @SuppressWarnings("HardcodedFileSeparator")
-    private static final List<Image> images =
-            Collections.unmodifiableList(Lists.newArrayList(new Image(FxUtil.class.getResource("/cf/kayon/gui/logo16.png").toExternalForm(), true),
-                                                            new Image(FxUtil.class.getResource("/cf/kayon/gui/logo32.png").toExternalForm(), true),
-                                                            new Image(FxUtil.class.getResource("/cf/kayon/gui/logo64.png").toExternalForm(), true)));
+    public static final Image LOGO = new Image(FxUtil.class.getResourceAsStream("/cf/kayon/gui/logo1024.png"));
+
     /**
      * The KayonContext for the JavaFX application.
      *
      * @since 0.2.0
      */
     public static volatile KayonContext context;
+
     /**
      * The global task executor for the JavaFX application.
      *
@@ -70,17 +68,48 @@ public class FxUtil
     public static volatile ThreadPoolExecutor executor;
 
     /**
-     * Adds the default icons (16px, 32px and 64px) to the specified stage.
+     * Adds the project's logo (up to 1024x1024) to the specified stage.
      *
      * @param stage The stage to add the icons to.
      * @since 0.2.0
      */
-    public static void initIcons(@NotNull Stage stage)
+    public static void initLogo(@NotNull Stage stage)
     {
         checkNotNull(stage);
-        stage.getIcons().addAll(images);
+        stage.getIcons().add(LOGO);
     }
 
+    /**
+     * Binds a PropertyChangeListener to the StandardVocab. This PropertyChangeListener will listen to any events of the {@code String propertyName} and will
+     * set the value of the {@code WritableValue<P> property}, but optionally converted to an alternating string gotten from the {@link ResourceBundle}:
+     * <p>
+     * If {@code bundle} is not {@code null} and {@code resourceBundleKey} is not {@code null} or {@link String#isEmpty() empty}, the value
+     * of {@code property} will not be set if the new value of the listened property is {@code null}; Instead, the string from the resource bundle will
+     * be set.
+     * <p>
+     * If {@code bundle} is {@code null} or {@code resourceBundleKey} is {@code null} or {@link String#isEmpty() empty}, the new value will always be set, even
+     * if the new value is {@code null}.
+     * <p>
+     * See the little illustration below for a visualization of what this method does.
+     * <pre>{@code
+     * bundle and resourceBundleKey present? -- true --> new value == null? -- true --> set property to (T) bundle.getObject(resourceBundleKey)
+     *                                       |                              |
+     *                                       |                              +- false -> set property to (T) new value
+     *                                       |
+     *                                       +- false -> set property to (T) new value (always)
+     * }</pre>
+     * Note that the conversion of the new value of the event to the required type of {@code property} may lead to a {@link ClassCastException} being thrown
+     * when the event listener is invoked. The caller should be careful to only bind this method to properties that can only have convertible new values.
+     *
+     * @param vocab             The StandardVocab to bind the PropertyChangeListener to.
+     * @param property          The property to write to on events.
+     * @param propertyName      The property name to listen on.
+     * @param bundle            The resource bundle.
+     * @param resourceBundleKey The resource bundle key.
+     * @param <T>               The type of the WritableValue.
+     * @return The PropertyChangeListener that was bound to the StandardVocab.
+     * @since 0.2.0
+     */
     @SuppressWarnings("unchecked")
     @NotNull
     public static <T> PropertyChangeListener bindTo(@NotNull StandardVocab vocab, @NotNull WritableValue<T> property, @NotNull @NonNls
@@ -124,6 +153,9 @@ public class FxUtil
      * called and the value of the property will not be set.
      * <p>
      * The property will be set to the (nullable) return value of the method.
+     * <p>
+     * Note that the conversion of the new value of the event to the required type of {@code transformer} may lead to a {@link ClassCastException} being thrown
+     * when the event listener is invoked. The caller should be careful to only bind this method to properties that can only have convertible new values.
      *
      * @param vocab        The StandardVocab to bind the PropertyChangeListener to.
      * @param property     The property to write to on events.

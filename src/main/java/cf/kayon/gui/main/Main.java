@@ -102,7 +102,7 @@ public class Main
     public static MainController createOntoStage(@NotNull Stage stage) throws IOException
     {
         checkNotNull(stage);
-        FxUtil.initIcons(stage);
+        FxUtil.initLogo(stage);
         Pair<Scene, MainController> pair = createNewScene();
         stage.setTitle("Kayon " + FxUtil.context.getVersion() + " (b" + FxUtil.context.getBuild() + ")");
         stage.setScene(pair.getLeft());
