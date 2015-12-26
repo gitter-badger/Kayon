@@ -179,7 +179,10 @@ public class GeneratorTask extends Task<Void>
             updateProgress(++c, count);
 
             if (cancelled)
+            {
+                cancel(true); // restore interruption status
                 return null;
+            }
         }
         return null;
     }
