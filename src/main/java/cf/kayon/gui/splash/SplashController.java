@@ -164,10 +164,10 @@ public class SplashController
         try
         {
             FxUtil.context = new KayonContext(connection, config);
-            FxUtil.executor = new ThreadPoolExecutor(config.getInt("gui.executor.poolSize"),
-                                                     config.getInt("gui.executor.poolSize"),
+            int poolSize = config.getInt("gui.executor.poolSize");
+            FxUtil.executor = new ThreadPoolExecutor(poolSize, poolSize,
                                                      config.getDuration("gui.executor.keepAliveTime", TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS,
-                                                     new LinkedBlockingQueue<>())
+                                                     new ArrayBlockingQueue<>(config.getInt("gui.executor.queueSize")))
             {
                 @Override
                 protected void afterExecute(Runnable r, Throwable t)
@@ -184,19 +184,21 @@ public class SplashController
                             }
                         } catch (CancellationException ce)
                         {
-                            t = ce;
+                            LOGGER.info("FX Executor task was cancelled: (NOT AN ERROR!)", ce);
                         } catch (ExecutionException ee)
                         {
                             t = ee.getCause();
                         } catch (InterruptedException ie)
                         {
-                            Thread.currentThread().interrupt(); // ignore/reset
+                            LOGGER.warn("FX Executor afterExecute() future.get() was interrupted?!", ie);
+                            Thread.currentThread().interrupt(); // ignore/reset (interruptions whilst trying to get future value)
                         }
                     }
                     if (t != null)
                     {
                         // Log any exceptions thrown in the executor
-                        LOGGER.error("Exception in FX executor occured!", t);
+                        LOGGER.error("Exception in FX executor occurred!");
+                        splashException("PoolException", t, false); // Do not interrupt current worker
                     }
                 }
             };
@@ -215,13 +217,28 @@ public class SplashController
      *
      * @param resourceBundlePackage The resource bundle package name of the error.
      * @param t                     The throwable to inform the user about.
-     * @since 0.0.1
+     * @since 0.2.4
      */
     private void splashException(@NotNull String resourceBundlePackage, @NotNull Throwable t)
     {
+        splashException(resourceBundlePackage, t, true);
+    }
+
+    /**
+     * Shows an exception alert.
+     * <p>
+     * NOT to be called on the JavaFX Application Thread, since the current thread will (optionally) be interrupted.
+     *
+     * @param resourceBundlePackage The resource bundle package name of the error.
+     * @param t                     The throwable to inform the user about.
+     * @param doInterrupt           Whether to interrupt the current thread after the exception window closed.
+     * @since 0.0.1
+     */
+    private void splashException(@NotNull String resourceBundlePackage, @NotNull Throwable t, boolean doInterrupt)
+    {
         checkNotEmpty(resourceBundlePackage);
         checkNotNull(t);
-        LOGGER.error("Splash screen exception occurred (resourceBundlePackage: " + resourceBundlePackage + ")", t);
+        LOGGER.error("Exception occurred (resourceBundlePackage: " + resourceBundlePackage + ")", t);
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
 
@@ -240,7 +257,7 @@ public class SplashController
             alert.showAndWait();
             Platform.exit();
         });
-        Thread.currentThread().interrupt(); // Halt the task thread execution
+        if (doInterrupt) Thread.currentThread().interrupt(); // Halt the task thread execution
     }
 
     /**
@@ -297,46 +314,36 @@ public class SplashController
             protected Void call() throws Exception
             {
                 if (interrupted()) return null;
-                Platform.runLater(() -> {
-                    updateProgress(0, 5);
-                    updateMessage(resources.getString("LoadingConfig"));
-                });
+                updateProgress(0, 5);
+                updateMessage(resources.getString("LoadingConfig"));
 
                 if (interrupted()) return null;
                 Config config = loadConfig();
 
                 if (interrupted()) return null;
-                Platform.runLater(() -> {
-                    updateProgress(1, 5);
-                    updateMessage(resources.getString("ConnectingToDatabase"));
-                });
+                updateProgress(1, 5);
+                updateMessage(resources.getString("ConnectingToDatabase"));
 
                 if (interrupted()) return null;
                 Connection connection = connectToDatabase(config);
 
                 if (interrupted()) return null;
-                Platform.runLater(() -> {
-                    updateProgress(2, 5);
-                    updateMessage(resources.getString("ConfiguringApplication"));
-                });
+                updateProgress(2, 5);
+                updateMessage(resources.getString("ConfiguringApplication"));
 
                 if (interrupted()) return null;
                 configureApplication(connection, config);
 
                 if (interrupted()) return null;
-                Platform.runLater(() -> {
-                    updateProgress(3, 5);
-                    updateMessage(resources.getString("InitializingDatabaseStructure"));
-                });
+                updateProgress(3, 5);
+                updateMessage(resources.getString("InitializingDatabaseStructure"));
 
                 if (interrupted()) return null;
                 initializeDatabaseStructure();
 
                 if (interrupted()) return null;
-                Platform.runLater(() -> {
-                    updateProgress(4, 5);
-                    updateMessage(resources.getString("OpeningMainWindow"));
-                });
+                updateProgress(4, 5);
+                updateMessage(resources.getString("OpeningMainWindow"));
 
                 if (interrupted()) return null;
                 Platform.runLater(SplashController.this::openMainWindow);
@@ -346,12 +353,15 @@ public class SplashController
                 return null;
             }
         };
-        // This is why updateProgress() must be in JavaFX application thread, bind updated to JavaFX elements get called
-        // in the same thread you update the original property in
         progress.progressProperty().bind(applicationStartTask.progressProperty());
         text.textProperty().bind(applicationStartTask.messageProperty());
 
         Thread th = new Thread(applicationStartTask, "Application Start Task"); // The first and last time of using new Thread() to execute a task
+        applicationStartTask.exceptionProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) splashException("UncaughtOther", newValue);
+        });
+        // Task<V> does not throw unchecked exceptions all the way through to the threads unchecked execution handler, but saves it and publishes it later
+        // in a ExecutionException or using this property
         th.start();
     }
 
