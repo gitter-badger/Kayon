@@ -36,25 +36,16 @@ subprojects {
     }
 
     if (rootProject.ext.circleCI) {
-        def versionForFiles = project.version + '-b' + rootProject.ext.circleCIBuildNum
-
-        def c = { version = versionForFiles }
-        tasks.withType(Jar, c)
-        tasks.withType(Zip, c)
-        tasks.withType(Tar, c)
-
-        if (rootProject.ext.circleCI) {
-            task copyCiArtifacts(type: Copy) {
-                from "$buildDir/libs/"
-                from "$buildDir/distributions/"
-                from("$buildDir/launch4j/") {
-                    include '*.exe'
-                }
-
-                into rootProject.ext.circleCIArtifacts
+        task copyCiArtifacts(type: Copy) {
+            from("$buildDir/libs") {
+                include 'Kayon*.jar'
             }
-        }
+            from("$buildDir/distributions/") {
+                include 'Kayon*.zip'
+            }
 
+            into rootProject.ext.circleCIArtifacts
+        }
     }
 
     def buildOptionsString = { String... links ->
@@ -96,5 +87,11 @@ subprojects {
         archives sourcesJar
     }
 
-
+    def versionForFiles = project.version + '-b' + rootProject.ext.circleCIBuildNum
+    def c = { version = versionForFiles }
+    afterEvaluate { project ->
+        project.tasks.withType(Jar, c)
+        project.tasks.withType(Zip, c)
+        project.tasks.withType(Tar, c)
+    }
 }

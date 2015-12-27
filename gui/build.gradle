@@ -18,18 +18,16 @@
 
 apply plugin: 'application'
 apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'edu.sc.seis.launch4j'
+apply from: 'https://bintray.com/artifact/download/shemnon/javafx-gradle/8.1.1/javafx.plugin'
 
 mainClassName = 'cf.kayon.gui.splash.Splash'
 
 buildscript {
     repositories {
         jcenter()
-        maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
-        classpath 'gradle.plugin.edu.sc.seis.gradle:launch4j:1.6.1'
     }
 }
 
@@ -38,23 +36,20 @@ dependencies {
     compile project(':KayonCore')
 }
 
-
 shadowJar {
     exclude 'META-INF/LICENSE.txt' // don't include foreign incorrect licenses
     exclude 'META-INF/NOTICE.txt'
 }
 
-launch4j {
-    if (Objects.equals(System.getenv('CIRCLECI'), 'true'))
-        outfile = "$project.name-$project.version-b${System.getenv('CIRCLE_BUILD_NUM')}-all.exe"
-    else
-        outfile = "$project.name-${project.version}-all.exe"
-    mainClassName = project.mainClassName
-    icon = file('logo/logo.ico')
-    copyConfigurable = project.tasks.shadowJar.outputs.files
-    jar = "lib/${project.tasks.shadowJar.archiveName}"
+javafx { mainClass = project.mainClassName }
+
+task jfxDeployZip(type: Zip, dependsOn: tasks.jfxDeploy) {
+    classifier 'windows'
+    from "$buildDir/distributions/KayonGui"
+    // automatically placed into $buildDir/distributions
 }
-tasks.copyL4jLib.dependsOn tasks.shadowJar
+
+tasks.assemble.dependsOn(tasks.jfxDeployZip, tasks.shadowJar)
 
 tasks.run {
     workingDir "$buildDir/test-results/working-dir/"
