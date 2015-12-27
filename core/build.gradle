@@ -62,13 +62,13 @@ if (rootProject.ext.circleCI) {
             ProcessBuilder builder = new ProcessBuilder(cmds)
             builder.directory(directory) // execute in repo directory
             builder.redirectErrorStream(true);
-            builder.environment().putAll(env)
+            if (env != null) builder.environment().putAll(env)
             Process process = builder.start()
             ByteStreams.nullOutputStream() << process.getInputStream() // http://stackoverflow.com/a/3285479/4464702 and http://stackoverflow.com/a/10708117/4464702
             process.waitFor()
         }
         def cmd = { String... cmds ->
-            cmde([] as Map<String, String>, cmds)
+            cmde(null, cmds)
         }
 
         cmd('git', 'clone', '-b', 'gh-pages', "https://KayonBot:${rootProject.ext.circleCIKayonBotPassword}@github.com/RAnders00/KayonDoc.git", '.')
