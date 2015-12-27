@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Kayon.iml" filepath="$PROJECT_DIR$/Kayon.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/KayonCore.iml" filepath="$PROJECT_DIR$/core/KayonCore.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gui/KayonGui.iml" filepath="$PROJECT_DIR$/gui/KayonGui.iml" />
     </modules>
   </component>
 </project>

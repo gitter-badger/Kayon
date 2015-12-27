@@ -16,19 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier 'sources'
-    group 'build'
-}
+include 'core'
+include 'gui'
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    from javadoc.destinationDir
-    classifier 'javadoc'
-    group 'build'
-}
+rootProject.children.each { prefixProjectName(it, "Kayon") }
 
-artifacts {
-    archives sourcesJar
-    archives javadocJar
+def prefixProjectName(project, prefix) {
+    project.name = prefix + Character.toUpperCase(project.name.charAt(0)) + project.name.substring(1, project.name.length())
+    project.children.each { prefixProjectName(it, prefix) }
 }

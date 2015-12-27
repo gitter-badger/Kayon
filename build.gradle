@@ -16,172 +16,85 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import groovy.json.JsonSlurper
+def prop = { System.getenv(it) ?: System.getProperty(it) }
+project.ext.circleCI = prop('CIRCLECI') == 'true'
+project.ext.circleCIArtifacts = prop('CIRCLE_ARTIFACTS')
+project.ext.circleCIBuildNum = prop('CIRCLE_BUILD_NUM')
+project.ext.circleCIKayonBotPassword = prop('KAYONBOT_PASSWORD')
+project.ext.circleCIKayonBotAccessToken = prop('KAYONBOT_ACCESS_TOKEN')
+project.ext.circleCISha1 = prop('CIRCLE_SHA1')
+project.ext.ver = project(':KayonCore').file('src/main/resources/version').getText('utf8').replaceAll("[\n\r]", "")
 
-apply plugin: 'java'
-apply plugin: 'application'
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'edu.sc.seis.launch4j'
+subprojects {
+    apply plugin: 'java'
+    group 'cf.kayon'
+    version = rootProject.ext.ver
 
-apply from: 'javadocAndSourcesJar.gradle'
-
-group 'cf.kayon'
-version = file('src/main/resources/version').getText('utf8').replaceAll("[\n\r]", "") // eliminate newlines
-mainClassName = 'cf.kayon.gui.splash.Splash'
-
-//region CircleCI tasks
-if (Objects.equals(System.getenv('CIRCLECI'), 'true')) {
-    file('src/main/resources/build').write(System.getenv('CIRCLE_BUILD_NUM'))
-
-    def versionForFiles = project.version + '-b' + System.getenv('CIRCLE_BUILD_NUM')
-
-    tasks.withType(Jar) {
-        version = versionForFiles
-    }
-    tasks.withType(Zip) {
-        version = versionForFiles
-    }
-    tasks.withType(Tar) {
-        version = versionForFiles
+    repositories { jcenter() }
+    tasks.withType(JavaCompile) {
+        options.encoding = 'utf8'
     }
 
-    task copyCIArtifacts << { // because why not, doubleshift and nested copy (intuitive, isn't it?)
-        copy {
-            from(file("$buildDir/libs/").listFiles() + file("$buildDir/distributions/").listFiles() + file("$buildDir/launch4j").listFiles({ File dir, String filename -> filename.endsWith '.exe' } as FilenameFilter))
-            into System.getenv('CIRCLE_ARTIFACTS')
-        }
-    }
+    if (rootProject.ext.circleCI) {
+        def versionForFiles = project.version + '-b' + rootProject.ext.circleCIBuildNum
 
-    task deployJavadoc(dependsOn: tasks.javadoc) << { // double shift because closure is what is running the task, not configuring it
-        def directory = file("$buildDir/doc-repo/")
-        directory.mkdirs()
-        def cmd = { String... cmds ->
-            ProcessBuilder builder = new ProcessBuilder(cmds)
-            builder.directory(directory) // execute in repo directory
-            Process process = builder.start()
-            process.waitFor()
-        }
-        def cmde = { Map<String, String> env, String... cmds ->
-            ProcessBuilder builder = new ProcessBuilder(cmds)
-            builder.directory(directory) // execute in repo directory
-            builder.environment().putAll(env)
-            Process process = builder.start()
-            process.waitFor()
+        def c = { version = versionForFiles }
+        tasks.withType(Jar, c)
+        tasks.withType(Zip, c)
+        tasks.withType(Tar, c)
+
+        if (rootProject.ext.circleCI) {
+            task copyCiArtifacts(type: Copy) {
+                from "$buildDir/libs/"
+                from "$buildDir/distributions/"
+                from("$buildDir/launch4j/") {
+                    include '*.exe'
+                }
+
+                into rootProject.ext.circleCIArtifacts
+            }
         }
 
-        cmd('git', 'clone', '-b', 'gh-pages', "https://KayonBot:${System.getenv('KAYONBOT_PASSWORD')}@github.com/RAnders00/KayonDoc.git", '.')
-        cmd('git', 'rm', '-r', '.')
-        cmd('git', 'checkout', 'HEAD', '--', 'README.md')
+    }
 
-        copy {
-            from tasks.javadoc.destinationDir
-            into directory
+    def buildOptionsString = { String... links ->
+        StringBuilder stringBuilder = new StringBuilder(links.length * 32)
+        for (int i = 0; i < links.length; i++) {
+            stringBuilder.append(links[i])
+            if (i + 1 < links.length)
+                stringBuilder.append("' -link '")
         }
-
-        cmd('git', 'add', '-A')
-
-        def json = new JsonSlurper().parseText(new URL("https://api.github.com/repos/RAnders00/Kayon/git/commits/${System.getenv('CIRCLE_SHA1')}?access_token=${System.getenv("KAYONBOT_ACCESS_TOKEN")}").text)
-        def message = "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message\nBuild URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}"
-        // http://stackoverflow.com/a/23108169/4464702 and http://jasonnoble.org/2009/04/github-set-authorcommitter.html
-        file("$buildDir/doc-repo-commitmsg").write(message)
-        cmde([GIT_COMMITTER_NAME: 'KayonBot', GIT_COMMITTER_EMAIL: 'rubenanders@hotmail.de', GIT_AUTHOR_NAME: json.author.name, GIT_AUTHOR_EMAIL: json.author.email],
-                'git', 'commit',
-                '-m', "[#${System.getenv("CIRCLE_BUILD_NUM")}] $json.message",
-                '-m', "Build URL: https://circleci.com/gh/RAnders00/Kayon/${System.getenv("CIRCLE_BUILD_NUM")}")
-
-        cmd('git', 'push', 'origin', 'gh-pages')
+        return stringBuilder.toString()
     }
-}
-//endregion
 
-//region Dependency Management
-buildscript {
-    repositories {
-        jcenter()
-        maven { url 'https://plugins.gradle.org/m2/' }
+    tasks.withType(Javadoc) {
+        options.addStringOption('link', buildOptionsString(
+                'https://cdn.rawgit.com/google/guava/036db99cc2d8cee83de0f07ca0664b522fbbeaca/_releases/18.0/api/docs/',
+                'https://docs.oracle.com/javase/8/docs/api/',
+                'https://docs.oracle.com/javase/8/javafx/api/',
+                'https://typesafehub.github.io/config/latest/api/'))
+        options.addStringOption('encoding', 'utf8')
+        options.addStringOption('docencoding', 'utf8')
+        options.addStringOption('charset', 'utf8')
+        options.showFromPrivate()
     }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
-        classpath 'gradle.plugin.edu.sc.seis.gradle:launch4j:1.6.1'
+
+    tasks.withType(Test) {
+        workingDir = "$buildDir/test-results/working-dir"
+        doFirst { workingDir.mkdirs() }
+        systemProperty 'file.encoding', 'utf8'
     }
-}
 
-repositories { jcenter() }
-dependencies {
-    compile 'ch.qos.logback:logback-classic:1.1.3'
-    compile 'org.apache.commons:commons-collections4:4.0'
-    compile 'org.jetbrains:annotations:15.0'
-    compile 'com.google.guava:guava:18.0' // Change version in doc link as well
-    compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'commons-io:commons-io:2.4'
-    compile 'com.h2database:h2:1.4.190'
-    compile 'com.typesafe:config:1.3.0' // Same as for guava
-    compile 'commons-codec:commons-codec:1.10'
-    compile 'net.jcip:jcip-annotations:1.0'
-    compile 'de.jensd:fontawesomefx:8.7'
-//    compile fileTree(dir: 'libs', include: '*.jar')
 
-    testCompile 'junit:junit:4.7'
-    testCompile 'com.github.stefanbirkner:fishbowl:1.3.0'
-}
-//endregion
-
-//region UTF-8
-tasks.withType(JavaCompile) {
-    options.encoding = 'utf8'
-}
-
-tasks.run {
-    workingDir "$buildDir/test-results/working-dir/"
-    doFirst { workingDir.mkdirs() }
-}
-
-String buildOptionsString(String... links) {
-    StringBuilder stringBuilder = new StringBuilder(links.length * 32)
-    for (int i = 0; i < links.length; i++) {
-        stringBuilder.append(links[i])
-        if (i + 1 < links.length)
-            stringBuilder.append("' -link '")
+    task sourcesJar(type: Jar) {
+        from sourceSets.main.allSource
+        classifier 'sources'
+        group 'build'
     }
-    return stringBuilder.toString()
+
+    artifacts {
+        archives sourcesJar
+    }
+
+
 }
-
-tasks.javadoc {
-    options.addStringOption('link', buildOptionsString(
-            'https://cdn.rawgit.com/google/guava/036db99cc2d8cee83de0f07ca0664b522fbbeaca/_releases/18.0/api/docs/',
-            'https://docs.oracle.com/javase/8/docs/api/',
-            'https://docs.oracle.com/javase/8/javafx/api/',
-            'https://typesafehub.github.io/config/latest/api/'))
-    options.addStringOption('encoding', 'utf8')
-    options.addStringOption('docencoding', 'utf8')
-    options.addStringOption('charset', 'utf8')
-    options.showFromPrivate()
-}
-
-tasks.withType(Test) {
-    workingDir = "$buildDir/test-results/working-dir"
-    systemProperty 'file.encoding', 'utf8'
-    doFirst { workingDir.mkdirs() }
-    dependsOn tasks.cleanTest
-}
-
-shadowJar {
-    exclude 'META-INF/LICENSE.txt' // don't include foreign incorrect licenses
-    exclude 'META-INF/NOTICE.txt'
-}
-
-launch4j {
-    if (Objects.equals(System.getenv('CIRCLECI'), 'true'))
-        outfile = "$project.name-$project.version-b${System.getenv('CIRCLE_BUILD_NUM')}-all.exe"
-    else
-        outfile = "$project.name-${project.version}-all.exe"
-    mainClassName = project.mainClassName
-    icon = file('logo/logo.ico')
-    copyConfigurable = project.tasks.shadowJar.outputs.files
-    jar = "lib/${project.tasks.shadowJar.archiveName}"
-}
-tasks.copyL4jLib.dependsOn tasks.shadowJar
-
-//endregion
-
-defaultTasks 'clean', 'jar', 'javadocJar', 'sourcesJar', 'shadowJar', 'distZip'
